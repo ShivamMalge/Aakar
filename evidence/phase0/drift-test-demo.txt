@@ -1,0 +1,28 @@
+=== D7 DRIFT TEST DEMONSTRATION (Phase 0 gate) ===
+Repo: Aakar · branch claude/markdown-review-yog81s · 2026-08-23 17:40 UTC
+
+### 1. Clean tree — the drift check passes
+$ make codegen-check
+pydantic -> services/api/aakar/scenespec/generated.py
+no drift: generated types match the schema
+
+### 2. Edit the schema WITHOUT regenerating
+   raising the hard part cap from 40 to 41 in scenespec.schema.json
+$ git diff --stat -- packages/scenespec/scenespec.schema.json
+ packages/scenespec/scenespec.schema.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+### 3. The CI drift job now FAILS
+$ make codegen-check
+DRIFT: scenespec.schema.json changed but generated types were not regenerated.
+Run `make codegen` and commit the result.
+make: *** [Makefile:28: codegen-check] Error 1
+   make exit status: 2 (non-zero -> CI job fails)
+
+### 4. Revert the schema and regenerate
+Updated 1 path from the index
+$ make codegen-check
+no drift: generated types match the schema
+
+The schema cannot be edited without regenerating the zod and pydantic types.
+D7 is enforced, not documented.

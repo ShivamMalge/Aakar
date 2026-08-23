@@ -1,0 +1,30 @@
+=== PYTEST (services/api, replay mode) ===
+.........................................                                [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/user/Aakar/services/api/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /home/user/Aakar/services/api/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+tests/test_auth.py::test_ensure_owner_is_idempotent
+  /home/user/Aakar/services/api/.venv/lib/python3.12/site-packages/passlib/handlers/argon2.py:716: DeprecationWarning: Accessing argon2.__version__ is deprecated and will be removed in a future release. Use importlib.metadata directly to query for argon2-cffi's packaging metadata.
+    _argon2_cffi.__version__, max_version)
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+41 passed, 3 warnings in 2.85s
+
+=== RUFF / RUFF FORMAT / MYPY --strict ===
+All checks passed!
+18 files already formatted
+Success: no issues found in 18 source files
+
+=== VITEST (apps/web) ===
+ ✓ src/scenespec/generated.test.ts (12 tests) 304ms
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+
+=== TSC + ESLINT ===
+tsc: no errors
+> eslint .
+
+eslint: no errors

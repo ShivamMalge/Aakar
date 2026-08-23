@@ -22,4 +22,9 @@ uv run datamodel-codegen \
   --custom-file-header "$HEADER" \
   --output aakar/scenespec/generated.py 2>&1 | grep -v 'FutureWarning\|warn_deprecated' || true
 
+# datamodel-codegen emits single quotes; `ruff format` (which CI also runs) rewrites them
+# to double. Without this step codegen is not idempotent and the D7 drift job fails on
+# every run for a reason that has nothing to do with the schema.
+uv run ruff format aakar/scenespec/generated.py >/dev/null
+
 echo "pydantic -> services/api/aakar/scenespec/generated.py"

@@ -1,0 +1,16 @@
+=== SQLITE SCHEMA — owner_id on every user-scoped table (D-011) ===
+
+table            owner_id?   columns
+------------------------------------------------------------------------------
+approvals        yes         id, owner_id, spec_version_id, decision, note, created_at
+corpora          yes         id, owner_id, name, created_at
+documents        yes         id, owner_id, corpus_id, filename, content_hash, page_count, storage_path, created_at
+llm_calls        yes         id, owner_id, kind, model, mode, cache_hit, prompt_tokens, completion_tokens, usd, topic_id, request_hash, created_at
+qa_cache_meta    yes         id, owner_id, corpus_id, topic_id, part_id, question, answer_json, vector_id, created_at
+schema_meta      n/a         key, value
+spec_versions    yes         id, owner_id, topic_id, attempt, status, spec_json, critique_json, screenshot_paths, created_at
+topics           yes         id, owner_id, corpus_id, slug, title, created_at
+users            n/a         id, email, password_hash, created_at
+
+user-scoped tables: 7/7 carry owner_id
+qa_cache_meta.corpus_id NOT NULL: True   (D-007 cache scoping)
