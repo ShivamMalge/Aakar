@@ -3,23 +3,20 @@
 Decision log for Aakar, per working rule 4 (*ambiguity protocol: pick the simplest option
 consistent with the spec, log it here, continue*) and rule 9.
 
-**Governing sources:** `aakar-claude-code-prompt.md` (the spec — v1.0) and `phases.md`
-(execution roadmap). On conflict the spec wins; conflicts are recorded here rather than
-resolved silently. Neither document is currently committed to this repository — they should
-be, so that entries below can be diffed against the text they interpret.
+**Governing sources:** `aakar-claude-code-prompt.md` (the spec — v1.1) and `phases.md`
+(execution roadmap), both committed at the repo root as of task 0.0 so the entries below can be
+diffed against the text they interpret. On conflict the spec wins; conflicts are recorded here
+rather than resolved silently.
 
-Entries are `Accepted (pending architect review)` unless stated otherwise: they unblock work
-under rule 4 but none of them override the architect. Open items with no defensible default
-live in `GAPS.md`.
-
-Status: all entries below were logged **before Phase 0 started**, from a read of the two
-source documents. No code exists yet.
+D-001 … D-010 were logged **before Phase 0 started**, from a read of the two source documents,
+and **all were accepted by the architect on 2026-08-23**. D-011 … D-013 record rulings made in
+that same review. Open items live in `GAPS.md`.
 
 ---
 
 ## D-001 — Property-test generator for the SceneSpec compiler: fast-check, not hypothesis
 
-**Status:** Accepted (pending architect review) · **Phase:** 1 · **Spec conflict:** yes
+**Status:** Accepted · **Phase:** 1 · **Spec conflict:** yes
 
 Spec §3 pins `pytest` + `hypothesis`, and §7 Phase 1 requires "compiler is total over
 schema-valid specs (hypothesis-generated specs never crash it)". But §3 also pins the compiler
@@ -60,7 +57,7 @@ SQLite holds only bookkeeping.
 
 ## D-003 — Golden specs use a `["golden"]` provenance sentinel, and are backfilled in Phase 2
 
-**Status:** Accepted (pending architect review) · **Phase:** 1–2 · **Spec conflict:** yes
+**Status:** Accepted · **Phase:** 1–2 · **Spec conflict:** yes
 
 Spec §4 makes `≥1 provenance.chunk_ids` entry a hard schema constraint, and D2 has the
 validator check that the cited chunk ids exist. Phase 1 hand-writes golden specs with no corpus
@@ -83,7 +80,7 @@ quietly hollowing out rule 6. Scheduling the backfill and testing the boundary c
 
 ## D-004 — `/render/{topic_id}` serves unapproved specs only in an explicit draft mode
 
-**Status:** Accepted (pending architect review) · **Phase:** 1 (route shape), 3 (use)
+**Status:** Accepted · **Phase:** 1 (route shape), 3 (use)
 
 D3 screenshots a spec that has not yet passed the human gate, while rule 8 says nothing enters
 the library until the architect approves it. The spec never says how the viewer route reaches an
@@ -92,9 +89,8 @@ unapproved spec.
 **Decision:** the route takes an explicit draft selector —
 `/render/{topic_id}?spec_version={id}&angle=n` — which resolves a specific row in
 `spec_versions` regardless of status. Without that parameter the route serves only the
-`approved` version, and 404s if none exists. Draft mode is gated by the same admin
-authorization as the Phase 3 review UI (see `GAPS.md` G-01: that authorization does not yet have
-a design).
+`approved` version, and 404s if none exists. Draft mode is gated on the **owner session** (D-011)
+— the same check that protects the Phase 3 review UI.
 
 **Rationale:** keeps the approval gate a property of the *default* path, so a missing check
 fails closed. The library, share links and the Phase 4 flow all use the default path and cannot
@@ -121,7 +117,7 @@ violation is committed to git history where it is expensive to remove.
 
 ## D-006 — `importance` is reserved in v1 with no behavior
 
-**Status:** Accepted (pending architect review) · **Phase:** 1
+**Status:** Accepted · **Phase:** 1
 
 `importance: "core" | "secondary"` is defined in §4 and consumed by nothing: no viewer behavior
 in §4, no validator rule, no weighting in D2's completeness check.
@@ -138,7 +134,7 @@ completeness, that is a deliberate change to D2 and should be logged as its own 
 
 ## D-007 — The semantic answer cache is keyed by corpus, not only by (topic, part)
 
-**Status:** Accepted (pending architect review) · **Phase:** 2 · **Spec correction**
+**Status:** Accepted · **Phase:** 2 · **Spec correction**
 
 D4 scopes the cache to `(topic, part)`. Rule 10 makes uploads private and per-user, and rule 6
 requires answers to cite pages in *the user's own* material. Two users who upload different
@@ -159,7 +155,7 @@ headline claim, and the README wording needs to reflect that.
 
 ## D-008 — Groundedness gets a deterministic evidence check, not only a critic judgment
 
-**Status:** Accepted (pending architect review) · **Phase:** 3 · **Spec strengthening**
+**Status:** Accepted · **Phase:** 3 · **Spec strengthening**
 
 D2 splits groundedness into "verify chunk_ids exist" (deterministic) and "the critic judges
 plausibility". As written, the deterministic half only checks that an id string is present in
@@ -181,7 +177,7 @@ for a text-provenance question.
 
 ## D-009 — Playwright runs from `services/api` against the web app
 
-**Status:** Accepted (pending architect review) · **Phase:** 0 (wiring), 1 (harness), 3 (use)
+**Status:** Accepted · **Phase:** 0 (wiring), 1 (harness), 3 (use)
 
 §3 specifies "Playwright against the web viewer's `/render/{topic_id}?angle=n` route" without
 saying which stack drives it. `phases.md` builds the harness in Phase 1 (web) and consumes it
@@ -202,7 +198,7 @@ discovering it in Phase 3 costs a re-plumb during the most expensive phase.
 
 ## D-010 — The schema may still change through the Phase 1 gate, and freezes there
 
-**Status:** Accepted (pending architect review) · **Phase:** 0–1
+**Status:** Accepted · **Phase:** 0–1
 
 Phase 0 authors the schema; Phase 1's stated purpose is to find out whether it is expressive
 enough ("writing these by hand is the point"). Nothing says what happens when Phase 1 proves it
@@ -216,3 +212,89 @@ close until the schema has stopped moving; the Phase 1 gate report states the fi
 **Rationale:** the alternative is discovering a missing geometry type in Phase 1 and treating it
 as a Phase 0 regression, which encourages working around the schema rather than fixing it —
 exactly the failure the golden specs exist to prevent.
+
+
+---
+
+## D-011 — Aakar v1 is single-owner: two principals, `owner_id` everywhere, multi-user is vNext
+
+**Status:** Accepted (architect ruling, 2026-08-23) · **Phase:** 0 · **Resolves:** G-01
+
+The spec assumed per-user privacy without defining a principal, a users table, or an auth
+mechanism (G-01). The architect's ruling: **do not build multi-tenancy.**
+
+**Decision — exactly two principals:**
+
+1. **Owner** — a single authenticated user. All uploads, documents, corpora, drafts and
+   approvals belong to the owner. The admin/review route is simply "is the owner logged in".
+2. **Anonymous share-link reader** — unauthenticated; may view one topic's approved spec and its
+   cached summaries. Nothing else. See D-012 for what this principal may spend.
+
+**Schema:** Phase 0 adds `users`, `documents` and `corpora` tables, and **every user-scoped
+table carries an `owner_id` column from day one** even though only one owner exists — so vNext
+multi-user becomes a policy change rather than a migration.
+
+**Auth library (pinned in §3):** the **API owns the session** — `pyjwt` (HS256 over
+`AAKAR_AUTH_SECRET`) for the session token, `passlib[argon2]` for the owner credential hash, and
+a `require_owner` FastAPI dependency. No auth library on the web side.
+
+**Rationale:** every protected resource — PDFs, chunks, draft specs, cached answers — lives
+behind FastAPI, so the check belongs where the data is. Auth.js was the obvious alternative and
+was rejected: its default v5 session token is a JWE rather than a plain JWS, which makes
+verification from Python awkward, and it would put the authority for the session in the stack
+that holds none of the protected data. A single HS256 cookie minted and verified in one place is
+smaller and harder to get wrong. vNext can swap the credential check for an OAuth provider
+without changing how the API verifies.
+
+**Explicitly vNext:** real multi-user auth, per-user isolation testing beyond the single-owner
+case, and any sharing model richer than one anonymous read-only link.
+
+**Consequence:** unblocks D-004 (draft renders gate on the owner session) and G-05 (the Phase 4
+privacy gate now has something to assert). **D-007 stands unchanged** — one owner can upload two
+chapters on the same topic, so `corpus_id` scoping is still required; single-owner does not make
+the cache key safe.
+
+---
+
+## D-012 — Share links disable free-form chat
+
+**Status:** Accepted (architect ruling, 2026-08-23) · **Phase:** 4 · **Resolves:** G-12
+
+Phase 4's share link is "read-only", but the RAG panel includes free-form chat and a cache miss
+calls the LLM. An anonymous visitor could therefore spend real money from a public URL, in a
+loop, with no account.
+
+**Decision:** anonymous share-link readers get the **cached summary card and suggested questions
+only; free-form chat is disabled**. Suggested questions are pre-generated and cached per
+(corpus, topic, part), so tapping one is a cache read, not a generation.
+
+If chat is ever enabled for share links, it requires **both** a per-link rate limit **and** a
+hard per-link daily spend cap, enforced server-side — not one or the other. That is a vNext
+decision, not a v1 toggle.
+
+**Rationale:** the preferred default from the ruling, and the only option where the spend
+ceiling is structural rather than configured. A rate limit plus cap still leaks money at the cap
+and needs monitoring nobody has scheduled.
+
+**Gate (Phase 4):** a scripted anonymous loop against a share link must produce an `llm_calls`
+delta of zero.
+
+---
+
+## D-013 — Share links pin a `spec_version`; revision invalidates renamed and removed parts
+
+**Status:** Accepted (architect ruling, 2026-08-23) · **Phase:** 4 · **Resolves:** G-07
+
+Neither document said what happens when an already-approved topic is regenerated. D4's "generate
+once per topic; serve forever" assumes revision never happens.
+
+**Decision:**
+1. A share link **pins the `spec_version` it was created from**. A revision does not silently
+   change what an existing reader sees.
+2. Revising an approved spec **invalidates cached answers and summary cards for parts that were
+   renamed or removed**; parts surviving unchanged keep their cache.
+
+**Rationale:** the cache and summary cards are keyed on part identity (D-007), so a rename
+silently orphans or misattaches cached answers — the failure is invisible and serves stale text
+under a new label. Pinning the version keeps a shared URL stable, which is the only thing a
+share link promises.
