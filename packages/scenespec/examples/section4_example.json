@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "topic": "human_eye",
+  "title": "The Human Eye",
+  "parts": [
+    {
+      "id": "eyeball",
+      "name": "Eyeball",
+      "aliases": ["globe"],
+      "geometry": { "type": "sphere", "radius": 1.0 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#f6f2ea", "opacity": 0.35, "roughness": 0.6 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"], "evidence": "…the eyeball is a roughly spherical organ…" }
+    },
+    {
+      "id": "lens",
+      "name": "Lens",
+      "aliases": ["crystalline lens"],
+      "parent_id": "eyeball",
+      "geometry": { "type": "lathe", "profile": [[0, -0.4], [0.55, 0], [0, 0.4]], "segments": 48 },
+      "transform": { "position": [0.6, 0, 0], "rotation": [0, 0, 90], "scale": [1, 1, 0.55] },
+      "material": { "color": "#cfe8ff", "opacity": 0.85, "roughness": 0.3 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"], "evidence": "…the biconvex lens focuses light…" }
+    }
+  ],
+  "cutaway": { "enabled": true, "plane": { "normal": [0, 0, 1], "constant": 0 } },
+  "camera_hint": { "position": [3, 2, 4], "look_at": [0, 0, 0] }
+}

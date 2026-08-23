@@ -1,0 +1,94 @@
+// Mirror of services/api/tests/test_scenespec_schema.py. Both stacks are generated from
+// the same JSON Schema (D7), so both must reject the same specs — a constraint enforced
+// on only one side is the drift this schema exists to prevent.
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { describe, expect, it } from "vitest";
+
+import { parseSceneSpec } from "./index";
+
+const EXAMPLE = resolve(__dirname, "../../../../packages/scenespec/examples/section4_example.json");
+
+function example(): Record<string, any> {
+  return JSON.parse(readFileSync(EXAMPLE, "utf8"));
+}
+
+describe("SceneSpec zod schema", () => {
+  it("accepts the example printed in spec §4", () => {
+    const result = parseSceneSpec(example());
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.spec.parts).toHaveLength(2);
+  });
+
+  it("rejects more than 40 parts", () => {
+    const spec = example();
+    spec.parts = Array.from({ length: 41 }, (_, i) => ({ ...spec.parts[0], id: `p${i}` }));
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("rejects a part with no provenance (Rule 6)", () => {
+    const spec = example();
+    delete spec.parts[0].provenance;
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("rejects empty chunk_ids", () => {
+    const spec = example();
+    spec.parts[0].provenance.chunk_ids = [];
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("rejects a lathe profile with fewer than 3 points", () => {
+    const spec = example();
+    spec.parts[1].geometry.profile = [
+      [0, -0.4],
+      [0.55, 0],
+    ];
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("rejects non-hex colors", () => {
+    const spec = example();
+    spec.parts[0].material.color = "cornflowerblue";
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("rejects geometry outside the closed vocabulary", () => {
+    const spec = example();
+    spec.parts[0].geometry = { type: "csg_subtract", a: "x", b: "y" };
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("rejects invented fields rather than dropping them", () => {
+    const spec = example();
+    spec.parts[0].glow_intensity = 3;
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("enforces numeric bounds", () => {
+    const spec = example();
+    spec.parts[0].geometry.radius = 0;
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("clamps opacity to the unit range", () => {
+    const spec = example();
+    spec.parts[0].material.opacity = 1.4;
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("accepts the reserved `golden` chunk id (D-003)", () => {
+    const spec = example();
+    spec.parts[0].provenance.chunk_ids = ["golden"];
+    expect(parseSceneSpec(spec).ok).toBe(true);
+  });
+
+  it("reports actionable paths, not just a boolean", () => {
+    const spec = example();
+    spec.parts[0].material.color = "nope";
+    const result = parseSceneSpec(spec);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.join(" ")).toContain("parts.0.material.color");
+  });
+});

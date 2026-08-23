@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aakar.dev/schemas/scenespec-1.0.json",
+  "title": "SceneSpec",
+  "description": "Declarative description of a labeled, clickable 3D model built from a closed vocabulary of parametric geometry. The LLM emits this and nothing else (spec Rule 5). Constraints expressible in JSON Schema are enforced here; the three that are not — unique part ids, parent references resolving to an existing part, and the parent graph being acyclic — are enforced by the deterministic validator on both stacks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "topic", "title", "parts"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Bumped whenever the schema changes; the drift test (D7) keeps generated types in step."
+    },
+    "topic": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{2,64}$",
+      "description": "Stable slug, e.g. human_eye."
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "parts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "description": "Hard cap of 40 parts (spec §4). Uniqueness of ids is checked by the validator, not here.",
+      "items": { "$ref": "#/$defs/Part" }
+    },
+    "cutaway": { "$ref": "#/$defs/Cutaway" },
+    "camera_hint": { "$ref": "#/$defs/CameraHint" }
+  },
+  "$defs": {
+    "Vec3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "number", "minimum": -1000, "maximum": 1000 }
+    },
+    "Vec2": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number", "minimum": -1000, "maximum": 1000 }
+    },
+    "PartId": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{1,48}$"
+    },
+    "HexColor": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "description": "Colors are hex only (spec §4)."
+    },
+    "Sphere": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "radius"],
+      "properties": {
+        "type": { "const": "sphere" },
+        "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
+      }
+    },
+    "Box": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "w", "h", "d"],
+      "properties": {
+        "type": { "const": "box" },
+        "w": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "h": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "d": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
+      }
+    },
+    "Cylinder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "r_top", "r_bottom", "height"],
+      "properties": {
+        "type": { "const": "cylinder" },
+        "r_top": { "type": "number", "minimum": 0, "maximum": 100 },
+        "r_bottom": { "type": "number", "minimum": 0, "maximum": 100 },
+        "height": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "open_ended": { "type": "boolean", "default": false }
+      }
+    },
+    "Cone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "radius", "height"],
+      "properties": {
+        "type": { "const": "cone" },
+        "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "height": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
+      }
+    },
+    "Torus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "radius", "tube"],
+      "properties": {
+        "type": { "const": "torus" },
+        "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "tube": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
+      }
+    },
+    "Capsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "radius", "length"],
+      "properties": {
+        "type": { "const": "capsule" },
+        "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "length": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
+      }
+    },
+    "Tube": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "path", "radius"],
+      "description": "Nerves, vessels, helix strands.",
+      "properties": {
+        "type": { "const": "tube" },
+        "path": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 256,
+          "items": { "$ref": "#/$defs/Vec3" }
+        },
+        "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "closed": { "type": "boolean", "default": false }
+      }
+    },
+    "Lathe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "profile"],
+      "description": "Lenses, vases, eyeball cross-sections. A profile needs at least 3 points to sweep a surface.",
+      "properties": {
+        "type": { "const": "lathe" },
+        "profile": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 256,
+          "items": { "$ref": "#/$defs/Vec2" }
+        },
+        "segments": { "type": "integer", "minimum": 3, "maximum": 256, "default": 32 }
+      }
+    },
+    "Extrude": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "shape", "depth"],
+      "properties": {
+        "type": { "const": "extrude" },
+        "shape": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 256,
+          "items": { "$ref": "#/$defs/Vec2" }
+        },
+        "depth": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
+      }
+    },
+    "Geometry": {
+      "description": "Closed vocabulary (spec §4). Ellipsoids are a sphere with non-uniform scale. CSG/booleans are out of scope for v1.",
+      "oneOf": [
+        { "$ref": "#/$defs/Sphere" },
+        { "$ref": "#/$defs/Box" },
+        { "$ref": "#/$defs/Cylinder" },
+        { "$ref": "#/$defs/Cone" },
+        { "$ref": "#/$defs/Torus" },
+        { "$ref": "#/$defs/Capsule" },
+        { "$ref": "#/$defs/Tube" },
+        { "$ref": "#/$defs/Lathe" },
+        { "$ref": "#/$defs/Extrude" }
+      ]
+    },
+    "Transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": { "$ref": "#/$defs/Vec3" },
+        "rotation": {
+          "description": "Euler degrees, XYZ order.",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number", "minimum": -360, "maximum": 360 }
+        },
+        "scale": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
+        }
+      }
+    },
+    "Material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["color"],
+      "properties": {
+        "color": { "$ref": "#/$defs/HexColor" },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1, "default": 1 },
+        "roughness": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.5 }
+      }
+    },
+    "Provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chunk_ids"],
+      "description": "Mandatory (spec Rule 6). 'golden' is a reserved id for the hand-written Phase 1 specs; Phase 2 task 2.9 backfills real chunk ids and a boundary test forbids the sentinel outside specs/golden/ (D-003).",
+      "properties": {
+        "chunk_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "type": "string", "minLength": 1, "maxLength": 64 }
+        },
+        "evidence": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Quoted from the cited chunk. The validator matches it against the chunk text (D-008)."
+        }
+      }
+    },
+    "Part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "geometry", "material", "provenance"],
+      "properties": {
+        "id": { "$ref": "#/$defs/PartId" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "aliases": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "description": "Drives part-scoped retrieval (D5)."
+        },
+        "parent_id": {
+          "description": "Optional. The validator checks it resolves to an existing part and that the parent graph is acyclic.",
+          "$ref": "#/$defs/PartId"
+        },
+        "geometry": { "$ref": "#/$defs/Geometry" },
+        "transform": { "$ref": "#/$defs/Transform" },
+        "material": { "$ref": "#/$defs/Material" },
+        "clip_exempt": { "type": "boolean", "default": false },
+        "importance": {
+          "enum": ["core", "secondary"],
+          "default": "core",
+          "description": "Reserved in v1 — validated, but drives no behavior (D-006)."
+        },
+        "provenance": { "$ref": "#/$defs/Provenance" }
+      }
+    },
+    "Cutaway": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "plane": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["normal", "constant"],
+          "properties": {
+            "normal": { "$ref": "#/$defs/Vec3" },
+            "constant": { "type": "number", "minimum": -1000, "maximum": 1000 }
+          }
+        }
+      }
+    },
+    "CameraHint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position", "look_at"],
+      "properties": {
+        "position": { "$ref": "#/$defs/Vec3" },
+        "look_at": { "$ref": "#/$defs/Vec3" }
+      }
+    }
+  }
+}

@@ -298,3 +298,59 @@ once per topic; serve forever" assumes revision never happens.
 silently orphans or misattaches cached answers — the failure is invisible and serves stale text
 under a new label. Pinning the version keeps a shared URL stable, which is the only thing a
 share link promises.
+
+---
+
+## D-014 — Zod v4 on the web side
+
+**Status:** Accepted · **Phase:** 0 · **Taken during implementation**
+
+`json-schema-to-zod` 2.8.1 emits zod v4 idioms (`z.core.$ZodIssue` in the `oneOf`
+`superRefine` block). With the originally pinned zod v3.23, `tsc --noEmit` failed on the
+generated file — the schema validated at runtime but the project would not typecheck.
+
+**Decision:** the web stack uses `zod@^4`.
+
+**Rationale:** the generator and the runtime have to agree, and the generated file is the
+one thing that must not be hand-patched (D7). Downgrading the generator instead would pin
+us to an older codegen for a schema we expect to revise through Phase 1 (D-010). Nothing
+else in the project consumed zod yet, so the cost was zero.
+
+---
+
+## D-015 — The schema is dereferenced before zod codegen
+
+**Status:** Accepted · **Phase:** 0 · **Taken during implementation**
+
+`json-schema-to-zod` does not follow `$ref` into `$defs`. Fed the schema directly it
+emitted `z.any()` for `parts`, `cutaway` and `camera_hint` — a zod schema that typechecks,
+runs, and validates **nothing**. That would have satisfied the Phase 0 gate while quietly
+removing every part-level constraint from the web stack.
+
+**Decision:** `packages/scenespec/codegen.mjs` fully inlines `$defs` before generating.
+The schema has no cycles — `parent_id` is a string, not a `$ref` to `Part` — so inlining
+terminates; the deref function raises on both an unresolved `$ref` and a cyclic one rather
+than falling back to `any`.
+
+**Rationale:** D7 says the schema is the enforced single source of truth *on both stacks*.
+A generator that silently degrades to `any` breaks that while looking healthy, which is
+the worst failure mode available. The mirror test suite
+(`apps/web/src/scenespec/generated.test.ts`) exists to catch a regression here: it asserts
+the zod side rejects exactly what the pydantic side rejects.
+
+---
+
+## D-016 — `AAKAR_AUTH_SECRET` must be at least 32 bytes
+
+**Status:** Accepted · **Phase:** 0 · **Taken during implementation**
+
+PyJWT emitted `InsecureKeyLengthWarning` during the auth tests: the dev default was 21
+bytes, under the 32-byte floor RFC 7518 §3.2 sets for HS256.
+
+**Decision:** `Settings.from_env()` refuses to construct with a shorter secret. The
+`.env.example` default is long enough to be valid and named so it cannot be mistaken for
+production-ready.
+
+**Rationale:** a weak session key is exactly the kind of thing that ships because it only
+ever produced a warning. Failing at boot costs one line and makes the floor
+non-negotiable.
