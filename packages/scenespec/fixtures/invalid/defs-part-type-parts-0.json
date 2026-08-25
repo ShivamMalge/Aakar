@@ -1,0 +1,37 @@
+{
+  "violates": "type",
+  "pointer": "#/$defs/Part",
+  "target": "parts.0",
+  "note": "wrong JSON type, expected object",
+  "spec": {
+    "schema_version": "1.0",
+    "topic": "conformance",
+    "title": "Conformance fixture",
+    "parts": [
+      "not-an-object"
+    ],
+    "cutaway": {
+      "enabled": true,
+      "plane": {
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "constant": 0
+      }
+    },
+    "camera_hint": {
+      "position": [
+        3,
+        2,
+        4
+      ],
+      "look_at": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "violates": "required",
+  "pointer": "#",
+  "target": "parts",
+  "note": "required field 'parts' removed",
+  "spec": {
+    "schema_version": "1.0",
+    "topic": "conformance",
+    "title": "Conformance fixture",
+    "cutaway": {
+      "enabled": true,
+      "plane": {
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "constant": 0
+      }
+    },
+    "camera_hint": {
+      "position": [
+        3,
+        2,
+        4
+      ],
+      "look_at": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

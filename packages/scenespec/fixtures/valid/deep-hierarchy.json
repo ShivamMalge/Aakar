@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0",
+  "topic": "deep_hierarchy",
+  "title": "Nested parts",
+  "parts": [
+    {
+      "id": "root",
+      "name": "Root",
+      "geometry": {
+        "type": "sphere",
+        "radius": 2
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "level_1",
+      "name": "Level 1",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1.8
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "parent_id": "root"
+    },
+    {
+      "id": "level_2",
+      "name": "Level 2",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1.6
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "parent_id": "level_1"
+    },
+    {
+      "id": "level_3",
+      "name": "Level 3",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1.4
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "parent_id": "level_2"
+    },
+    {
+      "id": "level_4",
+      "name": "Level 4",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1.2
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "parent_id": "level_3"
+    },
+    {
+      "id": "level_5",
+      "name": "Level 5",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1.0
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "parent_id": "level_4"
+    },
+    {
+      "id": "level_6",
+      "name": "Level 6",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.7999999999999998
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "parent_id": "level_5"
+    },
+    {
+      "id": "level_7",
+      "name": "Level 7",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.5999999999999999
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "parent_id": "level_6"
+    }
+  ]
+}

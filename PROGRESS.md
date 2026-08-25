@@ -51,6 +51,178 @@ Date: 2026-08-23 · Branch: `claude/markdown-review-yog81s`
 - **`npm audit` reports 10 vulnerabilities** in the transitive dev tree. None are in
   runtime dependencies. Triage before Phase 4, not now.
 
+### Evidence
+
+Backfilled 2026-08-25. Phase 0 was reported complete without this, which is the reason it
+is being added now rather than at the gate.
+
+**Two important caveats, stated before the output rather than after it.**
+
+1. The terminal output below is from **HEAD (`737f64f`, Phase 1 complete)**, not from the
+   Phase 0 commit. It therefore shows 513 pytest tests, not Phase 0's 41. Evidence for the
+   Phase 0 commit itself is the CI run, which is linked below and does pin `8ec01d05`.
+2. At the Phase 0 commit, `make codegen-check` **could not run on this machine at all**.
+   `codegen.mjs` spawned `apps/web/node_modules/.bin/json-schema-to-zod`, which on Windows
+   is an extensionless shim that `execFileSync` cannot execute:
+
+   ```
+   $ git show 8ec01d0:packages/scenespec/codegen.mjs | grep -n 'bin/json-schema-to-zod'
+   44:const cli = resolve(repoRoot, "apps/web/node_modules/.bin/json-schema-to-zod");
+
+   exists: true
+   spawn FAILED: ENOENT - spawnSync C:\...
+ode_modules\.bin\json-schema-to-zod ENOENT
+   ```
+
+   So the D7 drift test — a Phase 0 gate item — was only ever verified in Linux CI. It was
+   fixed in Phase 1; that fix is why the run below succeeds.
+
+#### Raw terminal output
+
+Also committed verbatim at [`evidence/phase0/gate-commands.txt`](evidence/phase0/gate-commands.txt).
+
+```console
+Captured at HEAD 737f64f on 2026-08-25T13:11:45Z · Windows 11, Git Bash, node v24.13.1, Python 3.12.14
+
+$ make codegen-check
+./packages/scenespec/codegen.sh
+zod   -> C:\Users\shiva\Desktop\Aakar\Aakar\apps\web\src\scenespec\generated.ts
+pydantic -> services/api/aakar/scenespec/generated.py
+warning: in the working copy of 'apps/web/src/scenespec/generated.ts', LF will be replaced by CRLF the next time Git touches it
+no drift: generated types match the schema
+$? = 0
+
+$ cd services/api && AAKAR_PROVIDER_MODE=replay uv run pytest -q
+........................................................................ [ 14%]
+........................................................................ [ 28%]
+........................................................................ [ 42%]
+........................................................................ [ 56%]
+........................................................................ [ 70%]
+........................................................................ [ 84%]
+........................................................................ [ 98%]
+.........                                                                [100%]
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\shiva\Desktop\Aakar\Aakar\services\api\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/test_auth.py::test_ensure_owner_is_idempotent
+  C:\Users\shiva\Desktop\Aakar\Aakar\services\api\.venv\Lib\site-packages\passlib\handlers\argon2.py:716: DeprecationWarning: Accessing argon2.__version__ is deprecated and will be removed in a future release. Use importlib.metadata directly to query for argon2-cffi's packaging metadata.
+    _argon2_cffi.__version__, max_version)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+513 passed, 2 warnings in 7.62s
+$? = 0
+
+$ cd apps/web && npx tsc --noEmit
+$? = 0   (no output is a clean typecheck)
+
+$ docker compose config
+name: aakar
+services:
+  qdrant:
+    container_name: aakar-qdrant
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333' || exit 1
+      timeout: 3s
+      interval: 5s
+      retries: 12
+      start_period: 10s
+    image: qdrant/qdrant:v1.12.1
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 6333
+        published: "6333"
+        protocol: tcp
+      - mode: ingress
+        target: 6334
+        published: "6334"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: C:\Users\shiva\Desktop\Aakar\Aakar\data\qdrant
+        target: /qdrant/storage
+        bind: {}
+networks:
+  default:
+    name: aakar_default
+$? = 0
+```
+
+#### CI
+
+Run **32694854874** — workflow `CI`, event `push`, branch `main`, commit
+`8ec01d05bca29e1c17572df944d339bf68b8c40c` (the Phase 0 gate commit), conclusion
+**success**.
+
+<https://github.com/ShivamMalge/Aakar/actions/runs/32694854874>
+
+| job | status | conclusion |
+| --- | --- | --- |
+| `api (ruff + mypy + pytest)` | completed | success |
+| `web (eslint + tsc + vitest)` | completed | success |
+| `codegen drift (D7)` | completed | success |
+
+The same three jobs also passed on the same SHA on branch `claude/markdown-review-yog81s`
+(run [32655674007](https://github.com/ShivamMalge/Aakar/actions/runs/32655674007)). A third
+run against that SHA, [32694859587](https://github.com/ShivamMalge/Aakar/actions/runs/32694859587),
+is Dependabot's `Graph Update: uv` — not this workflow, listed so the run history reconciles.
+
+**Not yet evidenced:** `docker compose config` validates the file, but the Qdrant
+healthcheck still has not been exercised against a running container — the caveat recorded
+when Phase 0 closed stands, and Phase 2 is where it has to be settled.
+
+
+### Backfilled after the gate (2026-08-25)
+
+Requested by the architect on the grounds that Phase 0's gate was never actually passed.
+
+- **Cross-validator conformance corpus** — `packages/scenespec/fixtures/`. 6 valid + 220
+  invalid fixtures, run through pydantic (`tests/test_conformance.py`) and zod
+  (`src/scenespec/conformance.test.ts`). Both must agree on every fixture; a divergence
+  fails whichever side is wrong. Wired into CI as named steps in the `api` and `web` jobs.
+
+  The invalid fixtures are **derived from the schema**, not from a hand-kept list:
+  `generate.py` walks `scenespec.schema.json`, enumerates all 190 constraints it declares,
+  and violates each one. `test_every_schema_constraint_has_a_fixture` fails if a constraint
+  gains no fixture, so the corpus cannot fall behind the schema.
+
+  This exists because `codegen-check` compares generated **bytes** — a faithfully
+  regenerated but vacuous validator passes drift while validating nothing, which is exactly
+  what D-015 was and it was caught by reading the file. Measured against the corpus, the
+  D-015 shape (`parts: z.array(z.any())`) accepts **211 of 220** invalid fixtures while
+  accepting all 6 valid ones: it would have looked healthy and failed 211 corpus tests.
+
+- **Cassette hermeticity** — `tests/test_cassette_hermeticity.py`. A replay miss raises
+  `CassetteMiss` for chat, VLM and embeddings, and does not reach an inner provider *even
+  when one is supplied*, which is the case where a fallthrough would cost real money.
+
+- **Budget preflight** — `tests/test_budget_guard.py`. The guard is driven to an actual
+  refusal with a spy provider asserting zero invocations. **It also records the gap:**
+  `CostLedger` is not wired into `CassetteProvider`, so nothing calls `preflight`
+  automatically. The tests prove the guard refuses when a call site invokes it — not that
+  every call path does, because no call path does yet. Phase 2 is the first phase allowed
+  to spend, so that is the boundary at which this stops being theoretical.
+
+- **Owner scoping** — `tests/test_owner_scoping.py`. `owner_id` is asserted NOT NULL on
+  exactly the seven registered tables, and any non-global table without it fails. All four
+  tripwires were verified by negative control (an 8th table with no `owner_id`, with a
+  nullable one, an unregistered one, and a new route) — each fails as intended.
+
+  **Cross-owner route isolation could not be tested: no route serves an owner-scoped
+  resource yet.** The whole surface is `/healthz`, `/auth/{login,logout,me}` and FastAPI's
+  docs endpoints; none take a resource id. `test_no_route_serves_an_owner_scoped_resource`
+  pins that surface so the first owner-scoped route cannot land without its 404 assertions.
+
+- **Referential constraints (parent resolution, unique names, single root)** — reported to
+  the architect, not implemented. See the answer recorded against the request; the decision
+  on where that layer lives is the architect's.
+
 ---
 
 ## Phase 1 — Compiler + viewer, zero LLM · **complete, awaiting approval**

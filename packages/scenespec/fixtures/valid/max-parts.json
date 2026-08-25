@@ -1,0 +1,647 @@
+{
+  "schema_version": "1.0",
+  "topic": "max_parts",
+  "title": "Forty parts",
+  "parts": [
+    {
+      "id": "p0",
+      "name": "P0",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p1",
+      "name": "P1",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p2",
+      "name": "P2",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p3",
+      "name": "P3",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p4",
+      "name": "P4",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p5",
+      "name": "P5",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p6",
+      "name": "P6",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p7",
+      "name": "P7",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p8",
+      "name": "P8",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p9",
+      "name": "P9",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p10",
+      "name": "P10",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p11",
+      "name": "P11",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p12",
+      "name": "P12",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p13",
+      "name": "P13",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p14",
+      "name": "P14",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p15",
+      "name": "P15",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p16",
+      "name": "P16",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p17",
+      "name": "P17",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p18",
+      "name": "P18",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p19",
+      "name": "P19",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p20",
+      "name": "P20",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p21",
+      "name": "P21",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p22",
+      "name": "P22",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p23",
+      "name": "P23",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p24",
+      "name": "P24",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p25",
+      "name": "P25",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p26",
+      "name": "P26",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p27",
+      "name": "P27",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p28",
+      "name": "P28",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p29",
+      "name": "P29",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p30",
+      "name": "P30",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p31",
+      "name": "P31",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p32",
+      "name": "P32",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p33",
+      "name": "P33",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p34",
+      "name": "P34",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p35",
+      "name": "P35",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p36",
+      "name": "P36",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p37",
+      "name": "P37",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p38",
+      "name": "P38",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "p39",
+      "name": "P39",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    }
+  ]
+}

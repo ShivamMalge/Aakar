@@ -1,0 +1,35 @@
+{
+  "violates": "minItems",
+  "pointer": "#/properties/parts",
+  "target": "parts",
+  "note": "fewer than minItems 1",
+  "spec": {
+    "schema_version": "1.0",
+    "topic": "conformance",
+    "title": "Conformance fixture",
+    "parts": [],
+    "cutaway": {
+      "enabled": true,
+      "plane": {
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "constant": 0
+      }
+    },
+    "camera_hint": {
+      "position": [
+        3,
+        2,
+        4
+      ],
+      "look_at": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

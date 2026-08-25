@@ -1,0 +1,7 @@
+{
+  "violates": "type",
+  "pointer": "#",
+  "target": "(whole document)",
+  "note": "wrong JSON type, expected object",
+  "spec": "not-an-object"
+}

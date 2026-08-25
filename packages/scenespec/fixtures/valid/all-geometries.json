@@ -1,0 +1,259 @@
+{
+  "schema_version": "1.0",
+  "topic": "all_geometries",
+  "title": "Every geometry type",
+  "parts": [
+    {
+      "id": "g_sphere",
+      "name": "G Sphere",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "sphere"
+      ]
+    },
+    {
+      "id": "g_box",
+      "name": "G Box",
+      "geometry": {
+        "type": "box",
+        "w": 1,
+        "h": 2,
+        "d": 3
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "box"
+      ]
+    },
+    {
+      "id": "g_cylinder",
+      "name": "G Cylinder",
+      "geometry": {
+        "type": "cylinder",
+        "r_top": 0,
+        "r_bottom": 1,
+        "height": 2,
+        "open_ended": true
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "cylinder"
+      ]
+    },
+    {
+      "id": "g_cone",
+      "name": "G Cone",
+      "geometry": {
+        "type": "cone",
+        "radius": 1,
+        "height": 2
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "cone"
+      ]
+    },
+    {
+      "id": "g_torus",
+      "name": "G Torus",
+      "geometry": {
+        "type": "torus",
+        "radius": 2,
+        "tube": 0.5
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "torus"
+      ]
+    },
+    {
+      "id": "g_capsule",
+      "name": "G Capsule",
+      "geometry": {
+        "type": "capsule",
+        "radius": 0.5,
+        "length": 2
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "capsule"
+      ]
+    },
+    {
+      "id": "g_tube",
+      "name": "G Tube",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1
+          ],
+          [
+            2,
+            0,
+            0
+          ]
+        ],
+        "radius": 0.2,
+        "closed": false
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "tube"
+      ]
+    },
+    {
+      "id": "g_lathe",
+      "name": "G Lathe",
+      "geometry": {
+        "type": "lathe",
+        "profile": [
+          [
+            0,
+            -1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "segments": 48
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "lathe"
+      ]
+    },
+    {
+      "id": "g_extrude",
+      "name": "G Extrude",
+      "geometry": {
+        "type": "extrude",
+        "shape": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "depth": 0.5
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      },
+      "aliases": [
+        "extrude"
+      ]
+    }
+  ],
+  "cutaway": {
+    "enabled": true,
+    "plane": {
+      "normal": [
+        0,
+        0,
+        -1
+      ],
+      "constant": 0
+    }
+  },
+  "camera_hint": {
+    "position": [
+      3,
+      2,
+      4
+    ],
+    "look_at": [
+      0,
+      0,
+      0
+    ]
+  }
+}

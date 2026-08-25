@@ -1,0 +1,77 @@
+{
+  "violates": "maxLength",
+  "pointer": "#/$defs/Part/properties/aliases/items",
+  "target": "parts.0.aliases.0",
+  "note": "longer than maxLength 80",
+  "spec": {
+    "schema_version": "1.0",
+    "topic": "conformance",
+    "title": "Conformance fixture",
+    "parts": [
+      {
+        "id": "only_part",
+        "name": "Only Part",
+        "aliases": [
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      }
+    ],
+    "cutaway": {
+      "enabled": true,
+      "plane": {
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "constant": 0
+      }
+    },
+    "camera_hint": {
+      "position": [
+        3,
+        2,
+        4
+      ],
+      "look_at": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

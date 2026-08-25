@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.0",
+  "topic": "b2",
+  "title": "T",
+  "parts": [
+    {
+      "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "name": "Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "geometry": {
+        "type": "sphere",
+        "radius": 100
+      },
+      "material": {
+        "color": "#FFFFFF",
+        "opacity": 0,
+        "roughness": 1
+      },
+      "provenance": {
+        "chunk_ids": [
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        ],
+        "evidence": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "aliases": [
+        "alias 0",
+        "alias 1",
+        "alias 2",
+        "alias 3",
+        "alias 4",
+        "alias 5",
+        "alias 6",
+        "alias 7",
+        "alias 8",
+        "alias 9",
+        "alias 10",
+        "alias 11",
+        "alias 12",
+        "alias 13",
+        "alias 14",
+        "alias 15"
+      ],
+      "transform": {
+        "position": [
+          -1000,
+          1000,
+          0
+        ],
+        "rotation": [
+          -360,
+          360,
+          0
+        ],
+        "scale": [
+          0.001,
+          100,
+          1
+        ]
+      },
+      "clip_exempt": true,
+      "importance": "secondary"
+    },
+    {
+      "id": "y",
+      "name": "Y",
+      "geometry": {
+        "type": "lathe",
+        "profile": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "segments": 256
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    },
+    {
+      "id": "z",
+      "name": "Z",
+      "geometry": {
+        "type": "cylinder",
+        "r_top": 0,
+        "r_bottom": 0,
+        "height": 0.001
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    }
+  ],
+  "cutaway": {
+    "enabled": false,
+    "plane": {
+      "normal": [
+        0,
+        0,
+        1
+      ],
+      "constant": -1000
+    }
+  },
+  "camera_hint": {
+    "position": [
+      1000,
+      -1000,
+      0
+    ],
+    "look_at": [
+      0,
+      0,
+      0
+    ]
+  }
+}

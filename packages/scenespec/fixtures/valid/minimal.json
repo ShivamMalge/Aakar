@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "topic": "minimal",
+  "title": "Minimal",
+  "parts": [
+    {
+      "id": "a",
+      "name": "A",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    }
+  ]
+}

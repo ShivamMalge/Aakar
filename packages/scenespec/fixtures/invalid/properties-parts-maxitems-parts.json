@@ -1,0 +1,1717 @@
+{
+  "violates": "maxItems",
+  "pointer": "#/properties/parts",
+  "target": "parts",
+  "note": "more than maxItems 40",
+  "spec": {
+    "schema_version": "1.0",
+    "topic": "conformance",
+    "title": "Conformance fixture",
+    "parts": [
+      {
+        "id": "p0",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p1",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p2",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p3",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p4",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p5",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p6",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p7",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p8",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p9",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p10",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p11",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p12",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p13",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p14",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p15",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p16",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p17",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p18",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p19",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p20",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p21",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p22",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p23",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p24",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p25",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p26",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p27",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p28",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p29",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p30",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p31",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p32",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p33",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p34",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p35",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p36",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p37",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p38",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p39",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      },
+      {
+        "id": "p40",
+        "name": "Only Part",
+        "aliases": [
+          "sole part"
+        ],
+        "geometry": {
+          "type": "sphere",
+          "radius": 1.0
+        },
+        "transform": {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "material": {
+          "color": "#aabbcc",
+          "opacity": 1,
+          "roughness": 0.5
+        },
+        "clip_exempt": false,
+        "importance": "core",
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ],
+          "evidence": "quoted from the chunk"
+        }
+      }
+    ],
+    "cutaway": {
+      "enabled": true,
+      "plane": {
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "constant": 0
+      }
+    },
+    "camera_hint": {
+      "position": [
+        3,
+        2,
+        4
+      ],
+      "look_at": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}
