@@ -129,6 +129,15 @@ export function Scene(props: SceneProps) {
     applyExplode(scene, plan, explode);
   }, [scene, plan, explode]);
 
+  // A part that responds to a click should look like it does. The interaction probe
+  // reads this back, so "parts are clickable" is checked rather than assumed.
+  useEffect(() => {
+    document.body.style.cursor = hovered !== null ? "pointer" : "auto";
+    return () => {
+      document.body.style.cursor = "auto";
+    };
+  }, [hovered]);
+
   // Hover and selection are viewer state, not spec state — they only tint emissive.
   useEffect(() => {
     for (const [id, { mesh }] of scene.parts) {

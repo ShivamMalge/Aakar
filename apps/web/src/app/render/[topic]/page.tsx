@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
 import { goldenTopics, loadGoldenSpec } from "@/specs/load";
-import { DEFAULT_OPTIONS, Viewer, type ViewerOptions } from "@/viewer/Viewer";
+import { Viewer } from "@/viewer/Viewer";
+import { DEFAULT_OPTIONS, type ViewerOptions } from "@/viewer/options";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 

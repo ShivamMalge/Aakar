@@ -105,6 +105,18 @@ Date: 2026-08-25 · Final `schema_version`: **1.0** (D-018 explains why it did n
   covered it, so it would have rotted silently.
 - **`apps/web/tsconfig.tsbuildinfo`** was tracked. Now ignored.
 
+### Fixed after the first capture round
+
+- **`/render/[topic]` returned 500 once Next rebuilt its client manifest.** `page.tsx` is a
+  server component and was reading `DEFAULT_OPTIONS.cutaway` off an export of `Viewer.tsx`,
+  which is a `"use client"` module — every export of one is a client reference, not a value
+  the server can read. The options moved to `src/viewer/options.ts`, a plain module both
+  sides import. Worth flagging because the earlier screenshots were captured *before* the
+  manifest rebuild surfaced it: the route was already broken while the evidence looked fine.
+  All captures were regenerated after the fix.
+- **Hovering a part did not change the cursor.** The interaction probe reported `auto`,
+  which is what surfaced it; parts now show `pointer`, and the probe asserts it.
+
 ### Known issues carried forward
 
 - **No dev-server guard on `make shots`.** The harness assumes the web app is already up

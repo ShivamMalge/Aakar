@@ -29,8 +29,14 @@ shots: ## Phase 1 gate captures — needs the web app running (1.6, D-009)
 	  --out ../../evidence/phase1 --angle 0 --cutaway
 	cd $(API) && uv run python -m aakar.render.screenshots earth_layers \
 	  --out ../../evidence/phase1 --angle 0 --explode 1
+	# Both G-10 modes on the one topic with real nesting — this pair is the evidence
+	# behind D-017, so it is reproducible rather than a one-off capture.
 	cd $(API) && uv run python -m aakar.render.screenshots animal_cell \
-	  --out ../../evidence/phase1 --angle 0 --explode 0.6
+	  --out ../../evidence/phase1 --angle 0 --explode 0.6 --explode-mode top-level
+	cd $(API) && uv run python -m aakar.render.screenshots animal_cell \
+	  --out ../../evidence/phase1 --angle 0 --explode 0.6 --explode-mode per-part
+	cd $(API) && uv run python -m aakar.render.probe $(GOLDEN) \
+	  --out ../../evidence/phase1/interaction-transcript.txt
 
 codegen: ## Regenerate zod + pydantic from scenespec.schema.json (D7)
 	./packages/scenespec/codegen.sh

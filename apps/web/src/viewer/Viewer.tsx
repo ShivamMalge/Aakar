@@ -9,26 +9,7 @@ import { type ExplodeMode, compile } from "../compiler";
 import type { SceneSpec } from "../scenespec";
 
 import { Scene } from "./Scene";
-
-export type ViewerOptions = {
-  /** Quarter-turn index around Y, so the screenshot harness can name a view (1.6). */
-  angle: number;
-  /** Hide the control chrome — screenshot mode. */
-  shot: boolean;
-  cutaway: boolean;
-  explode: number;
-  explodeMode: ExplodeMode;
-  labels: boolean;
-};
-
-export const DEFAULT_OPTIONS: ViewerOptions = {
-  angle: 0,
-  shot: false,
-  cutaway: false,
-  explode: 0,
-  explodeMode: "top-level",
-  labels: true,
-};
+import { DEFAULT_OPTIONS, type ViewerOptions } from "./options";
 
 function vector(source: readonly number[] | undefined, fallback: [number, number, number]) {
   return new THREE.Vector3(

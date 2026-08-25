@@ -1,0 +1,18 @@
+=== VIEWER INTERACTION PROBE (Phase 1 gate, task 1.2) ===
+
+/render/human_eye
+    before any click   -> Click a part.
+    cursor over canvas -> pointer
+    click at centre    -> selected: Sclera | sclera | sphere | white of the eye, tough outer coat | golden
+
+/render/earth_layers
+    before any click   -> Click a part.
+    cursor over canvas -> pointer
+    click at centre    -> selected: Crust | crust | sphere | outer crust, continental crust, oceanic crust | golden
+
+/render/animal_cell
+    before any click   -> Click a part.
+    cursor over canvas -> pointer
+    click at centre    -> selected: Cell Membrane | cell_membrane | sphere | plasma membrane, plasmalemma | golden
+
+Raycast selection works: a click resolves to a part id and the panel reads it back.
