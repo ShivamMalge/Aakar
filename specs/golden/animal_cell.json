@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0",
+  "topic": "animal_cell",
+  "title": "The Animal Cell",
+  "parts": [
+    {
+      "id": "cell_membrane",
+      "name": "Cell Membrane",
+      "aliases": ["plasma membrane", "plasmalemma"],
+      "geometry": { "type": "sphere", "radius": 1.0 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 0.86, 0.94] },
+      "material": { "color": "#9ec5e8", "opacity": 0.18, "roughness": 0.4 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "cytoplasm",
+      "name": "Cytoplasm",
+      "aliases": ["cytosol", "cell fluid"],
+      "geometry": { "type": "sphere", "radius": 0.96 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 0.86, 0.94] },
+      "material": { "color": "#d8ecf7", "opacity": 0.1, "roughness": 0.35 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "nucleus",
+      "name": "Nucleus",
+      "aliases": ["cell nucleus", "control centre"],
+      "geometry": { "type": "sphere", "radius": 0.33 },
+      "transform": { "position": [-0.2, 0.1, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#8e6bb0", "opacity": 0.7, "roughness": 0.5 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "nuclear_envelope",
+      "name": "Nuclear Envelope",
+      "aliases": ["nuclear membrane"],
+      "parent_id": "nucleus",
+      "geometry": { "type": "sphere", "radius": 0.36 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#6f4f95", "opacity": 0.25, "roughness": 0.45 },
+      "clip_exempt": false,
+      "importance": "secondary",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "nucleolus",
+      "name": "Nucleolus",
+      "aliases": ["nucleoli"],
+      "parent_id": "nucleus",
+      "geometry": { "type": "sphere", "radius": 0.12 },
+      "transform": { "position": [0.09, 0.05, 0.04], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#4a3163", "opacity": 1, "roughness": 0.55 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "rough_er",
+      "name": "Rough Endoplasmic Reticulum",
+      "aliases": ["rough ER", "RER", "granular endoplasmic reticulum"],
+      "geometry": {
+        "type": "tube",
+        "path": [[-0.02, 0.52, 0.12], [0.22, 0.44, 0.06], [0.37, 0.24, 0.0], [0.32, 0.02, -0.06], [0.14, -0.12, -0.1]],
+        "radius": 0.045,
+        "closed": false
+      },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#d98b5f", "opacity": 1, "roughness": 0.65 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "smooth_er",
+      "name": "Smooth Endoplasmic Reticulum",
+      "aliases": ["smooth ER", "SER", "agranular endoplasmic reticulum"],
+      "geometry": {
+        "type": "tube",
+        "path": [[-0.56, 0.08, 0.24], [-0.62, -0.12, 0.18], [-0.46, -0.3, 0.1], [-0.22, -0.36, 0.04]],
+        "radius": 0.04,
+        "closed": false
+      },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#e8b07a", "opacity": 1, "roughness": 0.6 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "golgi_apparatus",
+      "name": "Golgi Apparatus",
+      "aliases": ["Golgi body", "Golgi complex"],
+      "geometry": { "type": "torus", "radius": 0.2, "tube": 0.05 },
+      "transform": { "position": [0.34, -0.42, 0.06], "rotation": [72, 0, 18], "scale": [1, 1, 0.42] },
+      "material": { "color": "#5aa9a3", "opacity": 1, "roughness": 0.5 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "mitochondrion_1",
+      "name": "Mitochondrion",
+      "aliases": ["mitochondria", "powerhouse of the cell"],
+      "geometry": { "type": "capsule", "radius": 0.07, "length": 0.2 },
+      "transform": { "position": [0.5, 0.26, 0.1], "rotation": [0, 0, 34], "scale": [1, 1, 1] },
+      "material": { "color": "#c25b5b", "opacity": 1, "roughness": 0.55 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "mitochondrion_2",
+      "name": "Mitochondrion",
+      "aliases": ["mitochondria", "powerhouse of the cell"],
+      "geometry": { "type": "capsule", "radius": 0.062, "length": 0.18 },
+      "transform": { "position": [-0.12, -0.5, -0.2], "rotation": [0, 0, -52], "scale": [1, 1, 1] },
+      "material": { "color": "#c25b5b", "opacity": 1, "roughness": 0.55 },
+      "clip_exempt": false,
+      "importance": "secondary",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "lysosome",
+      "name": "Lysosome",
+      "aliases": ["suicide bag", "digestive vesicle"],
+      "geometry": { "type": "sphere", "radius": 0.085 },
+      "transform": { "position": [0.58, -0.16, 0.2], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#7fb069", "opacity": 1, "roughness": 0.5 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "vacuole",
+      "name": "Vacuole",
+      "aliases": ["vesicle", "storage vacuole"],
+      "geometry": { "type": "sphere", "radius": 0.15 },
+      "transform": { "position": [-0.5, -0.42, 0.12], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#bfe3f2", "opacity": 0.45, "roughness": 0.3 },
+      "clip_exempt": false,
+      "importance": "secondary",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "centrosome",
+      "name": "Centrosome",
+      "aliases": ["centriole", "microtubule organising centre"],
+      "geometry": { "type": "cylinder", "r_top": 0.05, "r_bottom": 0.05, "height": 0.14, "open_ended": true },
+      "transform": { "position": [0.1, 0.5, -0.24], "rotation": [0, 0, 62], "scale": [1, 1, 1] },
+      "material": { "color": "#9b8ec4", "opacity": 1, "roughness": 0.6 },
+      "clip_exempt": false,
+      "importance": "secondary",
+      "provenance": { "chunk_ids": ["golden"] }
+    }
+  ],
+  "cutaway": { "enabled": true, "plane": { "normal": [0, 0, -1], "constant": 0 } },
+  "camera_hint": { "position": [2.5, 1.7, 2.9], "look_at": [0, 0, 0] }
+}

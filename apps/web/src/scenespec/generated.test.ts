@@ -78,6 +78,33 @@ describe("SceneSpec zod schema", () => {
     expect(parseSceneSpec(spec).ok).toBe(false);
   });
 
+  it("rejects a part with no geometry at all", () => {
+    const spec = example();
+    delete spec.parts[0].geometry;
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("rejects geometry with no discriminating type", () => {
+    const spec = example();
+    spec.parts[0].geometry = { radius: 1 };
+    expect(parseSceneSpec(spec).ok).toBe(false);
+  });
+
+  it("applies geometry defaults, matching pydantic (D-018)", () => {
+    // Before the discriminator landed, the oneOf compiled to z.any().superRefine(),
+    // which validated but threw away the branch's parsed output — so zod applied no
+    // geometry defaults while pydantic applied them all. Same schema, two behaviours.
+    const spec = example();
+    spec.parts[1].geometry = { type: "lathe", profile: [[0, 0], [1, 0], [0, 1]] };
+    const result = parseSceneSpec(spec);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const geometry = result.spec.parts[1]!.geometry;
+      expect(geometry.type).toBe("lathe");
+      if (geometry.type === "lathe") expect(geometry.segments).toBe(32);
+    }
+  });
+
   it("accepts the reserved `golden` chunk id (D-003)", () => {
     const spec = example();
     spec.parts[0].provenance.chunk_ids = ["golden"];

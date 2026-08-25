@@ -28,3 +28,6 @@ coverage/
 .vitest/
 playwright-report/
 test-results/
+
+# typescript incremental build cache
+*.tsbuildinfo

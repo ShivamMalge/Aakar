@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import "./globals.css";
+
 export const metadata = {
   title: "Aakar",
   description: "Syllabus-grounded interactive 3D learning components",

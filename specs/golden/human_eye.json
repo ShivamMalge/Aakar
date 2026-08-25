@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "topic": "human_eye",
+  "title": "The Human Eye",
+  "parts": [
+    {
+      "id": "sclera",
+      "name": "Sclera",
+      "aliases": ["white of the eye", "tough outer coat"],
+      "geometry": { "type": "sphere", "radius": 1.0 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#f6f2ea", "opacity": 0.16, "roughness": 0.65 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "choroid",
+      "name": "Choroid",
+      "aliases": ["vascular layer", "middle layer"],
+      "geometry": { "type": "sphere", "radius": 0.94 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#9a4a4a", "opacity": 0.55, "roughness": 0.7 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "retina",
+      "name": "Retina",
+      "aliases": ["light-sensitive layer", "inner layer"],
+      "geometry": { "type": "sphere", "radius": 0.88 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#ea7f7c", "opacity": 0.8, "roughness": 0.6 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "fovea",
+      "name": "Fovea",
+      "aliases": ["fovea centralis", "yellow spot", "macula"],
+      "parent_id": "retina",
+      "geometry": { "type": "sphere", "radius": 0.07 },
+      "transform": { "position": [-0.86, 0, 0], "rotation": [0, 0, 0], "scale": [0.4, 1, 1] },
+      "material": { "color": "#c9603f", "opacity": 1, "roughness": 0.5 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "vitreous_humour",
+      "name": "Vitreous Humour",
+      "aliases": ["vitreous body", "vitreous chamber"],
+      "geometry": { "type": "sphere", "radius": 0.8 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#dff0f7", "opacity": 0.1, "roughness": 0.2 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "cornea",
+      "name": "Cornea",
+      "aliases": ["transparent front", "corneal dome"],
+      "geometry": {
+        "type": "lathe",
+        "profile": [[0, 0.22], [0.16, 0.19], [0.29, 0.12], [0.38, 0.02], [0.42, -0.06]],
+        "segments": 64
+      },
+      "transform": { "position": [0.82, 0, 0], "rotation": [0, 0, -90], "scale": [1, 1, 1] },
+      "material": { "color": "#cfeaff", "opacity": 0.45, "roughness": 0.12 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "aqueous_humour",
+      "name": "Aqueous Humour",
+      "aliases": ["anterior chamber", "aqueous chamber"],
+      "geometry": { "type": "sphere", "radius": 0.24 },
+      "transform": { "position": [0.72, 0, 0], "rotation": [0, 0, 0], "scale": [0.55, 1, 1] },
+      "material": { "color": "#eaf7ff", "opacity": 0.18, "roughness": 0.15 },
+      "clip_exempt": false,
+      "importance": "secondary",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "iris",
+      "name": "Iris",
+      "aliases": ["coloured ring", "pigmented diaphragm"],
+      "geometry": { "type": "torus", "radius": 0.29, "tube": 0.1 },
+      "transform": { "position": [0.64, 0, 0], "rotation": [0, 90, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#8a5e39", "opacity": 1, "roughness": 0.55 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "pupil",
+      "name": "Pupil",
+      "aliases": ["aperture", "central opening"],
+      "geometry": { "type": "cylinder", "r_top": 0.19, "r_bottom": 0.19, "height": 0.03, "open_ended": false },
+      "transform": { "position": [0.64, 0, 0], "rotation": [0, 0, 90], "scale": [1, 1, 1] },
+      "material": { "color": "#14100e", "opacity": 1, "roughness": 0.9 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "lens",
+      "name": "Lens",
+      "aliases": ["crystalline lens", "biconvex lens"],
+      "geometry": {
+        "type": "lathe",
+        "profile": [[0, -0.15], [0.15, -0.11], [0.26, 0], [0.15, 0.11], [0, 0.15]],
+        "segments": 64
+      },
+      "transform": { "position": [0.52, 0, 0], "rotation": [0, 0, 90], "scale": [1, 1, 1] },
+      "material": { "color": "#cfe8ff", "opacity": 0.78, "roughness": 0.1 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "ciliary_body",
+      "name": "Ciliary Body",
+      "aliases": ["ciliary muscle", "suspensory ring"],
+      "geometry": { "type": "torus", "radius": 0.36, "tube": 0.06 },
+      "transform": { "position": [0.46, 0, 0], "rotation": [0, 90, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#8f6b4f", "opacity": 0.9, "roughness": 0.6 },
+      "clip_exempt": false,
+      "importance": "secondary",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "optic_nerve",
+      "name": "Optic Nerve",
+      "aliases": ["second cranial nerve", "nerve of sight"],
+      "geometry": {
+        "type": "tube",
+        "path": [[-0.84, -0.14, 0], [-1.15, -0.22, 0], [-1.5, -0.34, 0], [-1.85, -0.5, 0]],
+        "radius": 0.09,
+        "closed": false
+      },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#f0e2c8", "opacity": 1, "roughness": 0.7 },
+      "clip_exempt": true,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    }
+  ],
+  "cutaway": { "enabled": true, "plane": { "normal": [0, 0, -1], "constant": 0 } },
+  "camera_hint": { "position": [2.6, 1.6, 3.2], "look_at": [0, 0, 0] }
+}

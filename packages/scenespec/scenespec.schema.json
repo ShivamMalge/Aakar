@@ -55,7 +55,7 @@
       "additionalProperties": false,
       "required": ["type", "radius"],
       "properties": {
-        "type": { "const": "sphere" },
+        "type": { "type": "string", "const": "sphere" },
         "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
       }
     },
@@ -64,7 +64,7 @@
       "additionalProperties": false,
       "required": ["type", "w", "h", "d"],
       "properties": {
-        "type": { "const": "box" },
+        "type": { "type": "string", "const": "box" },
         "w": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
         "h": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
         "d": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
@@ -75,7 +75,7 @@
       "additionalProperties": false,
       "required": ["type", "r_top", "r_bottom", "height"],
       "properties": {
-        "type": { "const": "cylinder" },
+        "type": { "type": "string", "const": "cylinder" },
         "r_top": { "type": "number", "minimum": 0, "maximum": 100 },
         "r_bottom": { "type": "number", "minimum": 0, "maximum": 100 },
         "height": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
@@ -87,7 +87,7 @@
       "additionalProperties": false,
       "required": ["type", "radius", "height"],
       "properties": {
-        "type": { "const": "cone" },
+        "type": { "type": "string", "const": "cone" },
         "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
         "height": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
       }
@@ -97,7 +97,7 @@
       "additionalProperties": false,
       "required": ["type", "radius", "tube"],
       "properties": {
-        "type": { "const": "torus" },
+        "type": { "type": "string", "const": "torus" },
         "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
         "tube": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
       }
@@ -107,7 +107,7 @@
       "additionalProperties": false,
       "required": ["type", "radius", "length"],
       "properties": {
-        "type": { "const": "capsule" },
+        "type": { "type": "string", "const": "capsule" },
         "radius": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
         "length": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
       }
@@ -118,7 +118,7 @@
       "required": ["type", "path", "radius"],
       "description": "Nerves, vessels, helix strands.",
       "properties": {
-        "type": { "const": "tube" },
+        "type": { "type": "string", "const": "tube" },
         "path": {
           "type": "array",
           "minItems": 2,
@@ -135,7 +135,7 @@
       "required": ["type", "profile"],
       "description": "Lenses, vases, eyeball cross-sections. A profile needs at least 3 points to sweep a surface.",
       "properties": {
-        "type": { "const": "lathe" },
+        "type": { "type": "string", "const": "lathe" },
         "profile": {
           "type": "array",
           "minItems": 3,
@@ -150,7 +150,7 @@
       "additionalProperties": false,
       "required": ["type", "shape", "depth"],
       "properties": {
-        "type": { "const": "extrude" },
+        "type": { "type": "string", "const": "extrude" },
         "shape": {
           "type": "array",
           "minItems": 3,
@@ -162,6 +162,7 @@
     },
     "Geometry": {
       "description": "Closed vocabulary (spec §4). Ellipsoids are a sphere with non-uniform scale. CSG/booleans are out of scope for v1.",
+      "discriminator": { "propertyName": "type" },
       "oneOf": [
         { "$ref": "#/$defs/Sphere" },
         { "$ref": "#/$defs/Box" },

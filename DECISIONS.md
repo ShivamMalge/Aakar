@@ -354,3 +354,118 @@ production-ready.
 **Rationale:** a weak session key is exactly the kind of thing that ships because it only
 ever produced a warning. Failing at boot costs one line and makes the floor
 non-negotiable.
+
+---
+
+## D-017 — The exploded view moves top-level parts only, carrying their children
+
+**Status:** Accepted · **Phase:** 1 · **Resolves:** G-10
+
+G-10 left this open by design: §4 computes the exploded view "radially from the assembly
+centroid" while parts form a tree via `parent_id`, and exploding every part from one global
+centroid separates children from parents. The ruling was to make the call in the running
+viewer during 1.4. Both readings were implemented and rendered.
+
+**Decision:** explosion moves **top-level parts only; children ride along inside their parent.**
+`per-part` remains in the code as a named mode because the comparison is worth keeping, but
+`top-level` is the default and the only mode the viewer ships pointed at.
+
+**What the render showed** (`evidence/phase1/animal_cell-angle0-explode0.6-{top-level,per-part}.png`):
+in `per-part`, the nucleolus is pulled to the edge of the nucleus and half out of it. That is
+not a clearer diagram, it is a false one — a nucleolus is *inside* a nucleus, and the same
+happens to the fovea on the retina. In practice `parent_id` encodes containment, so moving a
+child independently of its container always says something untrue.
+
+**Consequence for Phase 3:** the generator should treat `parent_id` as "is contained by", and
+the checklist extractor should prefer parenting containment relationships. A spec that parents
+parts for convenience rather than containment will explode wrongly, and nothing will catch it.
+
+---
+
+## D-018 — The schema declares an OpenAPI-style `discriminator` on `Geometry`; `schema_version` stays 1.0
+
+**Status:** Accepted · **Phase:** 1 · **Taken during implementation**
+
+D-015 stopped the zod side degrading to `z.any()` by dereferencing `$defs`, but the `oneOf`
+still compiled to `z.any().superRefine(...)`. Two consequences neither the Phase 0 gate nor
+its tests could see:
+
+1. `SceneSpec["parts"][number]["geometry"]` inferred as **`any`** — so the compiler switch had
+   no exhaustiveness checking on the one field where a missed case is a missing geometry type.
+2. `superRefine` discards each branch's parse result, so **zod applied no geometry defaults**
+   while pydantic did. A lathe with no `segments` reached the web compiler as `undefined` and
+   the API as `32`. That is exactly the cross-stack drift D7 exists to prevent, and the drift
+   test could not see it because both files were faithfully generated.
+
+**Decision:** `$defs.Geometry` carries `"discriminator": { "propertyName": "type" }`, and each
+branch annotates its tag as `{ "type": "string", "const": "..." }`. `json-schema-to-zod` then
+emits `z.discriminatedUnion("type", [...])` and datamodel-code-generator emits a pydantic
+tagged union (`discriminator="type"`). Both stacks improved from one annotation; neither
+generated file is hand-edited, so D7 is intact.
+
+**`schema_version` stays `"1.0"`.** D-010 says each Phase 1 revision bumps it. This revision
+changes **no validation semantics** — `discriminator` is not a 2020-12 keyword, and a `const`
+string was already a string. No document changes validity in either direction. Bumping would
+have forced an edit to every golden spec and the §4 example to record a difference that does
+not exist. Logged here rather than done silently, because "the schema changed but the version
+did not" is exactly the kind of thing that should never be a silent call.
+
+---
+
+## D-019 — Golden specs omit `provenance.evidence`
+
+**Status:** Accepted · **Phase:** 1 · **Spec interaction:** D-003, D-008
+
+`evidence` is defined in §4 as a quotation *from the cited chunk*, and D-008 has the validator
+match it against that chunk's text. Phase 1 golden specs cite the reserved `["golden"]`
+sentinel (D-003): there is no chunk, so there is nothing to quote.
+
+**Decision:** golden specs set `chunk_ids: ["golden"]` and **omit `evidence` entirely** (the
+schema makes it optional). Phase 2 task 2.9 adds real chunk ids and real quoted evidence
+together, in one pass.
+
+**Rationale:** the alternative is writing plausible textbook sentences into a field whose whole
+contract is "this is quoted from the source". Those strings would sit in the repository looking
+like citations, would survive into screenshots and demos, and D-008's matcher would have
+nothing to check them against. An absent field is honest; a fabricated quotation is not, and
+rule 6 is the one rule the project cannot afford to be loose about.
+
+---
+
+## D-020 — Translucent parts do not write depth
+
+**Status:** Accepted · **Phase:** 1 · **Taken during implementation**
+
+The first render of `human_eye` was a uniform grey ball. Every layered topic in v1's target
+list — eye, cell, Earth's layers — is concentric translucent shells, and with depth writing on,
+whichever shell draws first occludes every shell inside it.
+
+**Decision:** `buildMaterial` sets `depthWrite: opacity >= 1`. Opaque parts are unaffected;
+translucent parts blend rather than occlude.
+
+**Rationale:** this is the difference between the schema looking inexpressive and the schema
+working. It is a known trade — translucent parts no longer self-sort, which can look wrong on a
+single strongly concave translucent part — but v1's vocabulary is convex primitives, where the
+trade is nearly free. Logged because it changes what the Phase 3 VLM critic sees: a critic
+judging the grey-ball render would have reported missing parts that were present all along.
+
+---
+
+## D-021 — A cutaway plane's normal points *away* from the camera it is meant to open
+
+**Status:** Accepted · **Phase:** 1 · **Consequence for Phase 3**
+
+`THREE.Plane(normal, constant)` keeps the half-space where `normal · p + constant >= 0`. The
+first golden specs used `normal: [0, 0, 1]` with a camera on +Z, which discarded the *far*
+hemisphere — a correct clip that is invisible, and indistinguishable in a screenshot from
+clipping being switched off entirely.
+
+**Decision:** golden specs author the cutaway normal pointing away from `camera_hint`
+(`[0, 0, -1]` for a +Z camera). The compiler does not second-guess the authored plane.
+
+**Rationale:** having the viewer flip the normal toward the camera would make the rendered
+result depend on camera state, so the same spec would clip differently as a reader orbits —
+and D1 makes the compiler's output a function of the spec alone. The cost is that this is an
+authoring rule a generator can get wrong. **Phase 3 must state it in the generation prompt**,
+and the critic should be able to see the difference — a cutaway that opens nothing looks
+identical to no cutaway at all.

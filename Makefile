@@ -6,7 +6,7 @@ API := services/api
 WEB := apps/web
 
 .PHONY: help install codegen codegen-check dev dev-api dev-web test test-api test-web \
-        lint typecheck browser up down clean
+        lint typecheck browser shots up down clean
 
 help: ## List targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-14s\033[0m %s\n",$$1,$$2}'
@@ -16,7 +16,21 @@ install: ## Install both stacks
 	cd $(WEB) && npm install
 
 browser: ## Install the Playwright browser the Phase 3 critic drives (D-009)
-	cd $(WEB) && npx playwright install --with-deps chromium
+	# D-009 drives Playwright from services/api, so the browser is installed by the
+	# stack that launches it. Node and Python share one browser cache.
+	cd $(API) && uv run playwright install chromium
+
+GOLDEN := human_eye earth_layers animal_cell
+
+shots: ## Phase 1 gate captures — needs the web app running (1.6, D-009)
+	cd $(API) && uv run python -m aakar.render.screenshots $(GOLDEN) \
+	  --out ../../evidence/phase1 --angle 0 --angle 1
+	cd $(API) && uv run python -m aakar.render.screenshots earth_layers human_eye \
+	  --out ../../evidence/phase1 --angle 0 --cutaway
+	cd $(API) && uv run python -m aakar.render.screenshots earth_layers \
+	  --out ../../evidence/phase1 --angle 0 --explode 1
+	cd $(API) && uv run python -m aakar.render.screenshots animal_cell \
+	  --out ../../evidence/phase1 --angle 0 --explode 0.6
 
 codegen: ## Regenerate zod + pydantic from scenespec.schema.json (D7)
 	./packages/scenespec/codegen.sh

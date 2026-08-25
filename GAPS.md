@@ -151,7 +151,7 @@ table imply more than it shows.
 ---
 
 ## G-10 — Exploded view versus the parent/child hierarchy · **low**
-### → **Open by design** · decide in task 1.4, log in `DECISIONS.md`
+### → **Resolved** by D-017 · closed in Phase 1
 
 §4 computes the exploded view "radially from the assembly centroid", while parts form a tree via
 `parent_id`. Exploding every part from a single global centroid separates children from parents:
@@ -161,6 +161,14 @@ an eyeball).
 **Ruling:** the implementer's call, made in the running viewer during 1.4 — top-level parts only,
 carrying children with them, or every part independently. Whichever is picked gets logged. This
 is a visual judgment that cannot be made well on paper.
+
+**Outcome (2026-08-25, D-017):** both modes were implemented and rendered. **Top-level parts
+only.** `per-part` pulls the nucleolus to the edge of the nucleus and half outside it — the
+exploded view stops being a clearer diagram and becomes a false one. In practice `parent_id`
+encodes containment, so a child must never leave its parent. Captures for both modes are in
+`evidence/phase1/`. This produced a Phase 3 consequence, recorded in D-017: the generator has to
+treat `parent_id` as "is contained by", because nothing downstream catches a spec that parents
+parts for convenience.
 
 ---
 

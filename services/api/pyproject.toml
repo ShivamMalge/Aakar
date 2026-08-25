@@ -22,6 +22,10 @@ dev = [
     "ruff>=0.7",
     "mypy>=1.13",
     "datamodel-code-generator>=0.26",
+    # D-009: the generation pipeline drives Playwright from here against the web app.
+    # The Phase 1 screenshot harness is a thin CLI over the same code path the Phase 3
+    # critic uses, so gate captures and critic captures cannot drift apart.
+    "playwright>=1.48",
 ]
 
 [build-system]

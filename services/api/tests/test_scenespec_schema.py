@@ -110,6 +110,26 @@ def test_opacity_is_clamped_to_unit_range(spec: dict[str, Any]) -> None:
         SceneSpec.model_validate(spec)
 
 
+def test_missing_geometry_is_rejected(spec: dict[str, Any]) -> None:
+    del spec["parts"][0]["geometry"]
+    with pytest.raises(ValidationError):
+        SceneSpec.model_validate(spec)
+
+
+def test_geometry_without_a_type_tag_is_rejected(spec: dict[str, Any]) -> None:
+    spec["parts"][0]["geometry"] = {"radius": 1}
+    with pytest.raises(ValidationError):
+        SceneSpec.model_validate(spec)
+
+
+def test_geometry_defaults_are_applied(spec: dict[str, Any]) -> None:
+    """Mirrors the zod side (D-018) — both stacks must default `segments` to 32."""
+    spec["parts"][1]["geometry"] = {"type": "lathe", "profile": [[0, 0], [1, 0], [0, 1]]}
+    parsed = SceneSpec.model_validate(spec)
+    geometry = parsed.parts[1].geometry.root
+    assert getattr(geometry, "segments", None) == 32
+
+
 def test_golden_sentinel_is_accepted(spec: dict[str, Any]) -> None:
     """D-003: Phase 1 has no corpus, so `golden` is a reserved chunk id until 2.9 backfills."""
     spec["parts"][0]["provenance"]["chunk_ids"] = ["golden"]

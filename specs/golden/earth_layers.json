@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "topic": "earth_layers",
+  "title": "The Layers of the Earth",
+  "parts": [
+    {
+      "id": "crust",
+      "name": "Crust",
+      "aliases": ["outer crust", "continental crust", "oceanic crust"],
+      "geometry": { "type": "sphere", "radius": 1.0 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#6b4423", "opacity": 0.45, "roughness": 0.85 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "upper_mantle",
+      "name": "Upper Mantle",
+      "aliases": ["asthenosphere", "outer mantle"],
+      "geometry": { "type": "sphere", "radius": 0.95 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#b5523a", "opacity": 0.7, "roughness": 0.75 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "lower_mantle",
+      "name": "Lower Mantle",
+      "aliases": ["mesosphere", "inner mantle"],
+      "geometry": { "type": "sphere", "radius": 0.84 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#c96f3f", "opacity": 0.9, "roughness": 0.7 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "outer_core",
+      "name": "Outer Core",
+      "aliases": ["liquid core", "molten outer core"],
+      "geometry": { "type": "sphere", "radius": 0.55 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#e89b3c", "opacity": 1, "roughness": 0.45 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    },
+    {
+      "id": "inner_core",
+      "name": "Inner Core",
+      "aliases": ["solid core", "iron core"],
+      "geometry": { "type": "sphere", "radius": 0.25 },
+      "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+      "material": { "color": "#f6dd8f", "opacity": 1, "roughness": 0.3 },
+      "clip_exempt": false,
+      "importance": "core",
+      "provenance": { "chunk_ids": ["golden"] }
+    }
+  ],
+  "cutaway": { "enabled": true, "plane": { "normal": [0, 0, -1], "constant": 0 } },
+  "camera_hint": { "position": [2.4, 1.5, 2.8], "look_at": [0, 0, 0] }
+}

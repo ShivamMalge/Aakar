@@ -124,6 +124,7 @@ class Geometry(
     root: Sphere | Box | Cylinder | Cone | Torus | Capsule | Tube | Lathe | Extrude = Field(
         ...,
         description="Closed vocabulary (spec §4). Ellipsoids are a sphere with non-uniform scale. CSG/booleans are out of scope for v1.",
+        discriminator="type",
     )
 
 
