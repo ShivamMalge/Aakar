@@ -1,0 +1,27 @@
+{
+  "parts": [
+    {
+      "clip_exempt": true,
+      "geometry": {
+        "radius": 1,
+        "type": "sphere"
+      },
+      "id": "p",
+      "importance": "core",
+      "material": {
+        "color": "#aabbcc",
+        "opacity": 1,
+        "roughness": 0.5
+      },
+      "name": "Part",
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    }
+  ],
+  "schema_version": "1.1",
+  "title": "Behaviour fixture",
+  "topic": "behaviour"
+}

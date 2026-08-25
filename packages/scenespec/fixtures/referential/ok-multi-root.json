@@ -1,0 +1,60 @@
+{
+  "case": "ok-multi-root",
+  "note": "MULTIPLE ROOTS ARE LEGAL (ruling A). All three golden specs are multi-root \u2014 5, 11 and 11 \u2014 and D-017's exploded view is defined over top-level parts, plural.",
+  "expect": [],
+  "spec": {
+    "schema_version": "1.1",
+    "topic": "referential",
+    "title": "Referential fixture",
+    "parts": [
+      {
+        "id": "a",
+        "name": "A",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      },
+      {
+        "id": "c",
+        "name": "C",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      }
+    ]
+  }
+}

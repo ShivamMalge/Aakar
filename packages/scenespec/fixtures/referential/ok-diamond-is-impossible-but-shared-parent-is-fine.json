@@ -1,0 +1,62 @@
+{
+  "case": "ok-diamond-is-impossible-but-shared-parent-is-fine",
+  "note": "two children of one parent \u2014 a tree, not a cycle",
+  "expect": [],
+  "spec": {
+    "schema_version": "1.1",
+    "topic": "referential",
+    "title": "Referential fixture",
+    "parts": [
+      {
+        "id": "root",
+        "name": "Root",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      },
+      {
+        "id": "kid_a",
+        "name": "Kid A",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "root"
+      },
+      {
+        "id": "kid_b",
+        "name": "Kid B",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "root"
+      }
+    ]
+  }
+}

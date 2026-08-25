@@ -1,0 +1,109 @@
+{
+  "camera_hint": {
+    "look_at": [
+      0,
+      0,
+      0
+    ],
+    "position": [
+      3,
+      2,
+      4
+    ]
+  },
+  "cutaway": {
+    "enabled": true,
+    "plane": {
+      "constant": 0.25,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    }
+  },
+  "parts": [
+    {
+      "aliases": [
+        "alpha",
+        "beta"
+      ],
+      "clip_exempt": true,
+      "geometry": {
+        "profile": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "segments": 64,
+        "type": "lathe"
+      },
+      "id": "root",
+      "importance": "secondary",
+      "instance_of": "Root Concept",
+      "material": {
+        "color": "#FFAA00",
+        "opacity": 0.25,
+        "roughness": 0.9
+      },
+      "name": "Root",
+      "provenance": {
+        "chunk_ids": [
+          "c1",
+          "c2"
+        ],
+        "evidence": "quoted text"
+      },
+      "transform": {
+        "position": [
+          1,
+          -2,
+          3.5
+        ],
+        "rotation": [
+          90,
+          -45,
+          0
+        ],
+        "scale": [
+          1,
+          2,
+          0.5
+        ]
+      }
+    },
+    {
+      "clip_exempt": false,
+      "geometry": {
+        "radius": 1,
+        "type": "sphere"
+      },
+      "id": "child",
+      "importance": "core",
+      "material": {
+        "color": "#001122",
+        "opacity": 1,
+        "roughness": 0.5
+      },
+      "name": "Child",
+      "parent_id": "root",
+      "provenance": {
+        "chunk_ids": [
+          "c3"
+        ]
+      }
+    }
+  ],
+  "schema_version": "1.1",
+  "title": "Behaviour fixture",
+  "topic": "behaviour"
+}

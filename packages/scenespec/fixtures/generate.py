@@ -90,7 +90,7 @@ def base_spec(geometry: str = "Sphere") -> dict[str, Any]:
     """The smallest valid spec that exercises `geometry`. Kept minimal so each fixture
     reads as one violation rather than a wall of unrelated JSON."""
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "topic": "conformance",
         "title": "Conformance fixture",
         "parts": [
@@ -98,6 +98,7 @@ def base_spec(geometry: str = "Sphere") -> dict[str, Any]:
                 "id": "only_part",
                 "name": "Only Part",
                 "aliases": ["sole part"],
+                "instance_of": "Sole Part",
                 "geometry": deepcopy(GEOMETRY_SAMPLES[geometry]),
                 "transform": {
                     "position": [0, 0, 0],

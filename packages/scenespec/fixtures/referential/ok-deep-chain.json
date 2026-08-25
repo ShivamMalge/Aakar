@@ -1,0 +1,130 @@
+{
+  "case": "ok-deep-chain",
+  "note": "a seven-deep parent chain resolves and does not cycle",
+  "expect": [],
+  "spec": {
+    "schema_version": "1.1",
+    "topic": "referential",
+    "title": "Referential fixture",
+    "parts": [
+      {
+        "id": "l0",
+        "name": "L0",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      },
+      {
+        "id": "l1",
+        "name": "L1",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "l0"
+      },
+      {
+        "id": "l2",
+        "name": "L2",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "l1"
+      },
+      {
+        "id": "l3",
+        "name": "L3",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "l2"
+      },
+      {
+        "id": "l4",
+        "name": "L4",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "l3"
+      },
+      {
+        "id": "l5",
+        "name": "L5",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "l4"
+      },
+      {
+        "id": "l6",
+        "name": "L6",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "l5"
+      }
+    ]
+  }
+}

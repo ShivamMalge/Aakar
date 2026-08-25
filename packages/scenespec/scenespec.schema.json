@@ -9,7 +9,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "const": "1.0",
+      "const": "1.1",
       "description": "Bumped whenever the schema changes; the drift test (D7) keeps generated types in step."
     },
     "topic": {
@@ -236,6 +236,12 @@
           "maxItems": 16,
           "items": { "type": "string", "minLength": 1, "maxLength": 80 },
           "description": "Drives part-scoped retrieval (D5)."
+        },
+        "instance_of": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Optional. Names the concept this part is an instance of. Parts sharing an instance_of are ONE retrieval target, and retrieval scopes on this rather than on the part's own name (D5). Present when a topic legitimately contains several of the same structure — an animal cell has many mitochondria — which would otherwise give each copy an identical, and therefore ambiguous, retrieval scope."
         },
         "parent_id": {
           "description": "Optional. The validator checks it resolves to an existing part and that the parent graph is acyclic.",

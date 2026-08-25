@@ -4,7 +4,7 @@
   "target": "parts.0.geometry.depth",
   "note": "above maximum 100",
   "spec": {
-    "schema_version": "1.0",
+    "schema_version": "1.1",
     "topic": "conformance",
     "title": "Conformance fixture",
     "parts": [
@@ -14,6 +14,7 @@
         "aliases": [
           "sole part"
         ],
+        "instance_of": "Sole Part",
         "geometry": {
           "type": "extrude",
           "shape": [

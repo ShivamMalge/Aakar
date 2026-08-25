@@ -1,0 +1,34 @@
+{
+  "case": "self-parent",
+  "note": "a part cannot contain itself",
+  "expect": [
+    {
+      "code": "self_parent",
+      "path": "parts.0.parent_id"
+    }
+  ],
+  "spec": {
+    "schema_version": "1.1",
+    "topic": "referential",
+    "title": "Referential fixture",
+    "parts": [
+      {
+        "id": "lens",
+        "name": "Lens",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "lens"
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { parseSceneSpec } from "./index";
+import { SCHEMA_VERSION, parseSceneSpec } from "./index";
 
 const EXAMPLE = resolve(__dirname, "../../../../packages/scenespec/examples/section4_example.json");
 
@@ -14,7 +14,14 @@ function example(): Record<string, any> {
   return JSON.parse(readFileSync(EXAMPLE, "utf8"));
 }
 
+const SCHEMA_FILE = resolve(__dirname, "../../../../packages/scenespec/scenespec.schema.json");
+
 describe("SceneSpec zod schema", () => {
+  it("SCHEMA_VERSION matches the schema's own const", () => {
+    const schema = JSON.parse(readFileSync(SCHEMA_FILE, "utf8"));
+    expect(SCHEMA_VERSION).toBe(schema.properties.schema_version.const);
+  });
+
   it("accepts the example printed in spec §4", () => {
     const result = parseSceneSpec(example());
     expect(result.ok).toBe(true);

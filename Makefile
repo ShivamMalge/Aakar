@@ -35,7 +35,14 @@ shots: ## Phase 1 gate captures — needs the web app running (1.6, D-009)
 	  --out ../../evidence/phase1 --angle 0 --explode 0.6 --explode-mode top-level
 	cd $(API) && uv run python -m aakar.render.screenshots animal_cell \
 	  --out ../../evidence/phase1 --angle 0 --explode 0.6 --explode-mode per-part
-	cd $(API) && uv run python -m aakar.render.probe $(GOLDEN) \
+	# The 40-part stress fixture (specs/stress), at the schema's cap and depth 6.
+	cd $(API) && uv run python -m aakar.render.screenshots neuron \
+	  --out ../../evidence/phase1 --angle 0 --angle 1
+	cd $(API) && uv run python -m aakar.render.screenshots neuron \
+	  --out ../../evidence/phase1 --angle 0 --cutaway
+	cd $(API) && uv run python -m aakar.render.screenshots neuron \
+	  --out ../../evidence/phase1 --angle 0 --explode 0.6
+	cd $(API) && uv run python -m aakar.render.probe $(GOLDEN) neuron \
 	  --out ../../evidence/phase1/interaction-transcript.txt
 
 codegen: ## Regenerate zod + pydantic from scenespec.schema.json (D7)

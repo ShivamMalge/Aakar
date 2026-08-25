@@ -32,6 +32,12 @@ jobs:
       # validator actually validates (D-015).
       - name: conformance corpus (pydantic)
         run: uv run pytest tests/test_conformance.py -q
+      # Verdict agreement is not behavioural agreement: both validators can accept the
+      # same document and return different values. This is the axis that catches D-018.
+      - name: behavioural conformance (pydantic)
+        run: uv run pytest tests/test_behavioural_conformance.py -q
+      - name: referential constraints (pydantic)
+        run: uv run pytest tests/test_referential.py -q
       - run: uv run pytest -q
 
   web:
@@ -56,6 +62,10 @@ jobs:
       # The zod half of the same corpus. Both stacks must agree on every fixture.
       - name: conformance corpus (zod)
         run: npx vitest run src/scenespec/conformance.test.ts
+      - name: behavioural conformance (zod)
+        run: npx vitest run src/scenespec/behaviour.test.ts
+      - name: referential constraints (zod)
+        run: npx vitest run src/scenespec/referential.test.ts
       - run: npm run test
 
   drift:

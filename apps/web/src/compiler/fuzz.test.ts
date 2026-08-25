@@ -8,7 +8,7 @@ import fc from "fast-check";
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { parseSceneSpec, type SceneSpec } from "../scenespec";
+import { SCHEMA_VERSION, parseSceneSpec, type SceneSpec } from "../scenespec";
 
 import { compile } from "./compile";
 import { applyClipping, clipPlaneFor } from "./cutaway";
@@ -114,7 +114,7 @@ const treeSpec = fc.integer({ min: 1, max: 6 }).chain((count) =>
     )
     .chain((parts) =>
       fc.record({
-        schema_version: fc.constant("1.0" as const),
+        schema_version: fc.constant(SCHEMA_VERSION),
         topic: fc.constant("fuzz_topic"),
         title: fc.string({ minLength: 1, maxLength: 60 }),
         parts: fc.constant(parts),
@@ -146,7 +146,7 @@ const chaoticSpec = fc
     { minLength: 1, maxLength: 6 },
   )
   .map((parts) => ({
-    schema_version: "1.0" as const,
+    schema_version: SCHEMA_VERSION,
     topic: "fuzz_topic",
     title: "Fuzz",
     parts,

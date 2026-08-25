@@ -304,3 +304,74 @@ Date: 2026-08-25 · Final `schema_version`: **1.0** (D-018 explains why it did n
   zoom survives, but it does mean the slider moves the camera.
 - **`uv` and Python 3.12 were absent on this machine** and were installed to run the Python
   stack at all. Worth noting in case the environment is rebuilt.
+
+---
+
+## Phase 1 — corrections · 2026-08-25
+
+Requested by the architect before Phase 1 approval. Rulings A–C and work items 1–6.
+
+### Rulings applied
+
+- **A** — `parent_id` resolution and acyclicity are **enforced on both stacks, at parse**
+  (D-023). Unique names and single-root **dropped**, and recorded as fixtures that must be
+  *accepted* so nobody adds them back by accident.
+- **B** — `instance_of` added; **schema_version 1.1** (D-022). Unlike D-018 this is a real
+  validation-semantics change, so the version moved.
+- **C** — noted, not done: `CostLedger` is still not wired into `CassetteProvider`. It is the
+  first task of Phase 2 and `test_the_guard_is_not_wired_into_the_provider` still fails the
+  moment it lands.
+
+### Work
+
+1. **Behavioural conformance.** 34 fixture pairs over every defaulted field (present and
+   absent) and every geometry variant. Both stacks parse, canonicalise and deep-compare
+   against an expected form derived from **the schema** — not from either parser, or one
+   stack's bug becomes the expected answer. Coverage meta-test fails if a defaulted field
+   lacks a present/absent pair. Wired into CI in both jobs.
+
+   Retrospective, measured: with the discriminator reverted, **the behavioural axis fails 6
+   of 35 and the verdict axis fails 0 of 231.** The old corpus was completely blind to D-018.
+
+2. **Capture liveness.** `screenshots.py` now asserts HTTP 200 and a compiler-backed sentinel
+   node — carrying topic, part count and schema version — before any capture, and refuses to
+   write a PNG past a failed precondition.
+
+   **The retrospective changed the design.** Re-breaking the route showed the original
+   incident was worse than reported: the capture URL supplies every option explicitly, and the
+   fault only occurred when an option was *absent*, so `/render/{topic}` — what readers and
+   share links open — returned 500 while the harness URL returned 200. A harness that only
+   ever visits its own over-specified URL cannot see that class at all. `capture()` now checks
+   the **default route** for each topic before capturing.
+
+3. **Validator placement.** Moved to `packages/scenespec` with a Python mirror, firing at
+   parse on both stacks, one fixture set driving both (D-023). Writing the fixtures found a
+   real defect: a self-parent was reported twice, under two different codes.
+
+4. **Containment warnings** (D-024). Two on the golden specs, both legitimate:
+   `nuclear_envelope → nucleus` 0.770 and `fovea → retina` 0.857.
+
+5. **Stress fixture** — `specs/stress/neuron.json`, 40 parts at the cap, depth 6, all nine
+   geometry types, 13 `instance_of` groups over 31 parts, one `clip_exempt`.
+
+   Building it found the same nested-transform trap twice: a rotated part turns its **whole
+   subtree**, so a −90° rotation on the axon hillock rendered the entire axon at right angles
+   to where it was authored. The generator now refuses to emit a rotated or scaled part that
+   has children. Worth carrying into Phase 3 — a generated spec has no such guard.
+
+   Its first `camera_hint` was copied in the shape of a 1-unit topic and cropped a 6-unit
+   assembly at both ends. A generator copying a golden spec's `camera_hint` onto a larger
+   topic will do exactly this.
+
+6. **`make codegen-check` on Windows** — confirmed working; see the Phase 0 evidence block for
+   why it could not run at the Phase 0 commit.
+
+### Carried forward
+
+- **Label density at 40 parts is unusable.** Legible at 5–13; at the cap the labels overlap
+  badly. Collision avoidance was already a known gap and the stress fixture sets its real
+  size. Phase 4's mobile QA is where this has to be settled.
+- **The containment threshold (0.9) is calibrated against three hand-written specs.**
+  Recalibrate against Phase 3's generated ones.
+- **AABB containment over-reports for spheres** — the fovea warning is geometry crudeness, not
+  a spec defect.

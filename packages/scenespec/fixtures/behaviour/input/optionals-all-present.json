@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.1",
+  "topic": "behaviour",
+  "title": "Behaviour fixture",
+  "parts": [
+    {
+      "id": "root",
+      "name": "Root",
+      "aliases": [
+        "alpha",
+        "beta"
+      ],
+      "instance_of": "Root Concept",
+      "geometry": {
+        "type": "lathe",
+        "profile": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "segments": 64
+      },
+      "transform": {
+        "position": [
+          1,
+          -2,
+          3.5
+        ],
+        "rotation": [
+          90,
+          -45,
+          0
+        ],
+        "scale": [
+          1,
+          2,
+          0.5
+        ]
+      },
+      "material": {
+        "color": "#FFAA00",
+        "opacity": 0.25,
+        "roughness": 0.9
+      },
+      "clip_exempt": true,
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c1",
+          "c2"
+        ],
+        "evidence": "quoted text"
+      }
+    },
+    {
+      "id": "child",
+      "name": "Child",
+      "parent_id": "root",
+      "geometry": {
+        "type": "sphere",
+        "radius": 1
+      },
+      "material": {
+        "color": "#001122"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c3"
+        ]
+      }
+    }
+  ],
+  "cutaway": {
+    "enabled": true,
+    "plane": {
+      "normal": [
+        0,
+        0,
+        -1
+      ],
+      "constant": 0.25
+    }
+  },
+  "camera_hint": {
+    "position": [
+      3,
+      2,
+      4
+    ],
+    "look_at": [
+      0,
+      0,
+      0
+    ]
+  }
+}

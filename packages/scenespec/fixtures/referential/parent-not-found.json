@@ -1,0 +1,34 @@
+{
+  "case": "parent-not-found",
+  "note": "parent_id names a part that does not exist",
+  "expect": [
+    {
+      "code": "parent_not_found",
+      "path": "parts.0.parent_id"
+    }
+  ],
+  "spec": {
+    "schema_version": "1.1",
+    "topic": "referential",
+    "title": "Referential fixture",
+    "parts": [
+      {
+        "id": "lens",
+        "name": "Lens",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "nowhere_at_all"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1545 @@
+{
+  "schema_version": "1.1",
+  "topic": "neuron",
+  "title": "The Neuron",
+  "parts": [
+    {
+      "id": "soma",
+      "name": "Soma",
+      "aliases": [
+        "cell body",
+        "perikaryon"
+      ],
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.5
+      },
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "material": {
+        "color": "#c9a0dc",
+        "opacity": 0.45,
+        "roughness": 0.6
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_soma_1",
+          "c_soma_2"
+        ],
+        "evidence": "The soma, or cell body, contains the nucleus."
+      }
+    },
+    {
+      "id": "nucleus",
+      "name": "Nucleus",
+      "aliases": [
+        "cell nucleus"
+      ],
+      "parent_id": "soma",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.22
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "color": "#7b4fa3",
+        "opacity": 0.8
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_nuc_1"
+        ],
+        "evidence": "A large, centrally placed nucleus is characteristic."
+      }
+    },
+    {
+      "id": "nucleolus",
+      "name": "Nucleolus",
+      "aliases": [
+        "nucleoli"
+      ],
+      "parent_id": "nucleus",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.08
+      },
+      "transform": {
+        "position": [
+          0.05,
+          0.03,
+          0.02
+        ]
+      },
+      "material": {
+        "color": "#3f2757"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_nuc_2"
+        ]
+      }
+    },
+    {
+      "id": "golgi_apparatus",
+      "name": "Golgi Apparatus",
+      "aliases": [
+        "Golgi body"
+      ],
+      "parent_id": "soma",
+      "geometry": {
+        "type": "lathe",
+        "profile": [
+          [
+            0,
+            -0.05
+          ],
+          [
+            0.13,
+            -0.02
+          ],
+          [
+            0.13,
+            0.02
+          ],
+          [
+            0,
+            0.05
+          ]
+        ],
+        "segments": 32
+      },
+      "transform": {
+        "position": [
+          -0.2,
+          0.2,
+          0.06
+        ],
+        "scale": [
+          1,
+          1,
+          0.5
+        ]
+      },
+      "material": {
+        "color": "#4fa39b"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_org_1"
+        ]
+      }
+    },
+    {
+      "id": "nissl_body_1",
+      "name": "Nissl Body",
+      "aliases": [
+        "Nissl substance",
+        "chromatophilic substance"
+      ],
+      "instance_of": "Nissl Body",
+      "parent_id": "soma",
+      "geometry": {
+        "type": "box",
+        "w": 0.16,
+        "h": 0.05,
+        "d": 0.12
+      },
+      "transform": {
+        "position": [
+          0.16,
+          -0.24,
+          0.1
+        ],
+        "rotation": [
+          0,
+          0,
+          18
+        ]
+      },
+      "material": {
+        "color": "#d1795f"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_org_2"
+        ],
+        "evidence": "Nissl bodies are stacks of rough endoplasmic reticulum."
+      }
+    },
+    {
+      "id": "nissl_body_2",
+      "name": "Nissl Body",
+      "aliases": [
+        "Nissl substance",
+        "chromatophilic substance"
+      ],
+      "instance_of": "Nissl Body",
+      "parent_id": "soma",
+      "geometry": {
+        "type": "box",
+        "w": 0.14,
+        "h": 0.05,
+        "d": 0.1
+      },
+      "transform": {
+        "position": [
+          -0.24,
+          -0.16,
+          -0.1
+        ],
+        "rotation": [
+          0,
+          0,
+          -24
+        ]
+      },
+      "material": {
+        "color": "#d1795f"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_org_2"
+        ]
+      }
+    },
+    {
+      "id": "mitochondrion_soma",
+      "name": "Mitochondrion",
+      "aliases": [
+        "mitochondria"
+      ],
+      "instance_of": "Mitochondrion",
+      "parent_id": "soma",
+      "geometry": {
+        "type": "capsule",
+        "radius": 0.045,
+        "length": 0.12
+      },
+      "transform": {
+        "position": [
+          0.24,
+          0.2,
+          -0.12
+        ],
+        "rotation": [
+          0,
+          0,
+          40
+        ]
+      },
+      "material": {
+        "color": "#c25b5b"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_org_3"
+        ]
+      }
+    },
+    {
+      "id": "axon_hillock",
+      "name": "Axon Hillock",
+      "aliases": [
+        "initial segment"
+      ],
+      "parent_id": "soma",
+      "geometry": {
+        "type": "cone",
+        "radius": 0.16,
+        "height": 0.22
+      },
+      "transform": {
+        "position": [
+          0.52,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          -90
+        ]
+      },
+      "material": {
+        "color": "#b98fd0",
+        "opacity": 0.9
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_axon_1"
+        ],
+        "evidence": "The axon arises from the axon hillock."
+      }
+    },
+    {
+      "id": "axon",
+      "name": "Axon",
+      "aliases": [
+        "nerve fibre"
+      ],
+      "parent_id": "soma",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.14,
+            0,
+            0
+          ],
+          [
+            0.78,
+            0.04,
+            0
+          ],
+          [
+            1.48,
+            -0.03,
+            0
+          ],
+          [
+            2.18,
+            0.02,
+            0
+          ],
+          [
+            2.78,
+            0,
+            0
+          ]
+        ],
+        "radius": 0.055
+      },
+      "transform": {
+        "position": [
+          0.52,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "color": "#e8d7a0"
+      },
+      "clip_exempt": true,
+      "provenance": {
+        "chunk_ids": [
+          "c_axon_1",
+          "c_axon_2"
+        ],
+        "evidence": "A single long axon conducts impulses away from the cell body."
+      }
+    },
+    {
+      "id": "myelin_1",
+      "name": "Myelin Sheath",
+      "aliases": [
+        "myelin",
+        "medullary sheath"
+      ],
+      "instance_of": "Myelin Sheath",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "cylinder",
+        "r_top": 0.12,
+        "r_bottom": 0.12,
+        "height": 0.5
+      },
+      "transform": {
+        "position": [
+          0.43,
+          0.01,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          90
+        ]
+      },
+      "material": {
+        "color": "#f2e9c9",
+        "opacity": 0.85
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_1",
+          "c_mye_2"
+        ],
+        "evidence": "Myelin insulates the axon."
+      }
+    },
+    {
+      "id": "myelin_2",
+      "name": "Myelin Sheath",
+      "aliases": [
+        "myelin",
+        "medullary sheath"
+      ],
+      "instance_of": "Myelin Sheath",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "cylinder",
+        "r_top": 0.12,
+        "r_bottom": 0.12,
+        "height": 0.5
+      },
+      "transform": {
+        "position": [
+          1.1,
+          0.01,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          90
+        ]
+      },
+      "material": {
+        "color": "#f2e9c9",
+        "opacity": 0.85
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_1"
+        ]
+      }
+    },
+    {
+      "id": "myelin_3",
+      "name": "Myelin Sheath",
+      "aliases": [
+        "myelin",
+        "medullary sheath"
+      ],
+      "instance_of": "Myelin Sheath",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "cylinder",
+        "r_top": 0.12,
+        "r_bottom": 0.12,
+        "height": 0.5
+      },
+      "transform": {
+        "position": [
+          1.78,
+          0.01,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          90
+        ]
+      },
+      "material": {
+        "color": "#f2e9c9",
+        "opacity": 0.85
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_1"
+        ]
+      }
+    },
+    {
+      "id": "myelin_4",
+      "name": "Myelin Sheath",
+      "aliases": [
+        "myelin",
+        "medullary sheath"
+      ],
+      "instance_of": "Myelin Sheath",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "cylinder",
+        "r_top": 0.12,
+        "r_bottom": 0.12,
+        "height": 0.5
+      },
+      "transform": {
+        "position": [
+          2.43,
+          0.01,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          90
+        ]
+      },
+      "material": {
+        "color": "#f2e9c9",
+        "opacity": 0.85
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_1"
+        ]
+      }
+    },
+    {
+      "id": "node_of_ranvier_1",
+      "name": "Node of Ranvier",
+      "aliases": [
+        "nodal gap",
+        "neurofibril node"
+      ],
+      "instance_of": "Node of Ranvier",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "torus",
+        "radius": 0.075,
+        "tube": 0.022
+      },
+      "transform": {
+        "position": [
+          0.76,
+          0.01,
+          0
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ]
+      },
+      "material": {
+        "color": "#8a6f3c"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_3"
+        ],
+        "evidence": "Gaps in the sheath are the nodes of Ranvier."
+      }
+    },
+    {
+      "id": "node_of_ranvier_2",
+      "name": "Node of Ranvier",
+      "aliases": [
+        "nodal gap",
+        "neurofibril node"
+      ],
+      "instance_of": "Node of Ranvier",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "torus",
+        "radius": 0.075,
+        "tube": 0.022
+      },
+      "transform": {
+        "position": [
+          1.44,
+          0.01,
+          0
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ]
+      },
+      "material": {
+        "color": "#8a6f3c"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_3"
+        ]
+      }
+    },
+    {
+      "id": "node_of_ranvier_3",
+      "name": "Node of Ranvier",
+      "aliases": [
+        "nodal gap",
+        "neurofibril node"
+      ],
+      "instance_of": "Node of Ranvier",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "torus",
+        "radius": 0.075,
+        "tube": 0.022
+      },
+      "transform": {
+        "position": [
+          2.11,
+          0.01,
+          0
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ]
+      },
+      "material": {
+        "color": "#8a6f3c"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_3"
+        ]
+      }
+    },
+    {
+      "id": "schwann_nucleus_1",
+      "name": "Schwann Cell Nucleus",
+      "aliases": [
+        "neurolemmocyte nucleus"
+      ],
+      "instance_of": "Schwann Cell Nucleus",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.042
+      },
+      "transform": {
+        "position": [
+          0.48,
+          0.13,
+          0.02
+        ]
+      },
+      "material": {
+        "color": "#b3a06a"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_4"
+        ]
+      }
+    },
+    {
+      "id": "schwann_nucleus_2",
+      "name": "Schwann Cell Nucleus",
+      "aliases": [
+        "neurolemmocyte nucleus"
+      ],
+      "instance_of": "Schwann Cell Nucleus",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.042
+      },
+      "transform": {
+        "position": [
+          1.83,
+          0.13,
+          0.02
+        ]
+      },
+      "material": {
+        "color": "#b3a06a"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_mye_4"
+        ]
+      }
+    },
+    {
+      "id": "mitochondrion_axon",
+      "name": "Mitochondrion",
+      "aliases": [
+        "mitochondria"
+      ],
+      "instance_of": "Mitochondrion",
+      "parent_id": "axon",
+      "geometry": {
+        "type": "capsule",
+        "radius": 0.028,
+        "length": 0.09
+      },
+      "transform": {
+        "position": [
+          1.1,
+          -0.09,
+          0.03
+        ],
+        "rotation": [
+          0,
+          0,
+          8
+        ]
+      },
+      "material": {
+        "color": "#c25b5b"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_org_3"
+        ]
+      }
+    },
+    {
+      "id": "axon_terminal_trunk",
+      "name": "Axon Terminal",
+      "aliases": [
+        "telodendron",
+        "terminal arborisation"
+      ],
+      "parent_id": "axon",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.0,
+            0,
+            0
+          ],
+          [
+            0.25,
+            0,
+            0
+          ]
+        ],
+        "radius": 0.05
+      },
+      "transform": {
+        "position": [
+          2.78,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "color": "#e8d7a0"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_term_1"
+        ],
+        "evidence": "The axon ends in a branching terminal arborisation."
+      }
+    },
+    {
+      "id": "terminal_branch_1",
+      "name": "Terminal Branch",
+      "aliases": [
+        "terminal branch"
+      ],
+      "instance_of": "Terminal Branch",
+      "parent_id": "axon_terminal_trunk",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.25,
+            0,
+            0
+          ],
+          [
+            0.45,
+            0.156,
+            0.03
+          ],
+          [
+            0.65,
+            0.26,
+            0.05
+          ]
+        ],
+        "radius": 0.03
+      },
+      "transform": {
+        "position": [
+          0.0,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "color": "#e8d7a0"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_term_1"
+        ]
+      }
+    },
+    {
+      "id": "terminal_branch_2",
+      "name": "Terminal Branch",
+      "aliases": [
+        "terminal branch"
+      ],
+      "instance_of": "Terminal Branch",
+      "parent_id": "axon_terminal_trunk",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.25,
+            0,
+            0
+          ],
+          [
+            0.475,
+            0.0,
+            -0.036
+          ],
+          [
+            0.7,
+            0.0,
+            -0.06
+          ]
+        ],
+        "radius": 0.03
+      },
+      "transform": {
+        "position": [
+          0.0,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "color": "#e8d7a0"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_term_1"
+        ]
+      }
+    },
+    {
+      "id": "terminal_branch_3",
+      "name": "Terminal Branch",
+      "aliases": [
+        "terminal branch"
+      ],
+      "instance_of": "Terminal Branch",
+      "parent_id": "axon_terminal_trunk",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.25,
+            0,
+            0
+          ],
+          [
+            0.44,
+            -0.156,
+            0.024
+          ],
+          [
+            0.63,
+            -0.26,
+            0.04
+          ]
+        ],
+        "radius": 0.03
+      },
+      "transform": {
+        "position": [
+          0.0,
+          0,
+          0
+        ]
+      },
+      "material": {
+        "color": "#e8d7a0"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_term_1"
+        ]
+      }
+    },
+    {
+      "id": "bouton_1",
+      "name": "Synaptic Bouton",
+      "aliases": [
+        "synaptic knob",
+        "terminal bouton",
+        "end bulb"
+      ],
+      "instance_of": "Synaptic Bouton",
+      "parent_id": "terminal_branch_1",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.075
+      },
+      "transform": {
+        "position": [
+          0.71,
+          0.26,
+          0.05
+        ]
+      },
+      "material": {
+        "color": "#e0794f"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_syn_1",
+          "c_syn_2"
+        ],
+        "evidence": "Each branch ends in a synaptic knob."
+      }
+    },
+    {
+      "id": "bouton_2",
+      "name": "Synaptic Bouton",
+      "aliases": [
+        "synaptic knob",
+        "terminal bouton",
+        "end bulb"
+      ],
+      "instance_of": "Synaptic Bouton",
+      "parent_id": "terminal_branch_2",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.075
+      },
+      "transform": {
+        "position": [
+          0.76,
+          0.0,
+          -0.06
+        ]
+      },
+      "material": {
+        "color": "#e0794f"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_syn_1",
+          "c_syn_2"
+        ]
+      }
+    },
+    {
+      "id": "bouton_3",
+      "name": "Synaptic Bouton",
+      "aliases": [
+        "synaptic knob",
+        "terminal bouton",
+        "end bulb"
+      ],
+      "instance_of": "Synaptic Bouton",
+      "parent_id": "terminal_branch_3",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.075
+      },
+      "transform": {
+        "position": [
+          0.69,
+          -0.26,
+          0.04
+        ]
+      },
+      "material": {
+        "color": "#e0794f"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_syn_1",
+          "c_syn_2"
+        ]
+      }
+    },
+    {
+      "id": "vesicle_cluster_1",
+      "name": "Synaptic Vesicles",
+      "aliases": [
+        "synaptic vesicle",
+        "neurotransmitter vesicle"
+      ],
+      "instance_of": "Synaptic Vesicles",
+      "parent_id": "bouton_1",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.032
+      },
+      "transform": {
+        "position": [
+          0.02,
+          0.0,
+          0.0
+        ]
+      },
+      "material": {
+        "color": "#f6c453"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_syn_3"
+        ],
+        "evidence": "Vesicles in the knob store neurotransmitter."
+      }
+    },
+    {
+      "id": "vesicle_cluster_2",
+      "name": "Synaptic Vesicles",
+      "aliases": [
+        "synaptic vesicle",
+        "neurotransmitter vesicle"
+      ],
+      "instance_of": "Synaptic Vesicles",
+      "parent_id": "bouton_2",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.032
+      },
+      "transform": {
+        "position": [
+          0.02,
+          0.0,
+          0.0
+        ]
+      },
+      "material": {
+        "color": "#f6c453"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_syn_3"
+        ]
+      }
+    },
+    {
+      "id": "synaptic_cleft",
+      "name": "Synaptic Cleft",
+      "aliases": [
+        "synapse",
+        "synaptic gap"
+      ],
+      "parent_id": "bouton_1",
+      "geometry": {
+        "type": "extrude",
+        "shape": [
+          [
+            -0.07,
+            -0.07
+          ],
+          [
+            0.07,
+            -0.07
+          ],
+          [
+            0.07,
+            0.07
+          ],
+          [
+            -0.07,
+            0.07
+          ]
+        ],
+        "depth": 0.012
+      },
+      "transform": {
+        "position": [
+          0.09,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ]
+      },
+      "material": {
+        "color": "#9fd3c7",
+        "opacity": 0.55
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_syn_4"
+        ],
+        "evidence": "A narrow cleft separates the knob from the next neuron."
+      }
+    },
+    {
+      "id": "dendrite_trunk_1",
+      "name": "Dendrite",
+      "aliases": [
+        "dendrites",
+        "dendritic trunk"
+      ],
+      "instance_of": "Dendrite",
+      "parent_id": "soma",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.0,
+            0.0,
+            0
+          ],
+          [
+            -0.35,
+            0.21,
+            0
+          ],
+          [
+            -0.7,
+            0.42,
+            0.05
+          ]
+        ],
+        "radius": 0.05
+      },
+      "transform": {
+        "position": [
+          -0.45,
+          0.2,
+          0
+        ]
+      },
+      "material": {
+        "color": "#c9a0dc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_den_1"
+        ],
+        "evidence": "Dendrites receive impulses and carry them toward the cell body."
+      }
+    },
+    {
+      "id": "dendrite_trunk_2",
+      "name": "Dendrite",
+      "aliases": [
+        "dendrites",
+        "dendritic trunk"
+      ],
+      "instance_of": "Dendrite",
+      "parent_id": "soma",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.0,
+            0.0,
+            0
+          ],
+          [
+            -0.33,
+            -0.23,
+            0
+          ],
+          [
+            -0.66,
+            -0.46,
+            -0.05
+          ]
+        ],
+        "radius": 0.05
+      },
+      "transform": {
+        "position": [
+          -0.44,
+          -0.24,
+          0
+        ]
+      },
+      "material": {
+        "color": "#c9a0dc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_den_1"
+        ]
+      }
+    },
+    {
+      "id": "dendrite_branch_1",
+      "name": "Dendritic Branch",
+      "aliases": [
+        "dendrite branch"
+      ],
+      "instance_of": "Dendritic Branch",
+      "parent_id": "dendrite_trunk_1",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.55,
+            0.33,
+            0.07
+          ]
+        ],
+        "radius": 0.032
+      },
+      "transform": {
+        "position": [
+          -0.7,
+          0.42,
+          0.05
+        ]
+      },
+      "material": {
+        "color": "#c9a0dc"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_den_1"
+        ]
+      }
+    },
+    {
+      "id": "dendrite_branch_2",
+      "name": "Dendritic Branch",
+      "aliases": [
+        "dendrite branch"
+      ],
+      "instance_of": "Dendritic Branch",
+      "parent_id": "dendrite_trunk_1",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.47,
+            -0.3,
+            -0.15
+          ]
+        ],
+        "radius": 0.032
+      },
+      "transform": {
+        "position": [
+          -0.7,
+          0.42,
+          0.05
+        ]
+      },
+      "material": {
+        "color": "#c9a0dc"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_den_1"
+        ]
+      }
+    },
+    {
+      "id": "dendrite_branch_3",
+      "name": "Dendritic Branch",
+      "aliases": [
+        "dendrite branch"
+      ],
+      "instance_of": "Dendritic Branch",
+      "parent_id": "dendrite_trunk_2",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.58,
+            -0.3,
+            0.13
+          ]
+        ],
+        "radius": 0.032
+      },
+      "transform": {
+        "position": [
+          -0.66,
+          -0.46,
+          -0.05
+        ]
+      },
+      "material": {
+        "color": "#c9a0dc"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_den_1"
+        ]
+      }
+    },
+    {
+      "id": "dendrite_twig_1",
+      "name": "Dendritic Twig",
+      "aliases": [
+        "terminal dendrite"
+      ],
+      "instance_of": "Dendritic Twig",
+      "parent_id": "dendrite_branch_1",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.35,
+            0.25,
+            0.04
+          ]
+        ],
+        "radius": 0.02
+      },
+      "transform": {
+        "position": [
+          -0.55,
+          0.33,
+          0.07
+        ]
+      },
+      "material": {
+        "color": "#c9a0dc"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_den_2"
+        ]
+      }
+    },
+    {
+      "id": "dendrite_twig_2",
+      "name": "Dendritic Twig",
+      "aliases": [
+        "terminal dendrite"
+      ],
+      "instance_of": "Dendritic Twig",
+      "parent_id": "dendrite_branch_3",
+      "geometry": {
+        "type": "tube",
+        "path": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -0.34,
+            -0.26,
+            0.04
+          ]
+        ],
+        "radius": 0.02
+      },
+      "transform": {
+        "position": [
+          -0.58,
+          -0.3,
+          0.13
+        ]
+      },
+      "material": {
+        "color": "#c9a0dc"
+      },
+      "importance": "secondary",
+      "provenance": {
+        "chunk_ids": [
+          "c_den_2"
+        ]
+      }
+    },
+    {
+      "id": "dendritic_spine_1",
+      "name": "Dendritic Spine",
+      "aliases": [
+        "spine",
+        "dendritic protrusion"
+      ],
+      "instance_of": "Dendritic Spine",
+      "parent_id": "dendrite_twig_1",
+      "geometry": {
+        "type": "capsule",
+        "radius": 0.022,
+        "length": 0.05
+      },
+      "transform": {
+        "position": [
+          -0.41,
+          0.31,
+          0.05
+        ]
+      },
+      "material": {
+        "color": "#b284c9"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_den_3"
+        ],
+        "evidence": "Spines are small protrusions that receive synaptic contacts."
+      }
+    },
+    {
+      "id": "dendritic_spine_2",
+      "name": "Dendritic Spine",
+      "aliases": [
+        "spine",
+        "dendritic protrusion"
+      ],
+      "instance_of": "Dendritic Spine",
+      "parent_id": "dendrite_twig_2",
+      "geometry": {
+        "type": "capsule",
+        "radius": 0.022,
+        "length": 0.05
+      },
+      "transform": {
+        "position": [
+          -0.4,
+          -0.32,
+          0.05
+        ],
+        "rotation": [
+          0,
+          0,
+          35
+        ]
+      },
+      "material": {
+        "color": "#b284c9"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_den_3"
+        ]
+      }
+    },
+    {
+      "id": "spine_head_1",
+      "name": "Spine Head",
+      "aliases": [
+        "spine apex"
+      ],
+      "instance_of": "Spine Head",
+      "parent_id": "dendritic_spine_1",
+      "geometry": {
+        "type": "sphere",
+        "radius": 0.036
+      },
+      "transform": {
+        "position": [
+          -0.04,
+          0.05,
+          0.01
+        ]
+      },
+      "material": {
+        "color": "#9a6bb8"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_den_3"
+        ]
+      }
+    },
+    {
+      "id": "postsynaptic_density_1",
+      "name": "Postsynaptic Density",
+      "aliases": [
+        "PSD",
+        "postsynaptic membrane"
+      ],
+      "parent_id": "spine_head_1",
+      "geometry": {
+        "type": "extrude",
+        "shape": [
+          [
+            -0.026,
+            -0.026
+          ],
+          [
+            0.026,
+            -0.026
+          ],
+          [
+            0.026,
+            0.026
+          ],
+          [
+            -0.026,
+            0.026
+          ]
+        ],
+        "depth": 0.008
+      },
+      "transform": {
+        "position": [
+          -0.04,
+          0.03,
+          0.0
+        ],
+        "rotation": [
+          0,
+          68,
+          0
+        ]
+      },
+      "material": {
+        "color": "#6d4a86"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "c_den_4"
+        ],
+        "evidence": "The postsynaptic density is the receiving face of the synapse."
+      }
+    }
+  ],
+  "cutaway": {
+    "enabled": true,
+    "plane": {
+      "normal": [
+        0,
+        0,
+        -1
+      ],
+      "constant": 0
+    }
+  },
+  "camera_hint": {
+    "position": [
+      0.9,
+      1.15,
+      8.6
+    ],
+    "look_at": [
+      0.9,
+      -0.05,
+      0
+    ]
+  }
+}

@@ -11,6 +11,7 @@ Like `screenshots`, this talks to a browser and never to a model.
 from __future__ import annotations
 
 import argparse
+import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,10 +21,10 @@ from playwright.sync_api import sync_playwright
 from .screenshots import (
     DEFAULT_BASE_URL,
     DEVICE_SCALE_FACTOR,
-    READY_SELECTOR,
-    READY_TIMEOUT_MS,
     VIEWPORT_HEIGHT,
     VIEWPORT_WIDTH,
+    CapturePreconditionFailed,
+    _assert_live,
 )
 
 CANVAS = "canvas"
@@ -52,8 +53,7 @@ def probe(topic: str, *, base_url: str = DEFAULT_BASE_URL) -> ProbeResult:
                 device_scale_factor=DEVICE_SCALE_FACTOR,
             )
             page = context.new_page()
-            page.goto(f"{base_url.rstrip('/')}/render/{topic}", wait_until="domcontentloaded")
-            page.wait_for_selector(READY_SELECTOR, timeout=READY_TIMEOUT_MS)
+            _assert_live(page, f"{base_url.rstrip('/')}/render/{topic}", topic)
 
             before = page.locator(EMPTY).inner_text() if page.locator(EMPTY).count() else ""
 
@@ -88,7 +88,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     failures = 0
 
     for topic in args.topics:
-        result = probe(topic, base_url=args.base_url)
+        try:
+            result = probe(topic, base_url=args.base_url)
+        except CapturePreconditionFailed as failure:
+            print(f"CAPTURE PRECONDITION FAILED: {failure}", file=sys.stderr)
+            return 2
         lines.append("")
         lines.append(f"/render/{topic}")
         lines.append(f"    before any click   -> {result.before or '(panel already populated)'}")

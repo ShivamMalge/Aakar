@@ -1,5 +1,6 @@
 // Test fixtures. Kept out of *.test.ts so the compiler tests and the fuzz suite can
 // share one definition of "a minimal valid spec".
+import { SCHEMA_VERSION } from "../scenespec";
 import type { Part, SceneSpec } from "../scenespec";
 
 export function part(id: string, over: Partial<Part> = {}): Part {
@@ -17,7 +18,7 @@ export function part(id: string, over: Partial<Part> = {}): Part {
 
 export function spec(parts: Part[], over: Partial<SceneSpec> = {}): SceneSpec {
   return {
-    schema_version: "1.0",
+    schema_version: SCHEMA_VERSION,
     topic: "test_topic",
     title: "Test Topic",
     parts,

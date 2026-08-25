@@ -1,0 +1,65 @@
+{
+  "case": "duplicate-part-id",
+  "note": "same id twice",
+  "expect": [
+    {
+      "code": "duplicate_part_id",
+      "path": "parts.2.id"
+    }
+  ],
+  "spec": {
+    "schema_version": "1.1",
+    "topic": "referential",
+    "title": "Referential fixture",
+    "parts": [
+      {
+        "id": "lens",
+        "name": "Lens",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      },
+      {
+        "id": "cornea",
+        "name": "Cornea",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      },
+      {
+        "id": "lens",
+        "name": "Lens",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.1",
+  "topic": "behaviour",
+  "title": "Behaviour fixture",
+  "parts": [
+    {
+      "id": "p",
+      "name": "Part",
+      "geometry": {
+        "type": "capsule",
+        "radius": 0.5,
+        "length": 2
+      },
+      "material": {
+        "color": "#aabbcc"
+      },
+      "provenance": {
+        "chunk_ids": [
+          "golden"
+        ]
+      }
+    }
+  ]
+}

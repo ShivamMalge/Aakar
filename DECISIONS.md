@@ -469,3 +469,105 @@ and D1 makes the compiler's output a function of the spec alone. The cost is tha
 authoring rule a generator can get wrong. **Phase 3 must state it in the generation prompt**,
 and the critic should be able to see the difference — a cutaway that opens nothing looks
 identical to no cutaway at all.
+
+---
+
+## D-022 — `instance_of`, and schema_version 1.1
+
+**Status:** Accepted (architect ruling) · **Phase:** 1 · **Resolves:** the duplicate-name finding
+
+Two parts named "Mitochondrion" in `animal_cell` is legal and correct — unique *ids* is the
+real invariant. But name + aliases is the retrieval scope key (D5), so both parts scoped
+retrieval identically: same citations, same chat thread, and a scope header that could not
+tell the reader which one they clicked.
+
+**Decision:** `Part.instance_of` (optional, string 1–80). When present it names the concept
+the part is an instance of, and **retrieval scopes on that rather than on the part's own
+name**. Parts sharing an `instance_of` are **one retrieval target**. `animal_cell`'s two
+mitochondria carry it; the neuron stress fixture has 13 such groups over 31 parts.
+
+Grouping is by **exact string equality** on `instance_of` — deliberately dumb, because the
+alternative is fuzzy concept-matching inside the retrieval key, which is precisely where a
+silent mis-scope would be invisible.
+
+**`schema_version` goes to 1.1.** Unlike D-018 this *is* a validation-semantics change: a
+document carrying `instance_of` is invalid under 1.0 and valid under 1.1. Every golden spec,
+the §4 example and the whole fixture corpus were re-stamped.
+
+**Consequence for Phase 2:** the cache key from D-007 is `(corpus_id, topic, part)`. "Part"
+must now resolve to `instance_of` when present, or two mitochondria get two cache entries for
+what is one question. That is a Phase 2 task, not done here.
+
+**Consequence for Phase 3:** the generator has to emit `instance_of` whenever it emits
+repeated structures. Without it, every repeated part is its own retrieval target and the
+panel gets duplicate scopes with identical text.
+
+---
+
+## D-023 — Referential constraints live in `packages/scenespec` and fire at parse
+
+**Status:** Accepted (architect ruling) · **Phase:** 1 · **Supersedes** the Phase 1 placement
+
+The three constraints JSON Schema cannot express — unique part ids, `parent_id` resolving, an
+acyclic parent graph — were implemented in TypeScript only, inside `compile()`.
+
+**The serious half was not the language, it was the trigger point.** Firing on compile meant
+storage, the API, and anything that parsed without rendering skipped referential validation
+entirely. Phase 3's generator parses and stores server-side and does not render until the
+critic runs, so a structurally broken spec would have reached the repair loop as a *render
+failure* rather than as a diagnosable validation error — and the loop cannot repair what it
+cannot diagnose.
+
+**Decision:**
+1. The contract lives in `packages/scenespec` — `referential.ts` plus the Python mirror at
+   `services/api/aakar/scenespec/referential.py`.
+2. Both fire at **parse**: `parseSceneSpec` (web) and `parse_scene_spec` (api).
+3. One fixture set drives both: `packages/scenespec/fixtures/referential/`. The cross-stack
+   contract is the `(code, path)` pair; message text is each stack's own.
+4. `compile()` still calls it defensively, because it accepts a SceneSpec from anywhere and
+   must stay total.
+
+**Explicitly NOT enforced, per the same ruling:** unique part *names* (an animal cell has
+several mitochondria — that is what D-022 is for) and a *single root* (all three golden specs
+are multi-root at 5, 11 and 11, and D-017's exploded view is defined over top-level parts,
+plural). Both are recorded as fixtures that must be **accepted**, so a future implementer
+cannot add them by accident.
+
+**Found while writing the fixtures:** a self-parent was reported twice, once as `self_parent`
+and once as a length-one `parent_cycle`. Both stacks now exclude self edges from cycle
+detection — one defect, one code, or the repair prompt sees the same problem under two names.
+
+---
+
+## D-024 — Containment is a warning, never an error
+
+**Status:** Accepted (architect ruling A(d)) · **Phase:** 1
+
+D-017 made `parent_id` mean "is contained by", but nothing checked that a spec's parenting
+reflected containment, so a spec that parents parts for convenience explodes wrongly with no
+diagnostic.
+
+**Decision:** the compiler measures a bounding-box containment ratio between each part and its
+parent and emits a structured warning below 0.9 — `{code, partId, parentId, ratio, message}`,
+carried in the compile result, never printed. It **never blocks**.
+
+**Why a warning.** Run against the golden specs it produces exactly two, and both are correct
+geometry with legitimate parenting:
+
+| topic | part → parent | ratio |
+| --- | --- | --- |
+| `animal_cell` | `nuclear_envelope` → `nucleus` | 0.770 |
+| `human_eye` | `fovea` → `retina` | 0.857 |
+
+A nuclear envelope *surrounds* its nucleus and a fovea sits *on* the retina's surface. Neither
+is a mistake, and an error would have blocked both. This is a curation signal (Rule 8) and a
+Phase 3 repair-prompt input, nothing more.
+
+**Measured on the part's own AABB**, deliberately not `Box3.setFromObject`, which walks
+descendants — a parent's box would swallow its children and every part would look perfectly
+contained.
+
+**Known crudeness:** an AABB over a sphere over-reports. The fovea is genuinely on the retina;
+it warns because their boxes clip at a corner. Tightening this to real geometry is vNext, and
+the threshold should be calibrated against Phase 3's generated specs rather than against three
+hand-written ones.

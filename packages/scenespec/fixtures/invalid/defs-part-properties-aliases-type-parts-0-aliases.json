@@ -4,7 +4,7 @@
   "target": "parts.0.aliases",
   "note": "wrong JSON type, expected array",
   "spec": {
-    "schema_version": "1.0",
+    "schema_version": "1.1",
     "topic": "conformance",
     "title": "Conformance fixture",
     "parts": [
@@ -12,6 +12,7 @@
         "id": "only_part",
         "name": "Only Part",
         "aliases": "not-an-array",
+        "instance_of": "Sole Part",
         "geometry": {
           "type": "sphere",
           "radius": 1.0

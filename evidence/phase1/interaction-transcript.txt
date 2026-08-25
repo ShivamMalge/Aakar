@@ -15,4 +15,9 @@
     cursor over canvas -> pointer
     click at centre    -> selected: Cell Membrane | cell_membrane | sphere | plasma membrane, plasmalemma | golden
 
+/render/neuron
+    before any click   -> Click a part.
+    cursor over canvas -> pointer
+    click at centre    -> selected: Myelin Sheath | myelin_1 | cylinder | myelin, medullary sheath | c_mye_1, c_mye_2
+
 Raycast selection works: a click resolves to a part id and the panel reads it back.

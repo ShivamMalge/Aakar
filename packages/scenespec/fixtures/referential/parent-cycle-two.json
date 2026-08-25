@@ -1,0 +1,51 @@
+{
+  "case": "parent-cycle-two",
+  "note": "a -> b -> a",
+  "expect": [
+    {
+      "code": "parent_cycle",
+      "path": "parts.0.parent_id"
+    }
+  ],
+  "spec": {
+    "schema_version": "1.1",
+    "topic": "referential",
+    "title": "Referential fixture",
+    "parts": [
+      {
+        "id": "a",
+        "name": "A",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "b"
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "a"
+      }
+    ]
+  }
+}

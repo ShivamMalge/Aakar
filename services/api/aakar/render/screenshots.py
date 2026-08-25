@@ -15,12 +15,14 @@ Phase 0/1 make no model call: this file talks to a browser, never to a provider.
 from __future__ import annotations
 
 import argparse
+import sys
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlencode
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 DEFAULT_BASE_URL = "http://localhost:3000"
 
@@ -30,10 +32,20 @@ VIEWPORT_WIDTH = 1280
 VIEWPORT_HEIGHT = 900
 DEVICE_SCALE_FACTOR = 1
 
-# The viewer sets this once three.js has painted a settled frame; without it the
-# harness races the first render and captures an empty canvas.
-READY_SELECTOR = "body[data-scene-ready='true']"
+# Capture liveness (Phase 1 review, item 2).
+#
+# The viewer emits this node only when the spec compiled AND the scene graph was built
+# and painted, and stamps it with what was actually rendered. Waiting on a bare "ready"
+# flag was not enough: a stale client bundle photographs identically to a working one, so
+# a broken route produced captures that looked fine. In Phase 3 the VLM critic consumes
+# this exact path and gates entry into the library, and a critic scoring stale renders
+# produces confident approvals of nothing.
+READY_SELECTOR = "[data-scene-sentinel]"
 READY_TIMEOUT_MS = 30_000
+
+
+class CapturePreconditionFailed(RuntimeError):
+    """A precondition failed. No capture is taken; nothing downstream sees a stale PNG."""
 
 
 @dataclass(frozen=True)
@@ -93,9 +105,22 @@ def capture(
                 reduced_motion="reduce",
             )
             page = context.new_page()
+
+            # Check the *default* route for each topic before capturing anything.
+            #
+            # This is not belt-and-braces. The capture URL over-specifies every option,
+            # and the Phase 1 outage was reachable only when an option was ABSENT: the
+            # server component fell back to a value off a "use client" module, which is a
+            # client reference React cannot serialize. Supplying `cutaway` and `labels`
+            # skipped that fallback entirely, so the harness URL returned 200 while
+            # /render/{topic} — what readers and share links actually open — returned 500.
+            # A harness that only ever visits its own over-specified URL cannot see that.
+            for topic in dict.fromkeys(request.topic for request in requests):
+                _assert_live(page, f"{base_url.rstrip('/')}/render/{topic}", topic)
+
             for request in requests:
-                page.goto(request.url(base_url), wait_until="domcontentloaded")
-                page.wait_for_selector(READY_SELECTOR, timeout=READY_TIMEOUT_MS)
+                url = request.url(base_url)
+                _assert_live(page, url, request.topic)
                 target = out_dir / request.filename
                 page.screenshot(path=str(target))
                 written.append(target)
@@ -104,6 +129,43 @@ def capture(
             browser.close()
 
     return written
+
+
+def _assert_live(page: Page, url: str, topic: str) -> None:
+    """Refuse to photograph anything that is not demonstrably alive.
+
+    Three checks, in the order they can fail:
+      1. the route answered 200 — a 500 used to still produce a PNG
+      2. the sentinel appeared — the scene graph was built and painted
+      3. the sentinel describes *this* topic with a non-zero part count
+    """
+    response = page.goto(url, wait_until="domcontentloaded")
+    if response is None:
+        raise CapturePreconditionFailed(f"no response from {url}")
+    if response.status != 200:
+        raise CapturePreconditionFailed(f"route is not healthy: HTTP {response.status} for {url}")
+
+    try:
+        page.wait_for_selector(READY_SELECTOR, state="attached", timeout=READY_TIMEOUT_MS)
+    except PlaywrightTimeoutError as exc:
+        raise CapturePreconditionFailed(
+            f"scene never became ready for {url}: no {READY_SELECTOR} after "
+            f"{READY_TIMEOUT_MS} ms. The route answered 200, so the page loaded but the "
+            f"viewer did not mount or the spec did not compile."
+        ) from exc
+
+    sentinel = page.locator(READY_SELECTOR).first
+    rendered_topic = sentinel.get_attribute("data-topic")
+    rendered_parts = sentinel.get_attribute("data-parts")
+
+    if rendered_topic != topic:
+        raise CapturePreconditionFailed(
+            f"wrong topic rendered at {url}: sentinel says {rendered_topic!r}, expected {topic!r}"
+        )
+    if not rendered_parts or int(rendered_parts) <= 0:
+        raise CapturePreconditionFailed(
+            f"nothing to photograph at {url}: sentinel reports {rendered_parts!r} parts"
+        )
 
 
 def gate_shots(topics: Sequence[str]) -> list[ShotRequest]:
@@ -141,8 +203,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         for angle in angles
     ]
 
-    for path in capture(requests, args.out, base_url=args.base_url):
-        print(path)
+    try:
+        for path in capture(requests, args.out, base_url=args.base_url):
+            print(path)
+    except CapturePreconditionFailed as failure:
+        print(f"CAPTURE PRECONDITION FAILED: {failure}", file=sys.stderr)
+        print("No screenshots were written.", file=sys.stderr)
+        return 2
     return 0
 
 

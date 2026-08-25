@@ -2,7 +2,7 @@
 
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import * as THREE from "three";
 
 import { type ExplodeMode, compile } from "../compiler";
@@ -30,6 +30,8 @@ function cameraPosition(spec: SceneSpec, angle: number): THREE.Vector3 {
 export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<ViewerOptions> }) {
   const initial = { ...DEFAULT_OPTIONS, ...options };
 
+  const [ready, setReady] = useState(false);
+  const onReady = useCallback(() => setReady(true), []);
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [labels, setLabels] = useState(initial.labels);
@@ -62,6 +64,22 @@ export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<V
 
   return (
     <div className="viewer">
+      {/*
+        Capture-liveness sentinel (1.6). It exists only when the spec compiled AND the
+        scene graph was built and painted, and it carries what was actually rendered —
+        so the screenshot harness can check it photographed this topic rather than a
+        stale bundle. A bare "ready" flag could not tell those apart.
+      */}
+      {ready ? (
+        <div
+          data-scene-sentinel=""
+          data-topic={spec.topic}
+          data-parts={String(scene.parts.size)}
+          data-schema-version={spec.schema_version}
+          hidden
+        />
+      ) : null}
+
       <div className="viewer-canvas">
         <Canvas
           camera={{ position: cameraPosition(spec, initial.angle).toArray(), fov: 45 }}
@@ -82,6 +100,7 @@ export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<V
             explodeMode={explodeMode}
             onSelect={setSelected}
             onHover={setHovered}
+            onReady={onReady}
           />
           <OrbitControls makeDefault target={target.toArray()} enableDamping={false} />
         </Canvas>

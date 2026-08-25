@@ -1,0 +1,78 @@
+"""SceneSpec parsing for the API.
+
+`generated.py` is produced by `make codegen` and must stay replaceable — import from
+this module, never from it directly (D7).
+
+`parse_scene_spec` is the Python parse entry point, and it runs the referential
+constraints as well as the schema. Both halves matter server-side: Phase 3's generator
+parses and stores a spec long before anything renders it, so referential validation has
+to happen here or it does not happen at all on this stack.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+from pydantic import ValidationError
+
+from .generated import SceneSpec
+from .referential import ReferentialCode, ReferentialError, validate_referential
+
+__all__ = [
+    "ParseIssue",
+    "ParseResult",
+    "ReferentialCode",
+    "ReferentialError",
+    "SceneSpec",
+    "parse_scene_spec",
+    "validate_referential",
+]
+
+
+@dataclass(frozen=True)
+class ParseIssue:
+    code: str
+    path: str
+    message: str
+
+
+@dataclass(frozen=True)
+class ParseResult:
+    spec: SceneSpec | None
+    issues: tuple[ParseIssue, ...]
+
+    @property
+    def ok(self) -> bool:
+        return self.spec is not None
+
+    @property
+    def errors(self) -> tuple[str, ...]:
+        return tuple(f"{i.path}: {i.message}" if i.path else i.message for i in self.issues)
+
+
+def parse_scene_spec(document: Any) -> ParseResult:
+    """Schema-validate, then referentially validate. Never raises."""
+    try:
+        spec = SceneSpec.model_validate(document)
+    except ValidationError as exc:
+        issues = tuple(
+            ParseIssue(
+                code=f"schema:{error['type']}",
+                path=".".join(str(part) for part in error["loc"]),
+                message=str(error["msg"]),
+            )
+            for error in exc.errors()
+        )
+        return ParseResult(spec=None, issues=issues)
+
+    referential = validate_referential(document)
+    if referential:
+        return ParseResult(
+            spec=None,
+            issues=tuple(
+                ParseIssue(code=e.code, path=e.path, message=e.message) for e in referential
+            ),
+        )
+
+    return ParseResult(spec=spec, issues=())

@@ -1,0 +1,50 @@
+{
+  "case": "parent-not-found-near-miss",
+  "note": "a one-character typo; the message should suggest the intended id",
+  "expect": [
+    {
+      "code": "parent_not_found",
+      "path": "parts.1.parent_id"
+    }
+  ],
+  "spec": {
+    "schema_version": "1.1",
+    "topic": "referential",
+    "title": "Referential fixture",
+    "parts": [
+      {
+        "id": "eyeball",
+        "name": "Eyeball",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      },
+      {
+        "id": "lens",
+        "name": "Lens",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        },
+        "parent_id": "eyebal"
+      }
+    ]
+  }
+}

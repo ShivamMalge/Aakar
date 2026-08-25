@@ -1,24 +1,24 @@
 === PYTEST (services/api, replay mode) ===
-47 passed, 2 warnings in 6.41s
+597 passed, 2 warnings in 8.15s
 
 === RUFF / RUFF FORMAT / MYPY --strict ===
 All checks passed!
-22 files already formatted
-Success: no issues found in 22 source files
+30 files already formatted
+Success: no issues found in 30 source files
 
 === VITEST (apps/web) ===
- ✓ src/compiler/validate.test.ts (11 tests) 19ms
- ✓ src/compiler/geometry.test.ts (19 tests) 99ms
- ✓ src/compiler/compile.test.ts (21 tests) 140ms
- ✓ src/scenespec/generated.test.ts (15 tests) 72ms
- ✓ src/compiler/golden.test.ts (23 tests) 306ms
- ✓ src/compiler/fuzz.test.ts (6 tests) 1244ms
- Test Files  6 passed (6)
-      Tests  95 passed (95)
+ ✓ src/compiler/geometry.test.ts (19 tests) 100ms
+ ✓ src/scenespec/referential.test.ts (30 tests) 55ms
+ ✓ src/scenespec/generated.test.ts (16 tests) 74ms
+ ✓ src/scenespec/behaviour.test.ts (35 tests) 111ms
+ ✓ src/compiler/compile.test.ts (21 tests) 146ms
+ ✓ src/compiler/golden.test.ts (27 tests) 388ms
+ ✓ src/scenespec/conformance.test.ts (231 tests) 355ms
+ ✓ src/compiler/stress.test.ts (8 tests) 1213ms
+ ✓ src/compiler/fuzz.test.ts (6 tests) 1095ms
+ Test Files  9 passed (9)
+      Tests  393 passed (393)
 
 === TSC + ESLINT ===
 tsc: no errors
 eslint: no errors
-
-=== D7 DRIFT CHECK ===
-no drift: generated types match the schema

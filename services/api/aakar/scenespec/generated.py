@@ -185,6 +185,12 @@ class Part(BaseModel):
     aliases: list[Alias] | None = Field(
         None, description="Drives part-scoped retrieval (D5).", max_length=16
     )
+    instance_of: str | None = Field(
+        None,
+        description="Optional. Names the concept this part is an instance of. Parts sharing an instance_of are ONE retrieval target, and retrieval scopes on this rather than on the part's own name (D5). Present when a topic legitimately contains several of the same structure — an animal cell has many mitochondria — which would otherwise give each copy an identical, and therefore ambiguous, retrieval scope.",
+        max_length=80,
+        min_length=1,
+    )
     parent_id: PartId | None = Field(
         None,
         description="Optional. The validator checks it resolves to an existing part and that the parent graph is acyclic.",
@@ -228,7 +234,7 @@ class SceneSpec(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    schema_version: Literal["1.0"] = Field(
+    schema_version: Literal["1.1"] = Field(
         ...,
         description="Bumped whenever the schema changes; the drift test (D7) keeps generated types in step.",
     )

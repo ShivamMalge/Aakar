@@ -41,6 +41,8 @@ export type SceneProps = {
   explodeMode: ExplodeMode;
   onSelect: (partId: string | null) => void;
   onHover: (partId: string | null) => void;
+  /** Fired once the scene graph has been built and painted (capture liveness, 1.6). */
+  onReady: () => void;
 };
 
 /** Walk up from the hit object to whichever ancestor carries a part id. */
@@ -103,13 +105,22 @@ function ExplodeDolly({ explode }: { explode: number }) {
   return null;
 }
 
-/** Tells the Playwright harness (1.6) the frame is worth capturing. */
-function ReadySignal() {
+/**
+ * Tells the Viewer the scene graph is built and painted, so it can emit the capture
+ * sentinel (1.6).
+ *
+ * This fires from inside the r3f render loop, which means it cannot fire unless the
+ * canvas actually mounted and drew. A stale client bundle never reaches it — which is
+ * the whole point: a broken route used to photograph identically to a working one.
+ */
+function ReadySignal({ onReady }: { onReady: () => void }) {
   const frames = useRef(0);
+  const fired = useRef(false);
   useFrame(() => {
     frames.current += 1;
-    if (frames.current === READY_AFTER_FRAMES) {
-      document.body.dataset["sceneReady"] = "true";
+    if (frames.current >= READY_AFTER_FRAMES && !fired.current) {
+      fired.current = true;
+      onReady();
     }
   });
   return null;
@@ -183,7 +194,7 @@ export function Scene(props: SceneProps) {
         : null}
 
       <ExplodeDolly explode={explode} />
-      <ReadySignal />
+      <ReadySignal onReady={props.onReady} />
     </>
   );
 }

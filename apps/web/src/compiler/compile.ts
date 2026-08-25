@@ -7,8 +7,10 @@ import * as THREE from "three";
 
 import type { Part, SceneSpec } from "../scenespec";
 
+import { type ReferentialError, validateReferential } from "@scenespec/referential";
+
+import { type CompileWarning, containmentWarnings } from "./containment";
 import { buildGeometry } from "./geometry";
-import { type SpecError, validateGraph } from "./validate";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -35,8 +37,8 @@ export type CompiledScene = {
 };
 
 export type CompileResult =
-  | { ok: true; scene: CompiledScene }
-  | { ok: false; errors: SpecError[] };
+  | { ok: true; scene: CompiledScene; warnings: CompileWarning[] }
+  | { ok: false; errors: ReferentialError[] };
 
 function buildMaterial(part: Part): THREE.MeshStandardMaterial {
   const opacity = part.material.opacity ?? 1;
@@ -100,7 +102,10 @@ function topoOrder(spec: SceneSpec): Part[] {
 }
 
 export function compile(spec: SceneSpec): CompileResult {
-  const errors = validateGraph(spec);
+  // `parseSceneSpec` already ran these, so in the normal path this finds nothing. It
+  // stays here because `compile` accepts a SceneSpec from anywhere — a hand-built object
+  // in a test, a future caller that skipped parse — and must be total either way.
+  const errors = validateReferential(spec);
   if (errors.length > 0) return { ok: false, errors };
 
   const root = new THREE.Group();
@@ -157,12 +162,22 @@ export function compile(spec: SceneSpec): CompileResult {
     }
   }
 
+  // Containment is measured after matrices settle and before anything explodes, so the
+  // ratio describes the spec's own arrangement rather than a viewer state (ruling A(d)).
+  const parentOf = new Map<string, string>();
+  for (const [id, compiled] of parts) {
+    const parentId = compiled.part.parent_id;
+    if (parentId !== undefined && meshes.has(parentId)) parentOf.set(id, parentId);
+  }
+  const warnings = containmentWarnings(meshes, parentOf);
+
   const centroid = bounds.isEmpty() ? new THREE.Vector3() : bounds.getCenter(new THREE.Vector3());
   const size = bounds.isEmpty() ? new THREE.Vector3(1, 1, 1) : bounds.getSize(new THREE.Vector3());
   const radius = Math.max(size.length() / 2, 1e-3);
 
   return {
     ok: true,
+    warnings,
     scene: {
       root,
       parts,
