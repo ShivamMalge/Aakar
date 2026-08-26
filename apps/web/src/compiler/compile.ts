@@ -162,14 +162,9 @@ export function compile(spec: SceneSpec): CompileResult {
     }
   }
 
-  // Containment is measured after matrices settle and before anything explodes, so the
-  // ratio describes the spec's own arrangement rather than a viewer state (ruling A(d)).
-  const parentOf = new Map<string, string>();
-  for (const [id, compiled] of parts) {
-    const parentId = compiled.part.parent_id;
-    if (parentId !== undefined && meshes.has(parentId)) parentOf.set(id, parentId);
-  }
-  const warnings = containmentWarnings(meshes, parentOf);
+  // Measured after matrices settle and before anything explodes, so it describes the
+  // spec's own arrangement rather than a viewer state (rulings A(d), 11, 12).
+  const warnings = containmentWarnings(spec, meshes);
 
   const centroid = bounds.isEmpty() ? new THREE.Vector3() : bounds.getCenter(new THREE.Vector3());
   const size = bounds.isEmpty() ? new THREE.Vector3(1, 1, 1) : bounds.getSize(new THREE.Vector3());

@@ -319,28 +319,17 @@ def build() -> dict[str, Any]:
     }
 
 
-def _assert_no_rotated_parents(spec: dict[str, Any]) -> None:
-    """A rotated or scaled part turns its whole subtree.
-
-    Parts are authored in world coordinates and converted to parent-relative by
-    subtracting the parent's position, which is only correct when every ancestor is a
-    pure translation. The first draft put a -90 deg rotation on the axon hillock and the
-    entire axon rendered at right angles to where it was authored. Rotate leaves only.
-    """
-    has_children = {p["parent_id"] for p in spec["parts"] if "parent_id" in p}
-    for part in spec["parts"]:
-        if part["id"] not in has_children:
-            continue
-        transform = part.get("transform", {})
-        rotation = transform.get("rotation")
-        scale = transform.get("scale")
-        assert rotation in (None, [0, 0, 0]), f"{part['id']} has children and a rotation"
-        assert scale in (None, [1, 1, 1]), f"{part['id']} has children and a scale"
+# NOTE (ruling 11): an earlier draft asserted here that no part with children may carry a
+# rotation or scale. That was wrong and has been removed. Rotating a parent to carry its
+# subtree is correct scene-graph behaviour and a legitimate authoring tool; the axon
+# hillock was an authoring error, not a semantic one. The compiler now emits a *warning*
+# for it instead (see apps/web/src/compiler/containment.ts), and this generator authors in
+# world coordinates purely as a convenience, which is why it keeps its own parents
+# translation-only.
 
 
 def main() -> int:
     spec = build()
-    _assert_no_rotated_parents(spec)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

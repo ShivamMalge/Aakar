@@ -11,21 +11,31 @@ to happen here or it does not happen at all on this stack.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from pydantic import ValidationError
 
 from .generated import SceneSpec
+from .provenance import (
+    ProvenanceStrength,
+    provenance_strengths,
+    strength_counts,
+    ungrounded_parts,
+)
 from .referential import ReferentialCode, ReferentialError, validate_referential
 
 __all__ = [
     "ParseIssue",
     "ParseResult",
+    "ProvenanceStrength",
     "ReferentialCode",
     "ReferentialError",
     "SceneSpec",
     "parse_scene_spec",
+    "provenance_strengths",
+    "strength_counts",
+    "ungrounded_parts",
     "validate_referential",
 ]
 
@@ -41,6 +51,9 @@ class ParseIssue:
 class ParseResult:
     spec: SceneSpec | None
     issues: tuple[ParseIssue, ...]
+    # Derived, never author-supplied (D-025). Zero-provenance parts are legal as of
+    # schema 1.2 and are a curation signal, not an error.
+    provenance_strength: dict[str, ProvenanceStrength] = field(default_factory=dict)
 
     @property
     def ok(self) -> bool:
@@ -75,4 +88,4 @@ def parse_scene_spec(document: Any) -> ParseResult:
             ),
         )
 
-    return ParseResult(spec=spec, issues=())
+    return ParseResult(spec=spec, issues=(), provenance_strength=provenance_strengths(document))

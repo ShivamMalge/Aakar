@@ -1,0 +1,64 @@
+{
+  "case": "mixed-all-three-states",
+  "note": "one spec at every strength \u2014 what the curation gate actually receives",
+  "expect": {
+    "well_grounded": "strong",
+    "mentioned": "weak",
+    "invented": "none"
+  },
+  "spec": {
+    "schema_version": "1.2",
+    "topic": "provenance",
+    "title": "Provenance fixture",
+    "parts": [
+      {
+        "id": "well_grounded",
+        "name": "Well Grounded",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "c1",
+            "c2"
+          ],
+          "evidence": "quoted from the chapter"
+        }
+      },
+      {
+        "id": "mentioned",
+        "name": "Mentioned",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "c3"
+          ]
+        }
+      },
+      {
+        "id": "invented",
+        "name": "Invented",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": []
+        }
+      }
+    ]
+  }
+}

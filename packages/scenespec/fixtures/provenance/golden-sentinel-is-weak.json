@@ -1,0 +1,30 @@
+{
+  "case": "golden-sentinel-is-weak",
+  "note": "D-003's reserved sentinel cites something but quotes nothing, so it is weak, not strong. Phase 2B task 2B.11 backfills real ids and real evidence.",
+  "expect": {
+    "eyeball": "weak"
+  },
+  "spec": {
+    "schema_version": "1.2",
+    "topic": "provenance",
+    "title": "Provenance fixture",
+    "parts": [
+      {
+        "id": "eyeball",
+        "name": "Eyeball",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "golden"
+          ]
+        }
+      }
+    ]
+  }
+}

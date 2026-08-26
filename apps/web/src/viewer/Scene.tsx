@@ -3,7 +3,6 @@
 // The rendered scene: the compiled object graph plus the deterministic viewer
 // behaviours the spec keeps *out* of the SceneSpec (spec §4) — raycast selection,
 // hover outline, label billboards, cutaway, exploded view.
-import { Html } from "@react-three/drei";
 import { type ThreeEvent, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
@@ -30,6 +29,8 @@ const HOVER_EMISSIVE = new THREE.Color("#3d7dd6");
 const SELECTED_EMISSIVE = new THREE.Color("#f0a500");
 const NO_EMISSIVE = new THREE.Color("#000000");
 
+import { LabelDriver, type LabelState } from "./LabelLayer";
+
 export type SceneProps = {
   scene: CompiledScene;
   spec: SceneSpec;
@@ -43,6 +44,8 @@ export type SceneProps = {
   onHover: (partId: string | null) => void;
   /** Fired once the scene graph has been built and painted (capture liveness, 1.6). */
   onReady: () => void;
+  /** Screen-space label layout, recomputed inside the r3f loop (ruling 8). */
+  onLabelLayout: (state: LabelState) => void;
 };
 
 /** Walk up from the hit object to whichever ancestor carries a part id. */
@@ -52,30 +55,6 @@ function partIdOf(object: THREE.Object3D | null): string | null {
     if (typeof id === "string") return id;
   }
   return null;
-}
-
-function LabelBillboard({ compiled }: { compiled: CompiledPart }) {
-  const anchor = useRef<THREE.Group>(null);
-
-  // Labels track their part through the exploded view, so the anchor is re-read every
-  // frame rather than captured once.
-  //
-  // The anchor sits on top of the part rather than at its centre. Concentric topics
-  // put every part on the same centre — Earth's five layers produced five labels
-  // stacked on one pixel — so lifting each by its own radius is what separates them.
-  useFrame(() => {
-    if (anchor.current === null) return;
-    compiled.mesh.getWorldPosition(anchor.current.position);
-    anchor.current.position.y += compiled.restRadius;
-  });
-
-  return (
-    <group ref={anchor}>
-      <Html center zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
-        <span className="part-label">{compiled.part.name}</span>
-      </Html>
-    </group>
-  );
 }
 
 /**
@@ -187,11 +166,7 @@ export function Scene(props: SceneProps) {
         onPointerMissed={() => onSelect(null)}
       />
 
-      {showLabels
-        ? [...scene.parts.values()].map((compiled) => (
-            <LabelBillboard key={compiled.part.id} compiled={compiled} />
-          ))
-        : null}
+      <LabelDriver scene={scene} enabled={showLabels} onLayout={props.onLabelLayout} />
 
       <ExplodeDolly explode={explode} />
       <ReadySignal onReady={props.onReady} />

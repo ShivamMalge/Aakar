@@ -4,7 +4,7 @@
   "target": "topic",
   "note": "required field 'topic' removed",
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "title": "Conformance fixture",
     "parts": [
       {

@@ -5,9 +5,16 @@ import { Canvas } from "@react-three/fiber";
 import { useCallback, useMemo, useState } from "react";
 import * as THREE from "three";
 
-import { type ExplodeMode, compile } from "../compiler";
+import {
+  DEFAULT_FOV,
+  type ExplodeMode,
+  compile,
+  defaultCutaway,
+  frameScene,
+} from "../compiler";
 import type { SceneSpec } from "../scenespec";
 
+import { LabelOverlay, type LabelState } from "./LabelLayer";
 import { Scene } from "./Scene";
 import { DEFAULT_OPTIONS, type ViewerOptions } from "./options";
 
@@ -19,27 +26,43 @@ function vector(source: readonly number[] | undefined, fallback: [number, number
   );
 }
 
-/** camera_hint, spun by `angle` quarter-turns about Y. Deterministic per angle index. */
-function cameraPosition(spec: SceneSpec, angle: number): THREE.Vector3 {
-  return vector(spec.camera_hint?.position, [3, 2, 4]).applyAxisAngle(
-    new THREE.Vector3(0, 1, 0),
-    (angle * Math.PI) / 2,
-  );
-}
+
 
 export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<ViewerOptions> }) {
   const initial = { ...DEFAULT_OPTIONS, ...options };
 
+  const result = useMemo(() => compile(spec), [spec]);
+
+  // A shelled topic — Earth's layers, an eyeball, a cell — shows nothing but its outer
+  // shell from outside, so it opens cut away unless the caller said otherwise (ruling 9).
+  // Measured from geometry, not guessed from the topic name, so it stays right for topics
+  // that do not exist yet.
+  const shouldCutAway = useMemo(() => {
+    if (options?.cutaway !== undefined) return options.cutaway;
+    if (!result.ok) return DEFAULT_OPTIONS.cutaway;
+    const meshes = new Map([...result.scene.parts].map(([id, part]) => [id, part.mesh]));
+    return defaultCutaway(spec, meshes);
+  }, [options?.cutaway, result, spec]);
+
+  const [labelState, setLabelState] = useState<LabelState | null>(null);
   const [ready, setReady] = useState(false);
   const onReady = useCallback(() => setReady(true), []);
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [labels, setLabels] = useState(initial.labels);
-  const [cutaway, setCutaway] = useState(initial.cutaway);
+  const [cutaway, setCutaway] = useState(shouldCutAway);
   const [explode, setExplode] = useState(initial.explode);
   const [explodeMode, setExplodeMode] = useState<ExplodeMode>(initial.explodeMode);
 
-  const result = useMemo(() => compile(spec), [spec]);
+  // Framing is derived from the scene's own bounds (ruling 9). camera_hint supplies the
+  // direction; the distance is computed, because an authored distance is the one number
+  // that cannot be right without knowing the final bounds — the neuron stress fixture
+  // cropped at both ends for exactly that reason.
+  const framing = useMemo(() => {
+    if (!result.ok) return null;
+    const meshes = [...result.scene.parts.values()].map((part) => part.mesh);
+    return frameScene(spec, meshes, { angle: initial.angle });
+  }, [result, spec, initial.angle]);
 
   if (!result.ok) {
     // 1.1: validation errors are a product surface — Phase 3 feeds them to the repair
@@ -59,7 +82,7 @@ export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<V
   }
 
   const { scene } = result;
-  const target = vector(spec.camera_hint?.look_at, [0, 0, 0]);
+  const target = framing?.target ?? vector(spec.camera_hint?.look_at, [0, 0, 0]);
   const selectedPart = selected !== null ? scene.parts.get(selected)?.part : undefined;
 
   return (
@@ -76,13 +99,24 @@ export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<V
           data-topic={spec.topic}
           data-parts={String(scene.parts.size)}
           data-schema-version={spec.schema_version}
+          data-labels-placed={String(labelState?.placed.length ?? 0)}
+          data-labels-dropped={String(labelState?.dropped.length ?? 0)}
+          data-labels-dropped-occluded={String(labelState?.droppedOccluded ?? 0)}
+          data-labels-dropped-for-space={String(labelState?.droppedForSpace ?? 0)}
           hidden
         />
       ) : null}
 
       <div className="viewer-canvas">
         <Canvas
-          camera={{ position: cameraPosition(spec, initial.angle).toArray(), fov: 45 }}
+          camera={{
+            position: (framing?.position ?? new THREE.Vector3(3, 2, 4)).toArray(),
+            fov: DEFAULT_FOV,
+            // A 40-part neuron is ~6 units across; the default far plane of 2000 is
+            // fine, but the near plane has to scale or thin parts z-fight up close.
+            near: Math.max((framing?.radius ?? 1) / 100, 0.01),
+            far: Math.max((framing?.radius ?? 1) * 20, 100),
+          }}
           onCreated={({ gl }) => {
             // Required for the spec's cutaway plane to clip anything (1.3).
             gl.localClippingEnabled = true;
@@ -101,9 +135,12 @@ export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<V
             onSelect={setSelected}
             onHover={setHovered}
             onReady={onReady}
+            onLabelLayout={setLabelState}
           />
           <OrbitControls makeDefault target={target.toArray()} enableDamping={false} />
         </Canvas>
+
+        {labels ? <LabelOverlay state={labelState} selected={selected} /> : null}
       </div>
 
       {initial.shot ? null : (

@@ -3,7 +3,7 @@
   "note": "two children of one parent \u2014 a tree, not a cycle",
   "expect": [],
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "topic": "referential",
     "title": "Referential fixture",
     "parts": [

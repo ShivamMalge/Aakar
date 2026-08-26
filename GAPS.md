@@ -52,7 +52,7 @@ of zero.
 ---
 
 ## G-02 — Citation correctness is never measured · **high**
-### → **Scheduled** · task 2.10, Phase 2 gate
+### → **Scheduled** · task 2B.12, Phase 2B gate
 
 D6 states the law — "no citation → the sentence doesn't ship" — and §9's only enforcement is a
 structural test that a page number is *present*. Nothing checks the cited page *supports* the
@@ -65,7 +65,7 @@ report the accuracy rate in the gate report.
 ---
 
 ## G-03 — The cache hit-rate gate has no false-hit counterpart · **high**
-### → **Scheduled** · task 2.7, Phase 2 gate
+### → **Scheduled** · task 2B.9, Phase 2B gate
 
 Both documents gate Phase 2 on ">60% hit rate at cosine ≥ 0.92". The metric is one-sided and is
 trivially satisfied by lowering the threshold — which is exactly how the system starts serving
@@ -109,7 +109,7 @@ Phase 2 proves part-scoped retrieval against golden specs' hand-tuned part names
 Phase 3 generates them from a model, and D5's scoping, alias matching and widening are never
 re-checked against generated vocabulary — where alias quality is likely to be worst.
 
-**Accepted:** re-run the Phase 2 retrieval and widening tests against at least one generated
+**Accepted:** re-run the Phase 2B retrieval and widening tests against at least one generated
 topic as part of the Phase 3 gate.
 
 ---

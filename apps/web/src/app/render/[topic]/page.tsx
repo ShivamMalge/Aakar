@@ -24,7 +24,9 @@ function readOptions(search: SearchParams): Partial<ViewerOptions> {
   return {
     angle: Number.isFinite(angle) ? angle : 0,
     shot: flag(search["shot"], false),
-    cutaway: flag(search["cutaway"], DEFAULT_OPTIONS.cutaway),
+    // Deliberately NOT defaulted here: `undefined` means "caller did not say", which
+    // lets the viewer apply its geometry-derived default (ruling 9).
+    cutaway: one(search["cutaway"]) === undefined ? undefined : flag(search["cutaway"], false),
     labels: flag(search["labels"], DEFAULT_OPTIONS.labels),
     explode: Number.isFinite(explode) ? Math.min(Math.max(explode, 0), 1) : 0,
     explodeMode: mode === "per-part" ? "per-part" : "top-level",

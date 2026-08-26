@@ -1,0 +1,31 @@
+{
+  "case": "weak-empty-quote",
+  "note": "an empty evidence string is not a quotation; whitespace must not buy `strong`",
+  "expect": {
+    "lens": "weak"
+  },
+  "spec": {
+    "schema_version": "1.2",
+    "topic": "provenance",
+    "title": "Provenance fixture",
+    "parts": [
+      {
+        "id": "lens",
+        "name": "Lens",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "c17"
+          ],
+          "evidence": "   "
+        }
+      }
+    ]
+  }
+}

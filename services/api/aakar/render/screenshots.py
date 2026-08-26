@@ -17,7 +17,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -50,11 +50,25 @@ class CapturePreconditionFailed(RuntimeError):
 
 @dataclass(frozen=True)
 class ShotRequest:
-    """One capture. `shot=1` hides the control chrome so the frame is all model."""
+    """One capture. `shot=1` hides the control chrome so the frame is all model.
+
+    `labels` splits the capture path in two (ruling 7), and the split is not cosmetic:
+
+    * **unlabeled — the VLM critic's input.** The critic judges geometry, occlusion,
+      spatial relationships and anatomical plausibility. Label collisions are the most
+      visually wrong thing in a labeled frame, so a critic given one spends both of D3's
+      repair rounds on typography while structural errors pass unexamined.
+    * **labeled — the human curator's input.** Naming, coverage and alias correctness can
+      only be judged with the labels on.
+    """
 
     topic: str
     angle: int = 0
-    cutaway: bool = False
+    # Tri-state. None means "do not say", so the viewer applies its geometry-derived
+    # default (ruling 9). This is the same trap as the Phase 1 outage: a harness that
+    # pins every option can never exercise the behaviour that only happens when one is
+    # absent, and every capture silently showed the non-default path.
+    cutaway: bool | None = None
     explode: float = 0.0
     explode_mode: str = "top-level"
     labels: bool = True
@@ -62,25 +76,29 @@ class ShotRequest:
     @property
     def filename(self) -> str:
         parts = [self.topic, f"angle{self.angle}"]
-        if self.cutaway:
+        if self.cutaway is True:
             parts.append("cutaway")
+        elif self.cutaway is False:
+            parts.append("exterior")
         if self.explode > 0:
             parts.append(f"explode{self.explode:g}-{self.explode_mode}")
-        if not self.labels:
-            parts.append("nolabels")
+        # Always stated, never implied. Which variant a PNG is decides who it is for, and
+        # an unlabelled filename would make a critic input indistinguishable from a
+        # human one at a glance.
+        parts.append("labeled" if self.labels else "unlabeled")
         return "-".join(parts) + ".png"
 
     def url(self, base_url: str) -> str:
-        query = urlencode(
-            {
-                "angle": self.angle,
-                "shot": "1",
-                "cutaway": "1" if self.cutaway else "0",
-                "labels": "1" if self.labels else "0",
-                "explode": f"{self.explode:g}",
-                "mode": self.explode_mode,
-            }
-        )
+        params: dict[str, str | int] = {
+            "angle": self.angle,
+            "shot": "1",
+            "labels": "1" if self.labels else "0",
+            "explode": f"{self.explode:g}",
+            "mode": self.explode_mode,
+        }
+        if self.cutaway is not None:
+            params["cutaway"] = "1" if self.cutaway else "0"
+        query = urlencode(params)
         return f"{base_url.rstrip('/')}/render/{self.topic}?{query}"
 
 
@@ -168,13 +186,25 @@ def _assert_live(page: Page, url: str, topic: str) -> None:
         )
 
 
+def both_variants(requests: Iterable[ShotRequest]) -> list[ShotRequest]:
+    """Expand each view into its unlabeled and labeled forms (ruling 7).
+
+    Unlabeled first, so a directory listing pairs them predictably.
+    """
+    out: list[ShotRequest] = []
+    for request in requests:
+        out.append(replace(request, labels=False))
+        out.append(replace(request, labels=True))
+    return out
+
+
 def gate_shots(topics: Sequence[str]) -> list[ShotRequest]:
-    """The Phase 1 gate set: two angles per topic, plus cutaway and exploded captures."""
+    """The Phase 1 gate set: two angles per topic, in both label variants."""
     shots: list[ShotRequest] = []
     for topic in topics:
         shots.append(ShotRequest(topic=topic, angle=0))
         shots.append(ShotRequest(topic=topic, angle=1))
-    return shots
+    return both_variants(shots)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -183,25 +213,36 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, required=True, help="output directory")
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
     parser.add_argument("--angle", type=int, action="append", help="repeatable; default 0 and 1")
-    parser.add_argument("--cutaway", action="store_true")
+    parser.add_argument(
+        "--cutaway",
+        choices=["default", "on", "off"],
+        default="default",
+        help="default (the viewer's geometry-derived choice), on, or off",
+    )
     parser.add_argument("--explode", type=float, default=0.0)
     parser.add_argument("--explode-mode", default="top-level", choices=["top-level", "per-part"])
-    parser.add_argument("--no-labels", action="store_true")
+    parser.add_argument(
+        "--labels",
+        choices=["both", "on", "off"],
+        default="both",
+        help="both (default) emits the critic's unlabeled frame and the curator's labeled one",
+    )
     args = parser.parse_args(argv)
 
     angles: list[int] = args.angle if args.angle else [0, 1]
-    requests = [
+    base = [
         ShotRequest(
             topic=topic,
             angle=angle,
-            cutaway=args.cutaway,
+            cutaway={"default": None, "on": True, "off": False}[args.cutaway],
             explode=args.explode,
             explode_mode=args.explode_mode,
-            labels=not args.no_labels,
+            labels=args.labels != "off",
         )
         for topic in args.topics
         for angle in angles
     ]
+    requests = both_variants(base) if args.labels == "both" else base
 
     try:
         for path in capture(requests, args.out, base_url=args.base_url):

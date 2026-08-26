@@ -9,7 +9,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "const": "1.1",
+      "const": "1.2",
       "description": "Bumped whenever the schema changes; the drift test (D7) keeps generated types in step."
     },
     "topic": {
@@ -209,11 +209,10 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["chunk_ids"],
-      "description": "Mandatory (spec Rule 6). 'golden' is a reserved id for the hand-written Phase 1 specs; Phase 2 task 2.9 backfills real chunk ids and a boundary test forbids the sentinel outside specs/golden/ (D-003).",
+      "description": "Rule 6. 'golden' is a reserved id for the hand-written Phase 1 specs; Phase 2B task 2B.11 backfills real chunk ids and a boundary test forbids the sentinel outside specs/golden/ (D-003). chunk_ids MAY be empty (schema 1.2, D-025): a part the model proposes that the student's chapter does not assert is a real and meaningful state. Requiring at least one citation is safe for hand-authored specs and unsafe for generated ones, because it forces a model with nothing to cite to cite the nearest plausible chunk — making fabricated provenance mandatory, which attacks the one claim this project rests on. Zero-provenance parts are legal, render normally, and are distinguished downstream by the derived provenance_strength.",
       "properties": {
         "chunk_ids": {
           "type": "array",
-          "minItems": 1,
           "maxItems": 32,
           "items": { "type": "string", "minLength": 1, "maxLength": 64 }
         },

@@ -2,9 +2,9 @@
   "violates": "const",
   "pointer": "#/properties/schema_version",
   "target": "schema_version",
-  "note": "must be the constant '1.1'",
+  "note": "must be the constant '1.2'",
   "spec": {
-    "schema_version": "not-1.1",
+    "schema_version": "not-1.2",
     "topic": "conformance",
     "title": "Conformance fixture",
     "parts": [

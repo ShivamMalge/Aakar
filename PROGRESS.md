@@ -375,3 +375,89 @@ Requested by the architect before Phase 1 approval. Rulings A–C and work items
   Recalibrate against Phase 3's generated ones.
 - **AABB containment over-reports for spheres** — the fovea warning is geometry crudeness, not
   a spec defect.
+
+---
+
+## Phase 1 — second correction round · 2026-08-26
+
+Items 7–12 and the Phase 2 amendment. **Phase 2A not started.**
+
+### Schema 1.2
+
+`chunk_ids` may now be empty (D-025). This reverses the Phase 1 finding that a part with no
+provenance was inexpressible, and it is the most consequential change in the round: requiring
+a citation forced a model with nothing to cite to cite the nearest plausible chunk, making
+**fabricated provenance mandatory**. A derived `provenance_strength` — `strong` / `weak` /
+`none` — is computed at parse on both stacks and is never author-supplied.
+
+**One deviation, flagged rather than buried.** The ruling defines strong as "a chunk naming
+the part", which needs chunk text; no corpus exists at parse. Parse derives the document's
+*claim* (`evidence` present ⇒ strong), and D-008's Phase 3 check verifies it against real
+chunk text and may downgrade. Full reasoning in D-025.
+
+### Work
+
+| item | outcome |
+| --- | --- |
+| 7 · capture split | `capture()` emits unlabeled (critic) and labeled (curator) per view; variant always in the filename. 30 PNGs regenerated. |
+| 8 · label layout | Pure-function layout: leader lines, collision displacement, depth-tested anchors, drop-by-`importance`. First consumer of `importance` (D-006). |
+| 9 · camera + materials | Bounds-derived framing; shelled topics open cut away. Sclera diagnosed and 6 material values corrected in the specs. |
+| 10 · zero provenance | Schema 1.2, `provenance_strength`, fixtures for all three states on both stacks. |
+| 11 · rotated parents | Prohibition reversed — it was one `assert` in the stress-fixture build script. Now a warning. |
+| 12 · containment | Real-geometry containment + five-way relation classification. **Zero warnings on all four specs.** |
+
+### Measured
+
+Label placement at 1280×900, after the occlusion fixes:
+
+| topic | parts | placed | dropped | occluded | no space |
+| --- | --: | --: | --: | --: | --: |
+| `human_eye` | 12 | 12 | 0 | 0 | 0 |
+| `earth_layers` | 5 | 5 | 0 | 0 | 0 |
+| `animal_cell` | 13 | 7 | 6 | 6 | 0 |
+| `neuron` | 40 | 38 | 2 | 2 | 0 |
+
+`animal_cell` and `neuron` drops are all occlusion — parts on the cut-away side of the plane,
+or genuinely behind opaque geometry. **Nothing is dropped for lack of space at this viewport**,
+which is the number that matters for the 40-part cap.
+
+Parent relations, after D-026:
+
+| topic | parented | contained | surrounds | surface | adjacent | detached |
+| --- | --: | --: | --: | --: | --: | --: |
+| `animal_cell` | 2 | 1 | 1 | 0 | 0 | **0** |
+| `earth_layers` | 0 | — | — | — | — | **0** |
+| `human_eye` | 1 | 0 | 0 | 1 | 0 | **0** |
+| `neuron` | 39 | 8 | 0 | 11 | 20 | **0** |
+
+### Three findings worth the architect's attention
+
+1. **The over-specification trap appeared a third time.** `ShotRequest` pinned `cutaway=0` on
+   every capture URL, so the new geometry-derived default could never fire in a capture — every
+   gate image silently showed the non-default path. Same shape as the Phase 1 outage (a fault
+   reachable only when an option was *absent*) and as the `camera_hint` distance. `cutaway` is
+   now tri-state. **This class recurs; it is worth a standing rule that harness parameters must
+   be able to say "unspecified".**
+
+2. **`parent_id` semantics do not cover branching topologies.** D-017 defines it as "is
+   contained by", but the neuron's 39 parented pairs are 20 `adjacent` and 11
+   `surface_attached` — it parents by *connectivity*, which is what makes its exploded view
+   carry subtrees correctly. The classification describes this rather than excusing it, but
+   D-017's wording is narrower than the thing it governs. **Ruling wanted.**
+
+3. **Two silent label-blanking bugs, both invisible in a still.** The raycaster has no notion
+   of transparency (a 0.45-opacity soma blanked every organelle inside it) and none of clipping
+   planes (in cutaway, `human_eye` placed 1 label of 12 while all 12 were plainly on screen).
+   Both were found only by reading the counts, not by looking at the image — which is why the
+   counts are now on the capture sentinel.
+
+### Carried forward
+
+- **Label density is resolved at 1280×900 and untested on a phone.** Zero dropped-for-space
+  here says nothing about a 390px viewport; Phase 4's mobile QA is where it gets settled.
+- **The containment thresholds are calibrated against four hand-authored specs.** Recalibrate
+  against generated ones in Phase 3, per the standing note.
+- **`provenance_strength` is provisional at parse** until D-008's evidence check runs against
+  real chunk text (Phase 3).
+- Golden specs are uniformly `weak` until the 2B.11 backfill; a test pins that so the change is
+  visible when it lands.

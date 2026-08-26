@@ -3,7 +3,7 @@
   "note": "DUPLICATE NAMES ARE LEGAL (ruling A/B). Unique ids is the invariant; an animal cell holds several parts named Mitochondrion, disambiguated by instance_of.",
   "expect": [],
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "topic": "referential",
     "title": "Referential fixture",
     "parts": [

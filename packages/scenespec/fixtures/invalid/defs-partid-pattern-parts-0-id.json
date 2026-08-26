@@ -4,7 +4,7 @@
   "target": "parts.0.id",
   "note": "must match ^[a-z0-9_]{1,48}$",
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "topic": "conformance",
     "title": "Conformance fixture",
     "parts": [

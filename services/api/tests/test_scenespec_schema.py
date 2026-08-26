@@ -66,10 +66,18 @@ def test_provenance_is_mandatory(spec: dict[str, Any]) -> None:
         SceneSpec.model_validate(spec)
 
 
-def test_empty_chunk_ids_is_rejected(spec: dict[str, Any]) -> None:
+def test_empty_chunk_ids_is_accepted(spec: dict[str, Any]) -> None:
+    """Reversed by D-025 (schema 1.2). This test used to assert the opposite.
+
+    Requiring at least one citation was safe for hand-authored specs and unsafe for
+    generated ones: a model proposing a part the chapter does not mention was forced to
+    cite the nearest plausible chunk, so the schema made fabricated provenance
+    *mandatory* — which attacks the one claim the project rests on. Zero provenance is
+    now legal and carries `provenance_strength: "none"`.
+    """
     spec["parts"][0]["provenance"]["chunk_ids"] = []
-    with pytest.raises(ValidationError):
-        SceneSpec.model_validate(spec)
+    parsed = SceneSpec.model_validate(spec)
+    assert parsed.parts[0].provenance.chunk_ids == []
 
 
 def test_lathe_profile_needs_three_points(spec: dict[str, Any]) -> None:

@@ -61,14 +61,47 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
 .viewer-empty { color: var(--muted); }
 .viewer-note { color: var(--muted); font-size: 0.78rem; border-top: 1px solid var(--line); padding-top: 0.6rem; margin-top: 1rem; }
 
+/* Labels are a DOM overlay, not billboards in the canvas (ruling 8): screen-space
+   collision resolution needs screen-space boxes, and leader lines need an SVG plane. */
+.label-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.label-leaders { position: absolute; inset: 0; }
+
+.leader {
+  stroke: rgba(226, 232, 240, 0.45);
+  stroke-width: 1;
+}
+
+.leader-dot { fill: rgba(226, 232, 240, 0.7); }
+
+.leader-selected { stroke: #7dd3fc; fill: #7dd3fc; }
+
 .part-label {
-  background: rgba(15, 17, 23, 0.82);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  padding: 1px 6px;
-  font-size: 11px;
+  position: absolute;
+  display: inline-block;
   white-space: nowrap;
-  color: var(--text);
+  box-sizing: border-box;
+  height: 20px;
+  line-height: 14px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+  color: #e2e8f0;
+  background: rgba(15, 17, 23, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  pointer-events: none;
+}
+
+.part-label-selected {
+  color: #0f1117;
+  background: #7dd3fc;
+  border-color: #7dd3fc;
 }
 
 .viewer-error { max-width: 44rem; margin: 0 auto; padding: 3rem 1.5rem; }

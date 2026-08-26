@@ -1,0 +1,32 @@
+{
+  "case": "strong-cited-and-quoted",
+  "note": "chunk ids AND a quoted evidence span: the document claims a chunk names this part",
+  "expect": {
+    "lens": "strong"
+  },
+  "spec": {
+    "schema_version": "1.2",
+    "topic": "provenance",
+    "title": "Provenance fixture",
+    "parts": [
+      {
+        "id": "lens",
+        "name": "Lens",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": [
+            "c17",
+            "c18"
+          ],
+          "evidence": "the biconvex lens focuses light"
+        }
+      }
+    ]
+  }
+}

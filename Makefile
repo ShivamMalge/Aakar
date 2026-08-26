@@ -26,7 +26,7 @@ shots: ## Phase 1 gate captures — needs the web app running (1.6, D-009)
 	cd $(API) && uv run python -m aakar.render.screenshots $(GOLDEN) \
 	  --out ../../evidence/phase1 --angle 0 --angle 1
 	cd $(API) && uv run python -m aakar.render.screenshots earth_layers human_eye \
-	  --out ../../evidence/phase1 --angle 0 --cutaway
+	  --out ../../evidence/phase1 --angle 0 --cutaway on
 	cd $(API) && uv run python -m aakar.render.screenshots earth_layers \
 	  --out ../../evidence/phase1 --angle 0 --explode 1
 	# Both G-10 modes on the one topic with real nesting — this pair is the evidence
@@ -39,7 +39,7 @@ shots: ## Phase 1 gate captures — needs the web app running (1.6, D-009)
 	cd $(API) && uv run python -m aakar.render.screenshots neuron \
 	  --out ../../evidence/phase1 --angle 0 --angle 1
 	cd $(API) && uv run python -m aakar.render.screenshots neuron \
-	  --out ../../evidence/phase1 --angle 0 --cutaway
+	  --out ../../evidence/phase1 --angle 0 --cutaway on
 	cd $(API) && uv run python -m aakar.render.screenshots neuron \
 	  --out ../../evidence/phase1 --angle 0 --explode 0.6
 	cd $(API) && uv run python -m aakar.render.probe $(GOLDEN) neuron \

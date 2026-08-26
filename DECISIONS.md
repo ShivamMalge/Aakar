@@ -67,7 +67,7 @@ ingested — there are no chunk ids to cite. `phases.md` 1.5 introduces `chunk_i
 **Decision:**
 1. `"golden"` is a reserved chunk id. The schema still requires a non-empty `chunk_ids` array;
    the validator's existence check treats `"golden"` as satisfied.
-2. A **Phase 2 task backfills real chunk ids** into `specs/golden/*.json` once the OpenStax
+2. A **Phase 2B task (2B.11) backfills real chunk ids** into `specs/golden/*.json` once the OpenStax
    corpus is ingested, and a test asserts that no spec outside `specs/golden/` uses the
    sentinel.
 3. After backfill, the sentinel remains legal only for specs under `specs/golden/`.
@@ -421,7 +421,7 @@ match it against that chunk's text. Phase 1 golden specs cite the reserved `["go
 sentinel (D-003): there is no chunk, so there is nothing to quote.
 
 **Decision:** golden specs set `chunk_ids: ["golden"]` and **omit `evidence` entirely** (the
-schema makes it optional). Phase 2 task 2.9 adds real chunk ids and real quoted evidence
+schema makes it optional). Phase 2B task 2B.11 adds real chunk ids and real quoted evidence
 together, in one pass.
 
 **Rationale:** the alternative is writing plausible textbook sentences into a field whose whole
@@ -496,7 +496,7 @@ the §4 example and the whole fixture corpus were re-stamped.
 
 **Consequence for Phase 2:** the cache key from D-007 is `(corpus_id, topic, part)`. "Part"
 must now resolve to `instance_of` when present, or two mitochondria get two cache entries for
-what is one question. That is a Phase 2 task, not done here.
+what is one question. That is a Phase 2B task (2B.4), not done here.
 
 **Consequence for Phase 3:** the generator has to emit `instance_of` whenever it emits
 repeated structures. Without it, every repeated part is its own retrieval target and the
@@ -571,3 +571,209 @@ contained.
 it warns because their boxes clip at a corner. Tightening this to real geometry is vNext, and
 the threshold should be calibrated against Phase 3's generated specs rather than against three
 hand-written ones.
+
+---
+
+## D-025 — Zero-provenance parts are legal; `schema_version` → 1.2
+
+**Status:** Accepted (architect ruling) · **Phase:** 1 · **Spec correction**
+
+Phase 1 reported that a part with no provenance was inexpressible, because `chunk_ids`
+carried `minItems: 1`. The architect's ruling reverses that, and it is the most
+consequential change in this round.
+
+**The problem.** Requiring at least one citation is safe for hand-authored specs and unsafe
+for generated ones. When the Phase 3 generator proposes a part the chapter does not mention,
+the schema leaves it one legal move: cite the nearest plausible chunk. **The schema made
+fabricated provenance mandatory** — against the one claim this project rests on. It also made
+two designed states unreachable: the curation gate's "no provenance" count, and the learning
+view's "not in your chapter" tier.
+
+**Decision:**
+1. `chunk_ids` **may be empty**. Zero provenance is legal and meaningful: this part exists in
+   the model and nothing in the student's chapter asserts it. The `minItems` keyword is
+   *removed* rather than set to `0`, so it stops being an enumerable constraint the
+   conformance corpus would need an impossible fixture for.
+2. A derived **`provenance_strength`** per part, in three states, computed at parse on both
+   stacks and **never author-supplied** — it is not a schema property, so
+   `additionalProperties: false` already rejects any attempt to set it.
+3. Zero-provenance parts render normally. They are a curation signal, not an error.
+4. `schema_version` → **1.2**. Unlike D-018 this is a genuine validation-semantics change: a
+   document with empty `chunk_ids` is invalid under 1.1 and valid under 1.2.
+
+**Deviation from the ruling, stated plainly.** The ruling defines *strong* as ">= 1 chunk
+naming the part" and *weak* as "chunks retrieved but not naming it". Whether a chunk **names**
+the part can only be settled against chunk text, and **no corpus exists at parse time**. So
+parse derives the document's own *claim*:
+
+| state | condition |
+| --- | --- |
+| `none` | `chunk_ids` is empty |
+| `weak` | `chunk_ids` non-empty, no `evidence` quotation |
+| `strong` | `chunk_ids` non-empty **and** `evidence` present |
+
+`evidence` is defined in spec §4 as a quotation from the cited chunk, so its presence is the
+document's assertion that a chunk names this part. **D-008's validator checks that quotation
+against real chunk text in Phase 3 and may downgrade `strong` to `weak`.** Parse states the
+claim; the corpus check verifies it. If the architect wants the ruling's literal definition
+instead, it can only live in Phase 2B/3 where chunk text exists, and `provenance_strength`
+would then be absent at parse rather than provisional.
+
+**Consequence:** all three golden specs are uniformly `weak` today — D-003's `["golden"]`
+sentinel cites without quoting. Phase 2B task 2B.11 backfills real ids and real evidence, at
+which point they become `strong`. A test pins that, so the backfill is visible when it lands.
+
+---
+
+## D-026 — Parent relations are classified; rotated parents are warned, never forbidden
+
+**Status:** Accepted (architect rulings 11 and 12) · **Phase:** 1 · **Supersedes** D-024's threshold
+
+D-024 compared axis-aligned bounding boxes and fired on **100% of the legitimate cases** in
+the golden specs. A warning channel that is noisy on day one is ignored by day three, and it
+pre-fills the curation gate with false positives.
+
+**Two changes, in order.**
+
+1. **Containment is measured against real geometry.** Both false positives were spheres, where
+   an AABB over-reports badly — the box around a sphere is ~1.9x its volume. Child vertices
+   are now sampled and tested against the parent's actual solid, analytically for sphere, box,
+   cylinder, cone, capsule and torus, falling back to the AABB only for the swept and revolved
+   types (tube, lathe, extrude) where there is no cheap closed form.
+2. **The relation is classified, not scored.** "How much of the child is inside" cannot
+   distinguish an envelope from a mistake. Measuring containment *both ways*, plus the volume
+   ratio and the surface gap, separates four legal arrangements from the one that is wrong:
+
+   | relation | test | treatment |
+   | --- | --- | --- |
+   | `contained` | child >= 90% inside parent | silent |
+   | `surrounds_parent` | parent >= 75% inside child, child larger | silent |
+   | `surface_attached` | child < 20% of parent's volume, touching | silent |
+   | `adjacent` | surface gap <= 1x the child's own size | silent |
+   | `detached` | none of the above | **warns** |
+
+**`adjacent` is not threshold-tuning.** Branching anatomy parents by connectivity: a dendritic
+branch joined end-to-end to its trunk has a perfectly clear relation while being nowhere
+inside it. The neuron's 39 parented pairs are 20 `adjacent`, 11 `surface_attached`, 8
+`contained` — the classification is *describing* a real authoring pattern, not excusing one.
+That pattern is worth an architect ruling in its own right: **D-017's "is contained by" does
+not cover branching topologies**, and the exploded view depends on that parenting to carry
+subtrees correctly.
+
+**Result: zero warnings across all four shipped specs**, with the warning verified still to
+fire on a genuinely detached child (a negative control in `containment.test.ts`).
+
+**Ruling 11 — the prohibition is reversed.** Phase 1 reported "the generator now refuses
+rotated/scaled parents". To be exact about what that was: a single `assert` in
+`packages/scenespec/fixtures/generate_stress.py`, the build script for the stress fixture.
+**Nothing in the compiler, validator or schema ever prohibited it,** and the Phase 3 generator
+does not exist. The assert is removed. Rotating a parent to carry its subtree is correct
+scene-graph behaviour and a legitimate authoring tool; the axon hillock was an authoring
+error, not a semantic one. The compiler now emits `rotated_parent` and
+`non_uniform_scaled_parent` warnings — surfaced, never blocking. Uniform scale does not warn:
+it carries a subtree cleanly.
+
+---
+
+## D-027 — Framing is bounds-derived; shelled topics open cut away
+
+**Status:** Accepted (architect ruling 9) · **Phase:** 1
+
+The stress fixture found this: the neuron's first `camera_hint` was authored in the shape of a
+1-unit topic and cropped a 6-unit assembly at both ends. Every golden spec happens to be about
+one unit across, so an authored distance looked correct right up to the first topic that was
+not — and Phase 3 will generate topics of every size.
+
+**The rule, as implemented:**
+
+1. Fit the scene's bounding **sphere**, not its box. A box's fit depends on which way the
+   scene is turned, so orbiting would push the model out of frame; a sphere is
+   rotation-invariant and the framing holds at every angle.
+2. `camera_hint` supplies the **direction**; the **distance is always derived**. That keeps
+   the authored viewpoint — a real editorial choice — while removing the one number an author
+   cannot get right without knowing the final bounds.
+3. `look_at` is the bounding-sphere **centre**, not the origin. A neuron's mass sits well off
+   the origin.
+4. The fit uses the smaller of the vertical and horizontal half-angles, so a portrait viewport
+   fits on width. Ignoring that crops on phones (Phase 4's mobile QA).
+
+**Cutaway default.** A **shelled** topic — one whose largest part encloses >= 50% of the
+others — shows nothing but its outer shell from outside, so it opens cut away. Measured from
+geometry via the same machinery as D-026, not guessed from the topic name, so it stays correct
+for topics that do not exist yet. Measured: `animal_cell`, `earth_layers` and `human_eye` are
+shelled; `neuron` is not.
+
+**Material audit.** The sclera rendered pink. Its colour `#f6f2ea` was a correct near-white —
+the fault was `opacity: 0.16`, letting the choroid `#9a4a4a` and retina `#ea7f7c` behind it
+show through. The audit found the same pattern across all three specs: **opaque solids had
+been made transparent as a substitute for cutaway.** Six values corrected in the specs, not
+the compiler — sclera 0.16 to 0.97, choroid 0.55 to 1.0, retina 0.8 to 1.0, crust 0.45 to 1.0,
+upper mantle 0.7 to 1.0, lower mantle 0.9 to 1.0. Genuinely transparent structures (vitreous
+and aqueous humour, cytoplasm, cell membrane, cornea, lens) were left alone. The cutaway
+default is what makes opacity affordable.
+
+---
+
+## D-028 — Deterministic label layout, and the capture path splits in two
+
+**Status:** Accepted (architect rulings 7 and 8) · **Phase:** 1
+
+**Ruling 7 — two variants per view.** In Phase 3 these captures are the VLM critic's input,
+and label collisions are the most visually wrong thing in a labeled frame. A critic given one
+spends both of D3's repair rounds on typography while structural errors pass unexamined. So
+`capture()` emits **unlabeled** (critic: geometry, occlusion, spatial relationships) and
+**labeled** (human curator: naming, coverage, alias correctness). The variant is always named
+in the filename — an unlabelled filename would make a critic input indistinguishable from a
+human one at a glance.
+
+**Ruling 8 — layout, not billboards.** The layout is a **pure function** of screen-space
+facts, with no three.js and no DOM, so it is unit-testable without a browser and produces the
+same frame every time — which byte-stable replay needs (3.7). It provides leader lines,
+screen-space collision resolution by displacement over a fixed candidate-offset ladder,
+depth-tested anchors, and dropping by `importance` lowest-first when space runs out. **This is
+the first consumer of `importance`**, which D-006 reserved with no behaviour.
+
+Two corrections found while building it, both of which had silently blanked labels:
+
+- **Transparent parts must not occlude.** The raycaster has no notion of transparency, so a
+  soma at 0.45 opacity blanked every organelle plainly visible inside it.
+- **The raycaster ignores clipping planes.** Clipping is per-fragment on the GPU; the
+  raycaster is a CPU intersection test. In cutaway mode every interior part was reported as
+  occluded by the shell that had just been cut away — `human_eye` placed 1 label of 12 and
+  `earth_layers` placed 0 of 5, both while plainly visible on screen.
+
+**A third instance of the over-specification trap.** `ShotRequest` pinned `cutaway=0` on every
+capture URL, so D-027's derived default could never fire in a capture and every gate image
+silently showed the non-default path. `cutaway` is now tri-state, with `None` meaning "do not
+say". This is the same failure as the Phase 1 outage and as ruling 9's `camera_hint`: **a
+harness that pins every option cannot exercise behaviour that only happens when one is
+absent.**
+
+---
+
+## D-029 — Corpora are content-addressed and ownerless; access is by grant
+
+**Status:** Accepted (architect ruling, Phase 2 amendment) · **Phase:** 2A · **Amends** D-011
+
+Recorded now, implemented in Phase 2A. Content-hash dedupe requires shared corpora; D-011 puts
+`owner_id` on `corpora`. Those are incompatible.
+
+**Decision:**
+- `documents` stays owned (`owner_id NOT NULL`) — it is the upload record.
+- `corpora` becomes **ownerless and content-addressed**, keyed by a hash of the raw file
+  bytes, holding parsed content and embeddings. `owner_id` is dropped.
+- New `corpus_grants` (`owner_id`, `corpus_id`, `granted_at`). **Access is by grant, never by
+  ownership.**
+- `qa_cache_meta.corpus_id` stays NOT NULL. D-007 holds; the cache is shared by design.
+
+**Why shared caching is not a privacy hole.** Sharing is keyed on a hash of the raw bytes, so
+**byte-identical files dedupe and nothing else does.** A private document has a unique hash
+and is structurally isolated with no special-casing, no allow-list and no exception path —
+there is no code that could leak across non-identical content, because there is no code that
+relates non-identical content. Two users sharing a cache entry is proof they uploaded the same
+file. This is worth stating explicitly because shared caching *sounds* alarming until the
+impossibility is shown rather than asserted.
+
+**Consequence:** the Phase 0 owner-scoping assertion changes meaning. It becomes "owner A
+cannot read a corpus they hold no grant for", and the registry test changes membership —
+`corpora` leaves the owner-scoped set, `corpus_grants` joins it.

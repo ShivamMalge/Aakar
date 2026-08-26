@@ -164,7 +164,7 @@ class Provenance(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    chunk_ids: list[ChunkId] = Field(..., max_length=32, min_length=1)
+    chunk_ids: list[ChunkId] = Field(..., max_length=32)
     evidence: str | None = Field(
         None,
         description="Quoted from the cited chunk. The validator matches it against the chunk text (D-008).",
@@ -234,7 +234,7 @@ class SceneSpec(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    schema_version: Literal["1.1"] = Field(
+    schema_version: Literal["1.2"] = Field(
         ...,
         description="Bumped whenever the schema changes; the drift test (D7) keeps generated types in step.",
     )

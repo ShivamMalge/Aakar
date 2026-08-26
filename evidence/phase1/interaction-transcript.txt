@@ -2,7 +2,7 @@
 
 /render/human_eye
     before any click   -> Click a part.
-    cursor over canvas -> pointer
+    cursor over canvas -> auto
     click at centre    -> selected: Sclera | sclera | sphere | white of the eye, tough outer coat | golden
 
 /render/earth_layers

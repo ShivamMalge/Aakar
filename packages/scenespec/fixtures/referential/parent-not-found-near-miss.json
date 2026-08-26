@@ -8,7 +8,7 @@
     }
   ],
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "topic": "referential",
     "title": "Referential fixture",
     "parts": [

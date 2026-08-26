@@ -3,7 +3,7 @@
   "note": "MULTIPLE ROOTS ARE LEGAL (ruling A). All three golden specs are multi-root \u2014 5, 11 and 11 \u2014 and D-017's exploded view is defined over top-level parts, plural.",
   "expect": [],
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "topic": "referential",
     "title": "Referential fixture",
     "parts": [

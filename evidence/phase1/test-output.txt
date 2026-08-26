@@ -1,23 +1,14 @@
 === PYTEST (services/api, replay mode) ===
-597 passed, 2 warnings in 8.15s
+612 passed, 2 warnings in 12.26s
 
 === RUFF / RUFF FORMAT / MYPY --strict ===
 All checks passed!
-30 files already formatted
-Success: no issues found in 30 source files
+32 files already formatted
+Success: no issues found in 32 source files
 
 === VITEST (apps/web) ===
- ✓ src/compiler/geometry.test.ts (19 tests) 100ms
- ✓ src/scenespec/referential.test.ts (30 tests) 55ms
- ✓ src/scenespec/generated.test.ts (16 tests) 74ms
- ✓ src/scenespec/behaviour.test.ts (35 tests) 111ms
- ✓ src/compiler/compile.test.ts (21 tests) 146ms
- ✓ src/compiler/golden.test.ts (27 tests) 388ms
- ✓ src/scenespec/conformance.test.ts (231 tests) 355ms
- ✓ src/compiler/stress.test.ts (8 tests) 1213ms
- ✓ src/compiler/fuzz.test.ts (6 tests) 1095ms
- Test Files  9 passed (9)
-      Tests  393 passed (393)
+ Test Files  12 passed (12)
+      Tests  433 passed (433)
 
 === TSC + ESLINT ===
 tsc: no errors

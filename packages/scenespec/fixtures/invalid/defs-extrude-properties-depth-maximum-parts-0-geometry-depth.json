@@ -4,7 +4,7 @@
   "target": "parts.0.geometry.depth",
   "note": "above maximum 100",
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "topic": "conformance",
     "title": "Conformance fixture",
     "parts": [

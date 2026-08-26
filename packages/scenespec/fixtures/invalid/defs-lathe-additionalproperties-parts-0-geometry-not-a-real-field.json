@@ -4,7 +4,7 @@
   "target": "parts.0.geometry.not_a_real_field",
   "note": "undeclared property added",
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "topic": "conformance",
     "title": "Conformance fixture",
     "parts": [

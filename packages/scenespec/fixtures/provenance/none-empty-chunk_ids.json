@@ -1,0 +1,28 @@
+{
+  "case": "none-empty-chunk_ids",
+  "note": "ZERO PROVENANCE IS LEGAL as of schema 1.2 (D-025). The model proposes a part the chapter does not assert. Requiring a citation here would force it to invent one.",
+  "expect": {
+    "ghost_part": "none"
+  },
+  "spec": {
+    "schema_version": "1.2",
+    "topic": "provenance",
+    "title": "Provenance fixture",
+    "parts": [
+      {
+        "id": "ghost_part",
+        "name": "Ghost Part",
+        "geometry": {
+          "type": "sphere",
+          "radius": 1
+        },
+        "material": {
+          "color": "#aabbcc"
+        },
+        "provenance": {
+          "chunk_ids": []
+        }
+      }
+    ]
+  }
+}

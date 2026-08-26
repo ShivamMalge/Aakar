@@ -40,10 +40,15 @@ describe("SceneSpec zod schema", () => {
     expect(parseSceneSpec(spec).ok).toBe(false);
   });
 
-  it("rejects empty chunk_ids", () => {
+  it("accepts empty chunk_ids (D-025, schema 1.2)", () => {
+    // Reversed deliberately. Requiring a citation forced a model with nothing to cite to
+    // cite the nearest plausible chunk, making fabricated provenance mandatory. Zero
+    // provenance is legal and derives `provenance_strength: "none"`.
     const spec = example();
     spec.parts[0].provenance.chunk_ids = [];
-    expect(parseSceneSpec(spec).ok).toBe(false);
+    const result = parseSceneSpec(spec);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.provenanceStrength[spec.parts[0].id]).toBe("none");
   });
 
   it("rejects a lathe profile with fewer than 3 points", () => {

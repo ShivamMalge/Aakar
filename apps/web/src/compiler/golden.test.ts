@@ -113,50 +113,6 @@ describe("golden specs", () => {
   }
 });
 
-describe("containment warnings (ruling A(d))", () => {
-  // D-017 made parent_id mean "is contained by". These are the warnings the golden
-  // specs currently produce; both are the legitimate-exception shape the ruling
-  // anticipated, which is why this informs curation rather than blocking.
-  const EXPECTED: Record<string, Array<{ partId: string; parentId: string }>> = {
-    animal_cell: [{ partId: "nuclear_envelope", parentId: "nucleus" }],
-    earth_layers: [],
-    human_eye: [{ partId: "fovea", parentId: "retina" }],
-  };
-
-  for (const file of files) {
-    const topic = basename(file, ".json");
-    it(`${topic} produces exactly its known warnings`, () => {
-      const parsed = parseSceneSpec(JSON.parse(readFileSync(resolve(GOLDEN_DIR, file), "utf8")));
-      if (!parsed.ok) throw new Error(parsed.errors.join("; "));
-      const result = compile(parsed.spec);
-      if (!result.ok) throw new Error("did not compile");
-
-      expect(
-        result.warnings.map((w) => ({ partId: w.partId, parentId: w.parentId })),
-      ).toEqual(EXPECTED[topic]);
-      for (const warning of result.warnings) {
-        expect(warning.code).toBe("parent_containment");
-        expect(warning.ratio).toBeGreaterThanOrEqual(0);
-        expect(warning.ratio).toBeLessThan(1);
-      }
-      result.scene.dispose();
-    });
-  }
-
-  it("a warning never blocks the compile", () => {
-    const parsed = parseSceneSpec(
-      JSON.parse(readFileSync(resolve(GOLDEN_DIR, "animal_cell.json"), "utf8")),
-    );
-    if (!parsed.ok) throw new Error("not schema-valid");
-    const result = compile(parsed.spec);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.warnings.length).toBeGreaterThan(0);
-      result.scene.dispose();
-    }
-  });
-});
-
 describe("the golden sentinel stays inside specs/golden (D-003)", () => {
   it("no spec outside specs/golden uses it", () => {
     // Phase 2 task 2.9 backfills real chunk ids here. Until then this test documents

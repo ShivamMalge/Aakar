@@ -4,7 +4,7 @@
   "target": "parts",
   "note": "fewer than minItems 1",
   "spec": {
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "topic": "conformance",
     "title": "Conformance fixture",
     "parts": [],

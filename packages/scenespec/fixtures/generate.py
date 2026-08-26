@@ -90,7 +90,7 @@ def base_spec(geometry: str = "Sphere") -> dict[str, Any]:
     """The smallest valid spec that exercises `geometry`. Kept minimal so each fixture
     reads as one violation rather than a wall of unrelated JSON."""
     return {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "topic": "conformance",
         "title": "Conformance fixture",
         "parts": [
