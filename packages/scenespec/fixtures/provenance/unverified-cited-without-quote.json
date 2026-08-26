@@ -1,8 +1,8 @@
 {
-  "case": "weak-empty-quote",
-  "note": "an empty evidence string is not a quotation; whitespace must not buy `strong`",
+  "case": "unverified-cited-without-quote",
+  "note": "chunks cited, nothing quoted \u2014 unverified until the text is examined",
   "expect": {
-    "lens": "weak"
+    "lens": "unverified"
   },
   "spec": {
     "schema_version": "1.2",
@@ -22,8 +22,7 @@
         "provenance": {
           "chunk_ids": [
             "c17"
-          ],
-          "evidence": "   "
+          ]
         }
       }
     ]

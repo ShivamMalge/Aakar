@@ -101,6 +101,25 @@ describe("every shipped spec", () => {
   }
 });
 
+describe("the relation travels with the part (D-031)", () => {
+  for (const { topic, spec } of allSpecs()) {
+    it(`${topic} attaches a relation to every parented part`, () => {
+      const result = meshesOf(spec);
+      for (const part of spec.parts) {
+        const compiled = result.scene.parts.get(part.id);
+        if (part.parent_id === undefined) {
+          expect(compiled?.containment, `${part.id} is top-level`).toBeUndefined();
+        } else {
+          // The curation gate reads this rather than reimplementing the geometry tests.
+          expect(compiled?.containment?.parentId, `${part.id}`).toBe(part.parent_id);
+          expect(compiled?.containment?.relation).toBeDefined();
+        }
+      }
+      result.scene.dispose();
+    });
+  }
+});
+
 describe("the warning still fires", () => {
   /** A part parented to something it is nowhere near. */
   function detachedSpec(): SceneSpec {

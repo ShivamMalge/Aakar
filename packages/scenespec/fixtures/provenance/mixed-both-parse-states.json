@@ -1,9 +1,9 @@
 {
-  "case": "mixed-all-three-states",
-  "note": "one spec at every strength \u2014 what the curation gate actually receives",
+  "case": "mixed-both-parse-states",
+  "note": "both states parse can know. `weak` and `strong` are absent by design \u2014 they are unreachable until corpus text exists (D-030).",
   "expect": {
-    "well_grounded": "strong",
-    "mentioned": "weak",
+    "well_grounded": "unverified",
+    "mentioned": "unverified",
     "invented": "none"
   },
   "spec": {

@@ -18,6 +18,7 @@ import pytest
 
 from aakar.scenespec import (
     SceneSpec,
+    assert_parse_time,
     parse_scene_spec,
     provenance_strengths,
     strength_counts,
@@ -34,9 +35,10 @@ def _load(path: Path) -> dict[str, Any]:
     return loaded
 
 
-def test_fixtures_cover_all_three_states() -> None:
+def test_fixtures_cover_both_parse_states() -> None:
+    """`weak` and `strong` are absent by design — unreachable without corpus text."""
     seen = {state for p in FILES for state in _load(p)["expect"].values()}
-    assert seen == {"strong", "weak", "none"}
+    assert seen == {"none", "unverified"}
 
 
 @pytest.mark.parametrize("path", FILES, ids=lambda p: p.stem)
@@ -76,7 +78,7 @@ def test_empty_chunk_ids_is_accepted_by_the_schema() -> None:
 
 def test_strength_is_not_author_supplied() -> None:
     """`provenance_strength` is derived. A spec trying to set it must be rejected."""
-    document = _load(DIR / "strong-cited-and-quoted.json")["spec"]
+    document = _load(DIR / "unverified-cited-and-quoted.json")["spec"]
     document["parts"][0]["provenance_strength"] = "strong"
     result = parse_scene_spec(document)
     assert not result.ok
@@ -86,15 +88,38 @@ def test_strength_is_not_author_supplied() -> None:
 
 
 def test_counts_and_ungrounded_ids() -> None:
-    spec = _load(DIR / "mixed-all-three-states.json")["spec"]
-    assert strength_counts(spec) == {"strong": 1, "weak": 1, "none": 1}
+    spec = _load(DIR / "mixed-both-parse-states.json")["spec"]
+    assert strength_counts(spec) == {"unverified": 2, "none": 1}
     assert ungrounded_parts(spec) == ["invented"]
 
 
-def test_golden_specs_are_weak_until_backfill() -> None:
-    """D-003's sentinel cites but does not quote, so the golden specs are weak by design."""
+def test_evidence_does_not_buy_a_verified_strength() -> None:
+    """The point of D-030.
+
+    A quotation the author supplied is still the author's claim about a chunk nobody has
+    read. Deriving `strong` from it would be fabricated confidence, and every consumer
+    between parse and D-008's check would see an unearned claim.
+    """
+    quoted = _load(DIR / "unverified-cited-and-quoted.json")["spec"]
+    bare = _load(DIR / "unverified-cited-without-quote.json")["spec"]
+    assert provenance_strengths(quoted) == {"lens": "unverified"}
+    assert provenance_strengths(bare) == {"lens": "unverified"}
+
+
+def test_parse_refuses_a_verified_strength() -> None:
+    """Typing alone would not catch a value from JSON, storage, or a premature resolver."""
+    assert assert_parse_time({"a": "unverified", "b": "none"}) == []
+    assert assert_parse_time({"a": "strong"}) == [("a", "strong")]
+    assert assert_parse_time({"a": "weak"}) == [("a", "weak")]
+
+
+def test_golden_specs_are_unverified_until_backfill() -> None:
+    """D-003's sentinel cites a reserved id, so the golden specs are uniformly unverified.
+
+    Phase 2B task 2B.11 backfills real chunk ids, and the D-008 check then resolves them.
+    """
     for path in sorted((REPO_ROOT / "specs/golden").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
         counts = strength_counts(document)
         assert counts["none"] == 0, f"{path.stem} has an uncited part"
-        assert counts["weak"] == len(document["parts"]), f"{path.stem} should be uniformly weak"
+        assert counts["unverified"] == len(document["parts"])

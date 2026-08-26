@@ -22,9 +22,9 @@
 //
 // CUTAWAY DEFAULT
 //
-// A "shelled" topic — one whose largest part encloses most of the others — shows nothing
-// but its outer shell from outside, so it defaults to cutaway. That is measured from the
-// geometry rather than guessed from the topic name: see `isShelled`.
+// A "shelled" topic — one whose largest part is opaque and encloses most of the others —
+// shows nothing but that shell from outside, so it defaults to cutaway. Measured from the
+// geometry and the material rather than guessed from the topic name: see `isShelled`.
 import * as THREE from "three";
 
 import type { SceneSpec } from "../scenespec";
@@ -39,6 +39,16 @@ export const DEFAULT_FOV = 45;
 const ENCLOSED_THRESHOLD = 0.9;
 /** This fraction of the other parts enclosed makes a topic "shelled". */
 const SHELLED_FRACTION = 0.5;
+/**
+ * A shell only hides things if you cannot see through it.
+ *
+ * Measured, not assumed: with cutaway forced on, `animal_cell` places 7 labels of 13 and
+ * `human_eye` places 12 of 12; with it forced off, `animal_cell` places 13 and `human_eye`
+ * places 1. The cell's membrane is at 0.18 opacity, so its exterior view already shows
+ * every organelle, and cutting it away costs six labels while revealing nothing. An eye's
+ * sclera at 0.97 hides everything, so it must be cut.
+ */
+const SHELL_OPACITY = 0.85;
 
 const DEFAULT_DIRECTION = new THREE.Vector3(3, 2, 4).normalize();
 
@@ -139,6 +149,9 @@ export function isShelled(spec: SceneSpec, meshes: ReadonlyMap<string, THREE.Mes
   const shell = largestId === undefined ? undefined : meshes.get(largestId);
   const shellPart = largestId === undefined ? undefined : partById.get(largestId);
   if (shell === undefined || shellPart === undefined) return false;
+
+  // A see-through shell is not a shell for this purpose.
+  if ((shellPart.material.opacity ?? 1) <= SHELL_OPACITY) return false;
 
   let enclosed = 0;
   let considered = 0;

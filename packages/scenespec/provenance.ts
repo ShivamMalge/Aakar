@@ -1,33 +1,53 @@
-// Derived provenance strength (D-025, schema 1.2) — the shared contract, TypeScript side.
+// Provenance strength (D-025, refined by D-030) — the shared contract, TypeScript side.
 //
 // `chunk_ids` may be empty as of schema 1.2. Requiring at least one citation is safe for
 // hand-authored specs and unsafe for generated ones: a model proposing a part the chapter
 // does not mention is forced to cite the nearest plausible chunk, which makes fabricated
-// provenance mandatory. Zero provenance is now legal and meaningful — "this part exists in
-// the model and nothing in the student's chapter asserts it".
+// provenance mandatory. Zero provenance is legal and meaningful.
 //
-// Strength is DERIVED at parse, never author-supplied. `provenance_strength` is not a
-// schema property, so `additionalProperties: false` already rejects any attempt to set it.
+// THE UNCERTAINTY IS IN THE TYPE, NOT IN A COMMENT
 //
-// WHAT IS DERIVABLE HERE, AND WHAT IS NOT
+// An earlier draft derived `strong` at parse from the presence of an `evidence` quotation,
+// on the grounds that Phase 3 would later downgrade it. That was wrong in exactly the way
+// this field exists to prevent: a field named `provenance_strength` reading "strong" when
+// nothing has read the chunk text is fabricated confidence, and every consumer between
+// parse and that check sees an unearned claim.
 //
-// The ruling defines strong as ">= 1 chunk naming the part" and weak as "chunks retrieved
-// but not naming it". Whether a chunk *names* the part can only be settled against chunk
-// text, and no corpus exists at parse. So parse derives the document's own CLAIM:
+// So there are four states, and WHEN each becomes knowable is part of the contract:
 //
-//   none    chunk_ids is empty
-//   weak    chunk_ids non-empty, but no `evidence` quotation
-//   strong  chunk_ids non-empty AND `evidence` present
+//   parse time — structural, needs no corpus:
+//     none        chunk_ids is empty; nothing in the chapter is cited at all
+//     unverified  chunk_ids is non-empty; the text has not been examined
 //
-// `evidence` is defined in spec §4 as a quotation from the cited chunk, so its presence is
-// the document's assertion that a chunk names this part. D-008's validator checks that
-// quotation against the real chunk text in Phase 3 and may DOWNGRADE strong to weak when it
-// does not match. Parse states the claim; the corpus check verifies it.
+//   Phase 2B/3 — needs corpus text, resolves `unverified`:
+//     weak        chunks were retrieved but none of them names the part
+//     strong      at least one cited chunk names the part
 //
-// The Python mirror is services/api/aakar/scenespec/provenance.py, and both are driven by
-// packages/scenespec/fixtures/provenance/.
+// `parseTimeStrength` can only return the first two, and `assertParseTime` makes emitting
+// either of the others a validation error rather than a convention. The distinction is
+// also a real product one: "we checked and found nothing" and "we have not checked" are
+// different things to show a student.
+//
+// Strength is DERIVED, never author-supplied. It is not a schema property, so
+// `additionalProperties: false` already rejects any attempt to set it.
+//
+// The Python mirror is services/api/aakar/scenespec/provenance.py.
 
-export type ProvenanceStrength = "strong" | "weak" | "none";
+/** Every state the field can hold, across its whole lifecycle. */
+export type ProvenanceStrength = "none" | "unverified" | "weak" | "strong";
+
+/** The subset derivable without corpus text. Parse may emit nothing else. */
+export type ParseTimeStrength = "none" | "unverified";
+
+/** Resolved only once chunk text exists (Phase 2B/3). */
+export type ResolvedStrength = "weak" | "strong";
+
+export const PARSE_TIME_STRENGTHS: readonly ProvenanceStrength[] = ["none", "unverified"];
+export const RESOLVED_STRENGTHS: readonly ProvenanceStrength[] = ["weak", "strong"];
+
+export function isParseTimeStrength(value: string): value is ParseTimeStrength {
+  return value === "none" || value === "unverified";
+}
 
 export type ProvenancePartLike = {
   id: string;
@@ -41,33 +61,51 @@ export type ProvenanceSpecLike = {
   parts: readonly ProvenancePartLike[];
 };
 
-/** Strength for one part, from the document alone. */
-export function strengthOf(part: ProvenancePartLike): ProvenanceStrength {
-  const cited = part.provenance.chunk_ids.length > 0;
-  if (!cited) return "none";
-  const evidence = part.provenance.evidence;
-  return evidence !== undefined && evidence.trim().length > 0 ? "strong" : "weak";
+/**
+ * Strength for one part, from the document alone.
+ *
+ * Note what is deliberately NOT consulted: `evidence`. A quotation the author supplied is
+ * still the author's claim about a chunk nobody has read. It becomes evidence of anything
+ * only once D-008's check compares it against the cited chunk's real text.
+ */
+export function parseTimeStrength(part: ProvenancePartLike): ParseTimeStrength {
+  return part.provenance.chunk_ids.length > 0 ? "unverified" : "none";
 }
 
 /** Strength for every part, keyed by part id. */
 export function provenanceStrengths(
   spec: ProvenanceSpecLike,
-): Record<string, ProvenanceStrength> {
-  const out: Record<string, ProvenanceStrength> = {};
-  for (const part of spec.parts) out[part.id] = strengthOf(part);
+): Record<string, ParseTimeStrength> {
+  const out: Record<string, ParseTimeStrength> = {};
+  for (const part of spec.parts) out[part.id] = parseTimeStrength(part);
   return out;
+}
+
+/**
+ * Guards the boundary: parse must never claim a verified strength.
+ *
+ * Returns the ids that violate it, so the caller can turn them into parse issues. Typing
+ * alone would not catch a value arriving from JSON, storage, or a future code path that
+ * resolves strength too early.
+ */
+export function assertParseTime(
+  strengths: Record<string, string>,
+): Array<{ partId: string; strength: string }> {
+  return Object.entries(strengths)
+    .filter(([, strength]) => !isParseTimeStrength(strength))
+    .map(([partId, strength]) => ({ partId, strength }));
 }
 
 /** How many parts sit at each strength — the curation gate's headline count. */
 export function strengthCounts(
   spec: ProvenanceSpecLike,
-): Record<ProvenanceStrength, number> {
-  const counts: Record<ProvenanceStrength, number> = { strong: 0, weak: 0, none: 0 };
-  for (const part of spec.parts) counts[strengthOf(part)] += 1;
+): Record<ParseTimeStrength, number> {
+  const counts: Record<ParseTimeStrength, number> = { none: 0, unverified: 0 };
+  for (const part of spec.parts) counts[parseTimeStrength(part)] += 1;
   return counts;
 }
 
-/** Ids of parts nothing in the chapter asserts. The "no provenance" curation signal. */
+/** Ids of parts nothing in the chapter cites. The "no provenance" curation signal. */
 export function ungroundedParts(spec: ProvenanceSpecLike): string[] {
-  return spec.parts.filter((part) => strengthOf(part) === "none").map((part) => part.id);
+  return spec.parts.filter((part) => parseTimeStrength(part) === "none").map((part) => part.id);
 }

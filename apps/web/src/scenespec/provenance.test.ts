@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
 import {
+  assertParseTime,
   provenanceStrengths,
   strengthCounts,
   ungroundedParts,
@@ -23,9 +24,27 @@ function load(file: string): Fixture {
 }
 
 describe("provenance strength", () => {
-  it("the corpus covers all three states", () => {
+  it("the corpus covers both parse states", () => {
+    // `weak` and `strong` are absent by design — unreachable without corpus text.
     const seen = new Set(files.flatMap((f) => Object.values(load(f).expect)));
-    expect([...seen].sort()).toEqual(["none", "strong", "weak"]);
+    expect([...seen].sort()).toEqual(["none", "unverified"]);
+  });
+
+  it("evidence does not buy a verified strength (D-030)", () => {
+    // A quotation the author supplied is still the author's claim about a chunk nobody
+    // has read. Deriving `strong` from it would be fabricated confidence.
+    expect(provenanceStrengths(load("unverified-cited-and-quoted.json").spec)).toEqual({
+      lens: "unverified",
+    });
+    expect(provenanceStrengths(load("unverified-cited-without-quote.json").spec)).toEqual({
+      lens: "unverified",
+    });
+  });
+
+  it("refuses a verified strength at parse", () => {
+    expect(assertParseTime({ a: "unverified", b: "none" })).toEqual([]);
+    expect(assertParseTime({ a: "strong" })).toEqual([{ partId: "a", strength: "strong" }]);
+    expect(assertParseTime({ a: "weak" })).toEqual([{ partId: "a", strength: "weak" }]);
   });
 
   for (const file of files) {
@@ -62,15 +81,15 @@ describe("provenance strength", () => {
   });
 
   it("rejects an author-supplied strength — it is derived", () => {
-    const fixture = load("strong-cited-and-quoted.json");
+    const fixture = load("unverified-cited-and-quoted.json");
     const tampered = JSON.parse(JSON.stringify(fixture.spec));
     tampered.parts[0].provenance_strength = "strong";
     expect(parseSceneSpec(tampered).ok).toBe(false);
   });
 
   it("counts and lists the ungrounded parts for the curation gate", () => {
-    const fixture = load("mixed-all-three-states.json");
-    expect(strengthCounts(fixture.spec)).toEqual({ strong: 1, weak: 1, none: 1 });
+    const fixture = load("mixed-both-parse-states.json");
+    expect(strengthCounts(fixture.spec)).toEqual({ unverified: 2, none: 1 });
     expect(ungroundedParts(fixture.spec)).toEqual(["invented"]);
   });
 });

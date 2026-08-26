@@ -3,7 +3,10 @@
 import type { z } from "zod";
 
 import {
+  PARSE_TIME_STRENGTHS,
+  type ParseTimeStrength,
   type ProvenanceStrength,
+  assertParseTime,
   provenanceStrengths,
 } from "@scenespec/provenance";
 import { type ReferentialError, validateReferential } from "@scenespec/referential";
@@ -22,7 +25,7 @@ export const SCHEMA_VERSION = "1.2";
 export type SceneSpec = z.infer<typeof sceneSpecSchema>;
 export type Part = SceneSpec["parts"][number];
 
-export type { ReferentialError, ProvenanceStrength };
+export type { ReferentialError, ProvenanceStrength, ParseTimeStrength };
 
 export type ParseIssue = { code: string; path: string; message: string };
 
@@ -35,7 +38,7 @@ export type ParseResult =
        * schema 1.2 and are a curation signal, not an error — so the strength travels
        * with every successful parse rather than being recomputed by each consumer.
        */
-      provenanceStrength: Record<string, ProvenanceStrength>;
+      provenanceStrength: Record<string, ParseTimeStrength>;
     }
   | { ok: false; errors: string[]; issues: ParseIssue[] };
 
@@ -69,7 +72,24 @@ export function parseSceneSpec(input: unknown): ParseResult {
     return { ok: false, errors: referential.map(format), issues: referential };
   }
 
-  return { ok: true, spec, provenanceStrength: provenanceStrengths(spec) };
+  const provenanceStrength = provenanceStrengths(spec);
+
+  // D-030: parse may only ever emit `none` or `unverified`. A verified strength here
+  // would be fabricated confidence — nothing has read the chunk text yet.
+  const premature = assertParseTime(provenanceStrength);
+  if (premature.length > 0) {
+    const issues: ParseIssue[] = premature.map(({ partId, strength }) => ({
+      code: "provenance:premature_strength",
+      path: `parts.${partId}.provenance`,
+      message:
+        `provenance_strength "${strength}" was derived at parse time. Only ` +
+        `${PARSE_TIME_STRENGTHS.join(", ")} are knowable without corpus text; weak and ` +
+        "strong resolve in Phase 2B/3 (D-030).",
+    }));
+    return { ok: false, errors: issues.map(format), issues };
+  }
+
+  return { ok: true, spec, provenanceStrength };
 }
 
 function format(issue: ParseIssue): string {

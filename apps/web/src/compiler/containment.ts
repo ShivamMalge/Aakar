@@ -1,7 +1,16 @@
 // Parent-relationship diagnostics (rulings A(d), 11 and 12).
 //
-// D-017 made `parent_id` mean "is contained by", so a spec that parents parts for
-// convenience explodes wrongly with no diagnostic. But the first implementation compared
+// `parent_id` is a SCENE-GRAPH relation and nothing more (D-031): the child inherits its
+// parent's transform and moves with it under explode. The SPATIAL relation is derived here,
+// never asserted by the author — which is the whole point. A derived property can disagree
+// with the structure and say so; an asserted one cannot be wrong by construction.
+//
+// So `adjacent` and `surface_attached` are fully legal parentings rather than tolerated
+// exceptions: a dendritic branch joined end-to-end to its trunk is correctly parented,
+// because that is what makes the exploded view carry the subtree. Only `detached` warns,
+// because it means the transform relation has no spatial justification at all.
+//
+// The first implementation compared
 // axis-aligned bounding boxes and fired on 100% of the legitimate cases in the golden
 // specs — a nuclear envelope that surrounds its nucleus, and a fovea that sits on the
 // retina's surface. A warning channel that is noisy on day one is ignored by day three,
@@ -306,9 +315,10 @@ export function containmentWarnings(
       message:
         `part "${report.partId}" is only ${(report.childInParent * 100).toFixed(1)}% inside ` +
         `its parent "${report.parentId}" — it does not surround it, sit on its surface, ` +
-        `or touch it (gap ${report.relativeGap.toFixed(2)}x its own size). parent_id ` +
-        'means "is contained by" (D-017); if that is not the relationship here, the ' +
-        "parenting is probably wrong.",
+        `or touch it (gap ${report.relativeGap.toFixed(2)}x its own size). Parenting is a ` +
+        "scene-graph relation (D-031), so this part still moves with its parent under " +
+        "explode — but nothing about their geometry justifies that, which usually means " +
+        "the parenting is wrong.",
     });
   }
 

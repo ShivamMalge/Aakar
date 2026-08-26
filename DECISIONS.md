@@ -376,9 +376,16 @@ not a clearer diagram, it is a false one — a nucleolus is *inside* a nucleus, 
 happens to the fovea on the retina. In practice `parent_id` encodes containment, so moving a
 child independently of its container always says something untrue.
 
-**Consequence for Phase 3:** the generator should treat `parent_id` as "is contained by", and
-the checklist extractor should prefer parenting containment relationships. A spec that parents
-parts for convenience rather than containment will explode wrongly, and nothing will catch it.
+**Consequence for Phase 3:** the generator should parent parts that move together, and a spec
+that parents parts which do not will explode wrongly.
+
+> **Superseded in part by D-031 (2026-08-26).** This entry originally read "in practice
+> `parent_id` encodes containment" and told Phase 3 to treat it as "is contained by". That
+> was too narrow, and the neuron stress fixture disproved it: 20 of its 39 parented pairs are
+> `adjacent` and 11 are `surface_attached`, because a branching structure parents by
+> connectivity — which is precisely what makes its exploded view carry subtrees correctly.
+> **`parent_id` is a scene-graph relation, not a semantic claim.** The explosion ruling above
+> is unaffected; only the justification changes. See D-031.
 
 ---
 
@@ -777,3 +784,134 @@ impossibility is shown rather than asserted.
 **Consequence:** the Phase 0 owner-scoping assertion changes meaning. It becomes "owner A
 cannot read a corpus they hold no grant for", and the registry test changes membership —
 `corpora` leaves the owner-scoped set, `corpus_grants` joins it.
+
+---
+
+## D-030 — Provenance strength has four states, and only two are knowable at parse
+
+**Status:** Accepted (architect ruling) · **Phase:** 1 · **Refines** D-025
+
+D-025 derived `strong` at parse from the presence of an `evidence` quotation, on the
+grounds that Phase 3's D-008 check would downgrade it later. **The architect rejected that,
+and was right to.** A field named `provenance_strength` reading "strong" when nothing has
+read the chunk text is fabricated confidence — the exact failure D-025 exists to prevent —
+and a downstream downgrade does not help, because every consumer between parse and that
+check sees an unearned claim.
+
+**Decision: the uncertainty is part of the type.**
+
+| state | knowable at | meaning |
+| --- | --- | --- |
+| `none` | parse | `chunk_ids` is empty; nothing in the chapter is cited |
+| `unverified` | parse | `chunk_ids` is non-empty; the text has not been examined |
+| `weak` | 2B/3 | chunks were retrieved, none of them names the part |
+| `strong` | 2B/3 | at least one cited chunk names the part |
+
+Parse may emit **only** `none` or `unverified`. Emitting `weak` or `strong` at parse is a
+**validation error**, not a convention: `assertParseTime` / `assert_parse_time` turn it into
+a parse issue on both stacks, because typing alone would not catch a value arriving from
+JSON, from storage, or from a future resolver that runs too early.
+
+**`evidence` is deliberately not consulted.** A quotation the author supplied is still the
+author's claim about a chunk nobody has read. It becomes evidence of anything only when
+D-008 compares it against the cited chunk's real text.
+
+**This is also a product distinction, not just a correctness one.** "We checked and found
+nothing" (`weak`) and "we have not checked" (`unverified`) are different things to show a
+student, and the old three-state enum could not express the second.
+
+**Consequence:** the golden specs are uniformly `unverified` — D-003's `["golden"]` sentinel
+cites a reserved id. Phase 2B task 2B.11 backfills real ids, and the D-008 check resolves
+them. A test pins that, so the transition is visible when it lands.
+
+---
+
+## D-031 — `parent_id` is a scene-graph relation, not a semantic claim
+
+**Status:** Accepted (architect ruling) · **Phase:** 1 · **Supersedes** D-017's semantics
+
+D-017 said `parent_id` encodes containment. The neuron stress fixture disproved it: 20 of
+its 39 parented pairs are `adjacent` and 11 are `surface_attached`, because a branching
+structure parents by **connectivity** — which is precisely what makes its exploded view
+carry each subtree correctly. Forcing containment semantics would either break the
+explosion or fill the warning channel with correct structures.
+
+**Definition, replacing D-017's:**
+
+> `parent_id` means: **this part inherits its parent's transform and moves with it under
+> explode.** Nothing more.
+
+The spatial relation — `contained`, `surrounds_parent`, `surface_attached`, `adjacent`,
+`detached` — is **derived** by the compiler's classification (D-026), never asserted by the
+author.
+
+**That separation is the point.** A derived property can disagree with the structure and
+say so; an asserted one cannot be wrong by construction. It is what makes the warning
+meaningful rather than tautological.
+
+**Consequences implemented:**
+- `adjacent` and `surface_attached` are **fully legal parentings**, not tolerated
+  exceptions.
+- `detached` remains the only warning: it means the transform relation has no spatial
+  justification at all.
+- The derived relation is **attached to each compiled part** (`CompiledPart.containment`),
+  so the curation gate and the Phase 3 repair prompt read it rather than reimplementing the
+  geometry tests. It lands on the compile result rather than the parse result because it
+  requires built geometry — parse has no meshes, and the Python stack has no compiler.
+- D-017 amended in place with a pointer here; its *explosion* ruling is unaffected, only
+  its justification.
+
+---
+
+## D-032 — A transparent shell is not a shell
+
+**Status:** Accepted · **Phase:** 1 · **Refines** D-027
+
+D-027 defaulted a topic to cutaway when its largest part enclosed most of the others.
+`animal_cell` qualified and lost 6 of 13 labels to clipping — a 46% drop against the
+neuron's 5%, which the architect flagged as an outlier worth confirming rather than
+assuming.
+
+**Measured, with cutaway forced both ways:**
+
+| topic | cutaway on | cutaway off | shell |
+| --- | --- | --- | --- |
+| `human_eye` | **12 / 12** | 1 / 12 | sclera at 0.97 |
+| `earth_layers` | **5 / 5** | 0 / 5 | crust at 1.0 |
+| `animal_cell` | 7 / 13 | **13 / 13** | membrane at 0.18 |
+
+Two things follow. First, the transparency raycast fix **does** apply to `animal_cell` —
+with cutaway off it places all 13, so the membrane and cytoplasm correctly occlude nothing.
+The 6 drops were purely clipping: those organelles sit at positive *z* and the plane keeps
+*z ≤ 0*. Second, `animal_cell` is the only topic whose shell is see-through, so cutting it
+away **costs six labels and reveals nothing**.
+
+**Decision:** `isShelled` additionally requires the enclosing part to be opaque
+(opacity > 0.85). A see-through shell is not a shell. All four topics now place every
+visible label with cutaway unspecified: 13/13, 12/12, 5/5, and 38/40 for the neuron whose
+two drops are genuinely behind opaque geometry.
+
+---
+
+## D-033 — Standing engineering rules live in `agents.md`
+
+**Status:** Accepted (architect ruling) · **Phase:** all
+
+R1 — *a parameter with a default must be able to say "unspecified", and something must
+exercise the unspecified path* — is now a project-wide rule in `agents.md`, alongside three
+others drawn from defects this project actually hit (R2 guards, R3 verdict-vs-behaviour,
+R4 report what was not done).
+
+**Audit result, R1.** One further live instance, now fixed: **`frameScene` takes an
+`aspect` with a default of 1280/900, and the Viewer could only pass `angle`** — the canvas
+size is not known until r3f has mounted. So the default was the only value the function
+ever received, and a portrait phone would have been framed as landscape and cropped. A
+`CameraRig` inside the Canvas now reframes with the live aspect, keyed on spec, angle and
+aspect so a resize or orientation change re-fits while orbiting is left alone. This would
+have surfaced as a mystery in Phase 4's mobile QA.
+
+Two lesser instances recorded but not changed: the render route pins `shot`, `explode` and
+`explodeMode` on every request (their defaults are unreachable from that path, though the
+values agree), and `Settings.from_env`'s `AAKAR_PROVIDER_MODE` default is never exercised
+because the Makefile and CI both set it explicitly. Both are noted here so a future change
+to either default is known to be untested from those paths.

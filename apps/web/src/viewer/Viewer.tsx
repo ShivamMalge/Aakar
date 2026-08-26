@@ -136,6 +136,7 @@ export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<V
             onHover={setHovered}
             onReady={onReady}
             onLabelLayout={setLabelState}
+            angle={initial.angle}
           />
           <OrbitControls makeDefault target={target.toArray()} enableDamping={false} />
         </Canvas>

@@ -1,8 +1,8 @@
 {
-  "case": "weak-cited-without-quote",
-  "note": "chunks retrieved but nothing quoted from them",
+  "case": "unverified-empty-quote",
+  "note": "an empty evidence string changes nothing at parse; both are unverified",
   "expect": {
-    "lens": "weak"
+    "lens": "unverified"
   },
   "spec": {
     "schema_version": "1.2",
@@ -22,7 +22,8 @@
         "provenance": {
           "chunk_ids": [
             "c17"
-          ]
+          ],
+          "evidence": "   "
         }
       }
     ]

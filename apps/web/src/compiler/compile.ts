@@ -9,7 +9,12 @@ import type { Part, SceneSpec } from "../scenespec";
 
 import { type ReferentialError, validateReferential } from "@scenespec/referential";
 
-import { type CompileWarning, containmentWarnings } from "./containment";
+import {
+  type ContainmentReport,
+  type CompileWarning,
+  analyseContainment,
+  containmentWarnings,
+} from "./containment";
 import { buildGeometry } from "./geometry";
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -23,6 +28,12 @@ export type CompiledPart = {
   readonly restWorldPosition: THREE.Vector3;
   /** Bounding-sphere radius at rest; orders concentric parts in the exploded view. */
   readonly restRadius: number;
+  /**
+   * The DERIVED spatial relation to this part's parent (D-031), or undefined for a
+   * top-level part. Never author-asserted — that separation is what lets it disagree with
+   * the structure and produce a warning.
+   */
+  containment?: ContainmentReport;
 };
 
 export type CompiledScene = {
@@ -165,6 +176,16 @@ export function compile(spec: SceneSpec): CompileResult {
   // Measured after matrices settle and before anything explodes, so it describes the
   // spec's own arrangement rather than a viewer state (rulings A(d), 11, 12).
   const warnings = containmentWarnings(spec, meshes);
+
+  // The derived spatial relation travels WITH the part (D-031). The curation gate and the
+  // Phase 3 repair prompt both need it, and recomputing it downstream would mean
+  // reimplementing the geometry tests wherever it is wanted.
+  const relations = new Map<string, ContainmentReport>();
+  for (const report of analyseContainment(spec, meshes)) relations.set(report.partId, report);
+  for (const [id, compiled] of parts) {
+    const report = relations.get(id);
+    if (report !== undefined) compiled.containment = report;
+  }
 
   const centroid = bounds.isEmpty() ? new THREE.Vector3() : bounds.getCenter(new THREE.Vector3());
   const size = bounds.isEmpty() ? new THREE.Vector3(1, 1, 1) : bounds.getSize(new THREE.Vector3());

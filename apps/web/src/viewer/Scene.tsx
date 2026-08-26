@@ -9,6 +9,7 @@ import * as THREE from "three";
 
 import type { SceneSpec } from "../scenespec";
 import {
+  frameScene,
   type CompiledPart,
   type CompiledScene,
   type ExplodeMode,
@@ -46,6 +47,8 @@ export type SceneProps = {
   onReady: () => void;
   /** Screen-space label layout, recomputed inside the r3f loop (ruling 8). */
   onLabelLayout: (state: LabelState) => void;
+  /** Quarter-turn index; the rig reframes when it changes. */
+  angle: number;
 };
 
 /** Walk up from the hit object to whichever ancestor carries a part id. */
@@ -54,6 +57,38 @@ function partIdOf(object: THREE.Object3D | null): string | null {
     const id: unknown = node.userData["partId"];
     if (typeof id === "string") return id;
   }
+  return null;
+}
+
+/**
+ * Reframes using the REAL canvas aspect (R1).
+ *
+ * `frameScene` takes an aspect with a default of 1280x900, and the Viewer could only
+ * supply `angle` — the canvas size is not known until r3f has mounted. So the default was
+ * the only value ever used, and a portrait phone would have been framed as landscape and
+ * cropped. Exactly the shape agents.md R1 describes: the parameter could be omitted, it
+ * always was, and the real value never reached it.
+ *
+ * Deliberately not on every frame: reframing keyed on spec, angle and aspect means a
+ * resize or an orientation change re-fits, while orbiting is left alone.
+ */
+function CameraRig({ spec, scene, angle }: { spec: SceneSpec; scene: CompiledScene; angle: number }) {
+  const { camera, size } = useThree();
+  const aspect = size.width / size.height;
+
+  useEffect(() => {
+    const meshes = [...scene.parts.values()].map((part) => part.mesh);
+    const framing = frameScene(spec, meshes, { angle, aspect });
+    camera.position.copy(framing.position);
+    camera.lookAt(framing.target);
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.aspect = aspect;
+      camera.near = Math.max(framing.radius / 100, 0.01);
+      camera.far = Math.max(framing.radius * 20, 100);
+    }
+    camera.updateProjectionMatrix();
+  }, [camera, spec, scene, angle, aspect]);
+
   return null;
 }
 
@@ -166,6 +201,7 @@ export function Scene(props: SceneProps) {
         onPointerMissed={() => onSelect(null)}
       />
 
+      <CameraRig spec={spec} scene={scene} angle={props.angle} />
       <LabelDriver scene={scene} enabled={showLabels} onLayout={props.onLabelLayout} />
 
       <ExplodeDolly explode={explode} />
