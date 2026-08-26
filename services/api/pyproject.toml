@@ -11,6 +11,9 @@ dependencies = [
     "pyjwt>=2.9",
     "passlib[argon2]>=1.7.4",
     "python-multipart>=0.0.12",
+    # Ingest boundary only: page count, encryption detection and page LABELS (2A.3/4/6).
+    # NOT a replacement for LightningParse, which owns chunking and page-numbered text.
+    "pypdf>=5.1",
 ]
 
 [project.optional-dependencies]

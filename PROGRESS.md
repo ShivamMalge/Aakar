@@ -461,3 +461,133 @@ Parent relations, after D-026:
   real chunk text (Phase 3).
 - Golden specs are uniformly `weak` until the 2B.11 backfill; a test pins that so the change is
   visible when it lands.
+
+---
+
+## Phase 2A — Ingestion, corpus addressing, ingest limits · **complete, awaiting approval**
+
+Date: 2026-08-26 · Rulings applied first (D-030…D-033), then 2A.1–2A.7.
+
+### Built
+
+- **2A.1 `CostLedger` wired into `CassetteProvider`**, before anything else. The preflight
+  sits *after* the cassette and *before* the provider, so a replayed or cached call returns
+  above it and costs nothing, while every call that would actually spend is checked first.
+  Every call is logged, hit or miss — a cache hit that left no trace would make Phase 2B's
+  hit rate unmeasurable.
+- **2A.2 Content-addressed corpora** (D-029). `corpora` lost `owner_id` and gained a unique
+  `content_hash`; access moved to `corpus_grants`. Migration v1→v2 included and tested:
+  every v1 corpus becomes a content-addressed row plus a grant to its former owner, so
+  nobody loses access. It runs *before* `apply_schema`, because `CREATE TABLE IF NOT EXISTS`
+  cannot reshape a table that already exists.
+- **Ruling (e) — group grants.** `groups`, `group_members`, and `corpus_grants` holding
+  `owner_id` XOR `group_id` under a CHECK. No routes, no tier logic, no UI. The reachability
+  query is written once in `can_read` so the shape is demonstrably usable.
+- **2A.3 Ingest hard limits**, enforced on raw bytes before any parse. Numbers proposed
+  below.
+- **2A.4 Encrypted / unparseable rejection** with an actionable remedy on every code.
+- **2A.5 Chunk storage** with per-chunk `warnings_json` **and** a `warning_scope` column.
+- **2A.6 Page label vs page index** as two separate columns, neither inferred from the other.
+- **2A.7 Qdrant healthcheck verified** against the real image, with a negative control.
+
+### The table partition replaces the owner_id registry
+
+D-011 asked "does every user-scoped table carry `owner_id`". That is no longer the whole
+question. Every table now sits in exactly one category with its own invariant, and the
+partition is asserted total — so a new table cannot land without someone deciding which
+access rule governs it.
+
+| category | tables | invariant |
+| --- | --- | --- |
+| `owner_scoped` | documents, topics, spec_versions, approvals, llm_calls, qa_cache_meta | `owner_id NOT NULL` |
+| `content_addressed` | corpora, chunks | no owner column; reached by grant |
+| `grant` | corpus_grants | `owner_id` XOR `group_id` |
+| `identity` | users, groups, group_members | principals, not resources |
+| `meta` | schema_meta | belongs to the database |
+
+### Proposed ingest limits — for approval or adjustment
+
+Rationale throughout: LightningParse OCR runs at ~25 s/page, so a 400-page scan is ~3
+CPU-hours **for one upload with no LLM call**. No budget guard fires, because nothing is
+spent. This is a denial-of-service surface.
+
+| limit | proposed | reasoning |
+| --- | --- | --- |
+| `max_bytes` | 64 MiB | a 400-page text PDF is 5–20 MB; clears a scanned chapter, refuses an archive dump. Checked first because it costs nothing |
+| `max_pages` | 120 | the product's unit is a *chapter* (spec §1); chapters run 20–60 pages. Accepts a generous chapter, refuses a book |
+| `max_ocr_pages` | 40 | the expensive one — ~17 min CPU. Deliberately well below `max_pages`: a born-digital 120-page PDF is cheap, a 120-page scan is 50 minutes |
+| `max_documents_per_day` | 20 | per owner |
+| `max_pages_per_day` | 400 | ~10 chapters/day; caps one account at ~2.8 CPU-hours even if every page needs OCR |
+
+A document over `max_ocr_pages` is **refused, not partially OCR'd** — the uploader is told
+rather than left with a silently incomplete corpus. Rejection is explicit at upload and
+never a queue, because a queue turns a rejection into a resource commitment that merely
+happens later.
+
+### Gate evidence
+
+`evidence/phase2a/dedupe-ledger.txt` — two owners upload byte-identical files:
+
+```
+alice  -> corpus cor_062769e3a71b | created=True  granted=True  | embedded (new corpus)
+bob    -> corpus cor_062769e3a71b | created=False granted=True  | SKIPPED embedding
+
+corpora        1
+documents      2
+corpus_grants  2
+
+owner                  kind       mode     hit       usd
+usr_697be004a05e4271   embedding  record   0      0.0040
+TOTAL                                             0.0040
+```
+
+**One corpus, two documents, two grants, one embedding cost.** A different file produces a
+second corpus that the other owner cannot read.
+
+`evidence/phase2a/qdrant-healthcheck.txt` — 2A.7, closed:
+
+```
+image: qdrant/qdrant:v1.12.1   health: healthy   FailingStreak: 0
+$ bash -c "exec 3<>/dev/tcp/127.0.0.1/6333"   -> exit 0
+NEGATIVE CONTROL, port 9999                   -> exit 1  (Connection refused)
+$ curl -s localhost:6333/healthz              -> healthz check passed
+```
+
+### Two blockers, reported rather than worked around
+
+1. **LightningParse is unavailable.** Not installed, not on PyPI — it is Shivam's own
+   library (spec §3). Chunking, page-numbered text extraction and the warnings array all
+   belong to it.
+
+   **So 2A.5's question — are the warnings per-chunk or per-document? — is UNANSWERED,
+   because the library could not be run.** Rather than guess, `warning_scope` is stored per
+   row and defaults to `unknown` for anything written without having seen the parser. The
+   cost of that column is one string per chunk; the cost of assuming per-chunk resolution
+   that does not exist is a UI attributing a document-wide warning to one paragraph — which
+   is a provenance claim, the exact class D-030 exists to stop. Nothing here imports, wraps
+   or reimplements LightningParse.
+
+   `pypdf` was added for the **boundary only**: page count, encryption detection and page
+   labels. It is not a parser substitute and does no chunking.
+
+2. **The upload route does not exist yet.** 2A built the ingest boundary as a library with
+   the limits, dedupe and rejection all tested, but no HTTP endpoint calls it — so
+   `test_no_route_serves_an_owner_scoped_resource` still passes. The route needs the parser
+   to be useful, and wiring it to a stub would produce a demo that stops working the moment
+   the real parser lands.
+
+### Found while building
+
+- **An encrypted PDF was being classified `unparseable`.** `pypdf.decrypt()` *returns* a
+  failure code rather than raising, so the broad except never fired and the uploader got
+  "check it opens in a PDF viewer" for a file that opens perfectly. Caught by asserting on
+  the remedy text, not just the exception type.
+- **`llm_calls.kind` is a closed vocabulary** (`chat`/`vlm`/`embedding`) while the cassette
+  keys on `embed`. Mapped at the boundary rather than loosening the CHECK, so a typo'd kind
+  still fails the insert instead of quietly creating a category.
+
+### Carried forward
+
+- The upload route, real chunking, and the `warning_scope` answer all need LightningParse.
+- Ingest limit numbers are **proposed**, not settled.
+- Qdrant is verified healthy but nothing writes to it yet — collections land in 2B.

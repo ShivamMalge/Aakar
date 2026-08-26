@@ -10,7 +10,11 @@ from aakar.db import OWNER_SCOPED_TABLES
 
 EXPECTED_TABLES = {
     "users",
+    "groups",
+    "group_members",
     "corpora",
+    "chunks",
+    "corpus_grants",
     "documents",
     "topics",
     "spec_versions",
@@ -40,23 +44,6 @@ def test_every_user_scoped_table_carries_owner_id(conn: sqlite3.Connection) -> N
         assert "owner_id" in _columns(conn, table), f"{table} is missing owner_id"
 
 
-def test_no_user_scoped_table_was_added_without_owner_id(conn: sqlite3.Connection) -> None:
-    """Catches the drift the previous test cannot: a new table nobody registered."""
-    exempt = {"users", "schema_meta"}
-    found = {
-        row[0]
-        for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
-        if not row[0].startswith("sqlite_")
-    }
-    for table in found - exempt:
-        assert "owner_id" in _columns(conn, table), (
-            f"{table} has no owner_id — add it, or add {table!r} to the exempt set with a reason"
-        )
-        assert table in OWNER_SCOPED_TABLES, (
-            f"{table} is owner-scoped but not listed in OWNER_SCOPED_TABLES"
-        )
-
-
 def test_qa_cache_meta_requires_corpus_id(conn: sqlite3.Connection) -> None:
     """D-007: the cache scope key is (corpus_id, topic, part). NOT NULL keeps it structural."""
     info = {row[1]: row for row in conn.execute("PRAGMA table_info(qa_cache_meta)")}
@@ -64,7 +51,7 @@ def test_qa_cache_meta_requires_corpus_id(conn: sqlite3.Connection) -> None:
 
 
 def test_spec_version_status_is_constrained(conn: sqlite3.Connection, owner_id: str) -> None:
-    conn.execute("INSERT INTO corpora (id, owner_id, name) VALUES ('c1', ?, 'x')", (owner_id,))
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
     conn.execute(
         "INSERT INTO topics (id, owner_id, corpus_id, slug, title)"
         " VALUES ('t1', ?, 'c1', 'eye', 'Eye')",
@@ -79,7 +66,31 @@ def test_spec_version_status_is_constrained(conn: sqlite3.Connection, owner_id: 
 
 
 def test_foreign_keys_are_enforced(conn: sqlite3.Connection, owner_id: str) -> None:
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
     with pytest.raises(sqlite3.IntegrityError):
         conn.execute(
-            "INSERT INTO corpora (id, owner_id, name) VALUES ('c9', 'usr_nonexistent', 'x')"
+            "INSERT INTO documents (id, owner_id, corpus_id, filename, content_hash,"
+            " storage_path) VALUES ('d9', 'usr_nonexistent', 'c1', 'f.pdf', 'h9', '/x')"
+        )
+
+
+def test_a_corpus_hash_is_unique(conn: sqlite3.Connection) -> None:
+    """The dedupe key. Two rows with one hash would defeat the whole scheme (D-029)."""
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'same', 'first')")
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c2', 'same', 'again')")
+
+
+def test_a_grant_cannot_be_duplicated_for_one_principal(
+    conn: sqlite3.Connection, owner_id: str
+) -> None:
+    """Two grants of the same corpus to the same owner is a bug, not a stronger grant."""
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
+    conn.execute(
+        "INSERT INTO corpus_grants (id, corpus_id, owner_id) VALUES ('g1', 'c1', ?)", (owner_id,)
+    )
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            "INSERT INTO corpus_grants (id, corpus_id, owner_id) VALUES ('g2', 'c1', ?)",
+            (owner_id,),
         )

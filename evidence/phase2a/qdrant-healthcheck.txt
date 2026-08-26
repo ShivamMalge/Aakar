@@ -1,0 +1,25 @@
+=== 2A.7 QDRANT HEALTHCHECK — verified against the real image ===
+Carried unverified since Phase 0 (no Docker daemon then). 2A is the first phase
+that needs a running Qdrant, so it is settled here.
+
+image:  qdrant/qdrant:v1.12.1
+engine: 29.4.0
+
+$ docker inspect --format "{{.State.Health.Status}}" aakar-qdrant
+healthy
+
+The healthcheck itself, run inside the container:
+$ docker exec aakar-qdrant bash -c "exec 3<>/dev/tcp/127.0.0.1/6333" ; echo $?
+exit=0  (0 = port open)
+
+NEGATIVE CONTROL — the same command against a port nothing listens on.
+A healthcheck that passes unconditionally looks identical to a working one.
+$ docker exec aakar-qdrant bash -c "exec 3<>/dev/tcp/127.0.0.1/9999"
+bash: line 1: /dev/tcp/127.0.0.1/9999: Connection refused
+exit=1  (non-zero = correctly detects a dead port)
+
+And the service actually answers HTTP:
+$ curl -s localhost:6333/healthz
+healthz check passed
+$ curl -s localhost:6333/collections
+{"result":{"collections":[]},"status":"ok","time":0.000015133}

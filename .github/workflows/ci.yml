@@ -38,6 +38,10 @@ jobs:
         run: uv run pytest tests/test_behavioural_conformance.py -q
       - name: referential constraints (pydantic)
         run: uv run pytest tests/test_referential.py -q
+      # 2A: the ingest boundary is a denial-of-service surface, not a cost surface, so no
+      # budget guard covers it. Named separately for the same reason as the corpus tests.
+      - name: ingest limits and dedupe
+        run: uv run pytest tests/test_ingest.py tests/test_migration.py -q
       - run: uv run pytest -q
 
   web:

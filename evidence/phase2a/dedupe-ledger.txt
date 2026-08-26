@@ -1,0 +1,26 @@
+=== PHASE 2A GATE — content-addressed dedupe ===
+both owners upload the SAME bytes: sha256 = 94b4f79239a4e378ddd6b2799f5c220b...
+file size = 671 bytes, pages = 3
+
+alice  -> corpus cor_062769e3a71b | created=True  granted=True  | embedded (new corpus)
+bob    -> corpus cor_062769e3a71b | created=False granted=True  | SKIPPED embedding - identical corpus already ingested
+
+=== resulting rows ===
+  corpora        1
+  documents      2
+  corpus_grants  2
+
+=== llm_calls ledger ===
+  owner                  kind       mode     hit       usd
+  usr_697be004a05e4271   embedding  record   0      0.0040
+  TOTAL                                             0.0040
+
+=== both owners can read it; neither owns it ===
+  alice can_read: True
+  bob   can_read: True
+  corpora has owner_id: False
+
+=== a DIFFERENT file cannot join it ===
+  different bytes -> corpus cor_e5f4cd8f54b5 created=True
+  corpora rows now: 2
+  bob can_read alice's private corpus: False

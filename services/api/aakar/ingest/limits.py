@@ -1,0 +1,264 @@
+"""Ingest hard limits, enforced at the upload boundary (2A.3, 2A.4).
+
+**This is a denial-of-service surface, not a cost surface.** LightningParse OCR runs on the
+order of 25 s/page, so a 400-page scan is roughly three CPU-hours of work for one upload
+*with no LLM call at all* — no budget guard fires, because nothing is spent. The only place
+to stop it is before any work begins.
+
+Everything here runs on the raw bytes and the PDF's own header, before parsing, before
+chunking, before embedding. Rejection is explicit and immediate: **never a silent queue**,
+because a queue turns a rejected upload into a resource commitment that merely happens
+later.
+
+Numbers are proposed, not settled — see `DEFAULTS` for the reasoning behind each.
+"""
+
+from __future__ import annotations
+
+import io
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from enum import StrEnum
+
+import pypdf
+import pypdf.errors
+
+
+class RejectionCode(StrEnum):
+    """Why an upload was refused. The code is the contract; the message is for a human."""
+
+    TOO_LARGE = "too_large"
+    TOO_MANY_PAGES = "too_many_pages"
+    TOO_MANY_OCR_PAGES = "too_many_ocr_pages"
+    QUOTA_DOCUMENTS = "quota_documents_per_day"
+    QUOTA_PAGES = "quota_pages_per_day"
+    ENCRYPTED = "encrypted"
+    UNPARSEABLE = "unparseable"
+    EMPTY = "empty"
+
+
+class IngestRejected(Exception):
+    """Raised at the boundary, before any parsing work is committed."""
+
+    def __init__(self, code: RejectionCode, message: str, *, remedy: str) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        #: What the uploader can actually do about it. A rejection without one is a wall.
+        self.remedy = remedy
+
+
+@dataclass(frozen=True)
+class IngestLimits:
+    """Proposed numbers. Each is a ceiling on work, not on ambition.
+
+    * ``max_bytes`` — 64 MiB. A 400-page text PDF is typically 5–20 MB; 64 MiB clears a
+      scanned textbook chapter with room to spare while refusing an archive dump. Checked
+      first because it costs nothing to check.
+    * ``max_pages`` — 120. A textbook *chapter* is the unit this product works on (spec §1:
+      "upload a chapter"), and chapters run 20–60 pages. 120 accepts a generous chapter and
+      refuses a whole book, which is the shape of the DoS.
+    * ``max_ocr_pages`` — 40. This is the expensive one: at ~25 s/page, 40 pages is ~17
+      minutes of CPU. Deliberately well below ``max_pages``, because a born-digital
+      120-page PDF is cheap while a 120-page scan is 50 minutes. A document over this limit
+      is refused rather than partially OCR'd, so the uploader is told rather than left with
+      a silently incomplete corpus.
+    * ``max_documents_per_day`` — 20, ``max_pages_per_day`` — 400. Per owner. 400 pages/day
+      is ~10 chapters, comfortably beyond honest study use, and caps one account at roughly
+      2.8 CPU-hours/day even if every page needs OCR.
+
+    All are per-owner and per-document respectively; none is a spend limit, because none of
+    this work costs money. That is exactly why the budget guard cannot help here.
+    """
+
+    max_bytes: int = 64 * 1024 * 1024
+    max_pages: int = 120
+    max_ocr_pages: int = 40
+    max_documents_per_day: int = 20
+    max_pages_per_day: int = 400
+
+
+DEFAULTS = IngestLimits()
+
+
+@dataclass(frozen=True)
+class PdfFacts:
+    """What can be learned from a PDF without parsing its content."""
+
+    page_count: int
+    #: Pages with no extractable text layer — these are the ones that would need OCR.
+    ocr_pages: int
+    #: The publisher's own page labels, one per page, index-aligned. See `pages.py`.
+    page_labels: tuple[str, ...]
+
+
+def inspect_pdf(data: bytes, limits: IngestLimits = DEFAULTS) -> PdfFacts:
+    """Read the structure only. Raises `IngestRejected` rather than propagating a parse error.
+
+    2A.4: an encrypted or malformed PDF is refused **explicitly, with a reason**. Not a
+    crash, and specifically not a silent OCR fallback — falling back to OCR on a file we
+    could not parse is how a 400-page scan gets in through the back door.
+    """
+    if not data:
+        raise IngestRejected(
+            RejectionCode.EMPTY,
+            "the uploaded file is empty",
+            remedy="Check the file transferred completely, then upload it again.",
+        )
+
+    try:
+        reader = pypdf.PdfReader(io.BytesIO(data))
+    except pypdf.errors.FileNotDecryptedError as exc:
+        raise IngestRejected(
+            RejectionCode.ENCRYPTED,
+            "this PDF is password-protected, so its text cannot be read",
+            remedy="Remove the password (open it and re-save without one), then upload again.",
+        ) from exc
+    except (pypdf.errors.PdfReadError, pypdf.errors.PyPdfError, ValueError, OSError) as exc:
+        raise IngestRejected(
+            RejectionCode.UNPARSEABLE,
+            f"this file could not be read as a PDF: {exc}",
+            remedy="Check it opens in a PDF viewer. Scanned images must be saved as PDF first.",
+        ) from exc
+
+    # Checked after construction, not instead of it: pypdf opens an encrypted file
+    # happily and only fails later, when a page is touched.
+    #
+    # `decrypt` RETURNS a PasswordType rather than raising — a falsy result means the
+    # empty password did not work. Relying on an exception here misclassified every
+    # password-protected upload as "unparseable", which handed the uploader the wrong
+    # remedy: "check it opens in a PDF viewer" for a file that opens perfectly.
+    if reader.is_encrypted:
+        try:
+            opened = reader.decrypt("")
+        except Exception:  # noqa: BLE001 - any failure here means "still encrypted"
+            opened = None
+        if not opened:
+            raise IngestRejected(
+                RejectionCode.ENCRYPTED,
+                "this PDF is password-protected, so its text cannot be read",
+                remedy="Remove the password (open it and re-save without one), then upload again.",
+            )
+
+    try:
+        pages = list(reader.pages)
+    except Exception as exc:  # noqa: BLE001 - a structurally broken page tree
+        raise IngestRejected(
+            RejectionCode.UNPARSEABLE,
+            f"this PDF has a damaged page structure: {exc}",
+            remedy="Re-export or repair the PDF, then upload again.",
+        ) from exc
+
+    if not pages:
+        raise IngestRejected(
+            RejectionCode.EMPTY,
+            "this PDF has no pages",
+            remedy="Upload a document with at least one page.",
+        )
+
+    ocr_pages = 0
+    for page in pages:
+        try:
+            text = page.extract_text() or ""
+        except Exception:  # noqa: BLE001 - a page we cannot read is a page needing OCR
+            text = ""
+        if not text.strip():
+            ocr_pages += 1
+
+    labels = _page_labels(reader, len(pages))
+    return PdfFacts(page_count=len(pages), ocr_pages=ocr_pages, page_labels=labels)
+
+
+def _page_labels(reader: pypdf.PdfReader, count: int) -> tuple[str, ...]:
+    """The publisher's own labels, or 1-based numbers when the PDF declares none.
+
+    2A.6: this is the *label* space, which is what a citation renders. It is not the index
+    space, and the two diverge whenever a document has front matter.
+    """
+    try:
+        labels = list(reader.page_labels)
+    except Exception:  # noqa: BLE001 - pypdf raises variously on malformed label trees
+        labels = []
+    if len(labels) != count:
+        return tuple(str(i + 1) for i in range(count))
+    return tuple(str(label) for label in labels)
+
+
+def check_file(data: bytes, limits: IngestLimits = DEFAULTS) -> PdfFacts:
+    """Every per-document limit, cheapest first. Raises on the first violation."""
+    if len(data) > limits.max_bytes:
+        raise IngestRejected(
+            RejectionCode.TOO_LARGE,
+            f"this file is {len(data) / 1024 / 1024:.1f} MB; the limit is "
+            f"{limits.max_bytes / 1024 / 1024:.0f} MB",
+            remedy="Upload a single chapter rather than a whole book.",
+        )
+
+    facts = inspect_pdf(data, limits)
+
+    if facts.page_count > limits.max_pages:
+        raise IngestRejected(
+            RejectionCode.TOO_MANY_PAGES,
+            f"this document has {facts.page_count} pages; the limit is {limits.max_pages}",
+            remedy="Split it and upload the chapter you want to study.",
+        )
+
+    if facts.ocr_pages > limits.max_ocr_pages:
+        raise IngestRejected(
+            RejectionCode.TOO_MANY_OCR_PAGES,
+            f"{facts.ocr_pages} of {facts.page_count} pages have no text layer and would "
+            f"need OCR; the limit is {limits.max_ocr_pages}",
+            remedy=(
+                "Scanned pages are slow to process (~25 s each). Upload a smaller range, "
+                "or a version of the document that has selectable text."
+            ),
+        )
+
+    return facts
+
+
+def check_quota(
+    conn: object,
+    owner_id: str,
+    incoming_pages: int,
+    limits: IngestLimits = DEFAULTS,
+    *,
+    now: datetime | None = None,
+) -> None:
+    """Per-owner daily quota, counted from `documents` rows already accepted today.
+
+    Counted from what was *accepted*, not from what was attempted: a rejected upload did
+    no work, so charging for it would punish the wrong thing.
+    """
+    from sqlite3 import Connection
+
+    assert isinstance(conn, Connection)
+    today = (now or datetime.now(UTC)).strftime("%Y-%m-%d")
+
+    row = conn.execute(
+        """
+        SELECT COUNT(*) AS documents, COALESCE(SUM(page_count), 0) AS pages
+        FROM documents
+        WHERE owner_id = ? AND date(created_at) = ?
+        """,
+        (owner_id, today),
+    ).fetchone()
+
+    documents_today = int(row["documents"])
+    pages_today = int(row["pages"])
+
+    if documents_today >= limits.max_documents_per_day:
+        raise IngestRejected(
+            RejectionCode.QUOTA_DOCUMENTS,
+            f"you have uploaded {documents_today} documents today; the daily limit is "
+            f"{limits.max_documents_per_day}",
+            remedy="Try again tomorrow, or ask for the limit to be raised.",
+        )
+
+    if pages_today + incoming_pages > limits.max_pages_per_day:
+        raise IngestRejected(
+            RejectionCode.QUOTA_PAGES,
+            f"this would bring you to {pages_today + incoming_pages} pages today; the "
+            f"daily limit is {limits.max_pages_per_day}",
+            remedy="Upload a shorter document, or try again tomorrow.",
+        )
