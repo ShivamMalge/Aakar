@@ -1,0 +1,57 @@
+==========================================================================
+1. CACHE HIT RATE ACROSS TWO OWNERS ON ONE CORPUS  (measured, not asserted)
+==========================================================================
+Alice asks 5 questions; Bob then asks equivalent ones against the SAME corpus.
+Bob's hits cost nothing: the cache is keyed on the corpus, not on who asked.
+
+  alice: 5 questions, all misses, $0.0100
+  bob:   5 questions, 5 hits, $0.0000
+
+  HIT RATE for the second owner: 5/5 = 100%
+  marginal cost of the second reader: $0.0000
+
+==========================================================================
+2. COST LEDGER, SPLIT BY TIER  (2B.8)
+==========================================================================
+  tier                 usd    calls
+  answer            0.0100       10
+  generation        0.1000        2
+
+  Generation is once-per-topic-forever; only the answer tier scales with readers.
+
+==========================================================================
+3. PER-OWNER QUOTA REFUSES WHILE A SECOND OWNER IS UNAFFECTED  (2B.10)
+==========================================================================
+  quota = 5/day (billable questions only)
+  alice asked today: 5   bob asked today: 0
+  alice: REFUSED - you have asked 5 questions today; the daily limit is 5
+         remedy: Your limit resets at midnight UTC. Cached answers and the topic library keep working in the meantime.
+  bob:   ALLOWED - one user's loop does not drain everyone else
+
+==========================================================================
+4. DEGRADED MODE  (2B.11)  - causes distinguished, per D-035
+==========================================================================
+  healthy:
+     upload=True  generate=True  cached=True
+     banner: (none)
+  budget exhausted:
+     upload=True  generate=False cached=True
+     banner: New answers are paused because today's usage limit has been reached. Your library and all previously answered questions still work.
+  provider unreachable:
+     upload=True  generate=False cached=True
+     banner: New answers are temporarily unavailable while the language model is unreachable. Your library and all previously answered questions still work.
+  worker stalled:
+     upload=False generate=True  cached=True
+     banner: New uploads are paused because documents are not being processed right now. Everything already in your library still works, including questions.
+
+  Note the difference: a stalled worker stops UPLOADS while questions keep working.
+  A merged 'unavailable' state would have told the student otherwise.
+
+==========================================================================
+5. CACHED ANSWERS STILL SERVE WITH THE PROVIDER HARD-DISABLED
+==========================================================================
+  provider: CassetteMiss - hard-disabled, no key, no network
+  cached answer still served: True  -> answer to what does the lens do [p. 12]
+  library/topics readable:    1 topic(s)
+
+  No 500. Generation is off; everything that costs nothing keeps working.

@@ -202,6 +202,10 @@ CREATE TABLE IF NOT EXISTS llm_calls (
     id                TEXT PRIMARY KEY,
     owner_id          TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     kind              TEXT NOT NULL CHECK (kind IN ('chat','vlm','embedding')),
+    -- 2B.8. Recorded rather than inferred from the model name: a deployment that
+    -- configures one model for both tiers must still produce a truthful split, because
+    -- the split is what says whether a rising bill means more topics or more readers.
+    tier              TEXT CHECK (tier IN ('generation','answer')),
     model             TEXT NOT NULL,
     mode              TEXT NOT NULL CHECK (mode IN ('live','record','replay')),
     cache_hit         INTEGER NOT NULL DEFAULT 0,
@@ -225,10 +229,24 @@ CREATE TABLE IF NOT EXISTS qa_cache_meta (
     question    TEXT NOT NULL,
     answer_json TEXT NOT NULL,
     vector_id   TEXT NOT NULL,
+    -- The question embedding, stored beside the bookkeeping so a cache lookup does not
+    -- need Qdrant to be up. Qdrant remains the index for CHUNK retrieval; this set is
+    -- small and per-(corpus, scope), and keeping it here is what lets cached answers keep
+    -- serving in degraded mode (2B.11).
+    vector_json TEXT NOT NULL DEFAULT '[]',
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_qa_cache_owner ON qa_cache_meta(owner_id);
 CREATE INDEX IF NOT EXISTS idx_qa_cache_scope ON qa_cache_meta(corpus_id, topic_id, part_id);
+
+-- 2B.12. Beyond the account ceiling a signup is recorded, not refused: a refusal loses
+-- the person, a waitlist costs one row.
+CREATE TABLE IF NOT EXISTS waitlist (
+    id         TEXT PRIMARY KEY,
+    email      TEXT NOT NULL UNIQUE,
+    position   INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 
 CREATE TABLE IF NOT EXISTS schema_meta (
     key   TEXT PRIMARY KEY,

@@ -38,7 +38,7 @@ CONTENT_ADDRESSED_TABLES = ("corpora", "chunks", "document_pages")
 GRANT_TABLES = ("corpus_grants",)
 
 #: Principals, not resources. They describe *who* can hold a grant.
-IDENTITY_TABLES = ("users", "groups", "group_members")
+IDENTITY_TABLES = ("users", "groups", "group_members", "waitlist")
 
 #: Bookkeeping that belongs to the database rather than to anyone.
 META_TABLES = ("schema_meta",)

@@ -1,0 +1,35 @@
+=== CACHE THRESHOLD CALIBRATION (2B.9 / G-03) ===
+Hit rate alone is trivially maximised by lowering the threshold to zero, at which
+point the cache is a random answer generator with citations. So it is calibrated
+against a paraphrase set that SHOULD hit and a near-miss set that MUST NOT.
+
+paraphrases (should hit): 5
+   "what does the lens do"  [verbatim]
+   "what does the lens do?"  [punctuation only]
+   "the lens does what"  [word order]
+   "what do the lens do"  [agreement slip]
+   "what does the lens focus"  [near synonym]
+near misses (must miss):  5
+   "what does the retina do"  [DIFFERENT PART - one word apart]
+   "what does the cornea do"  [DIFFERENT PART]
+   "what does the iris do"  [DIFFERENT PART]
+   "what is the lens made of"  [different QUESTION about same part]
+   "how does the lens change shape"  [different question]
+
+threshold  false hits   hit rate   hits  misses  rejected  verdict
+------------------------------------------------------------------------
+     0.80           3      100%      5       0         2  UNSAFE - answers questions not asked
+     0.85           0       60%      3       2         5  usable
+     0.90           0       40%      2       3         5  usable
+     0.92           0       40%      2       3         5  usable
+     0.95           0       40%      2       3         5  usable
+     0.98           0       40%      2       3         5  usable
+
+Lowest threshold with ZERO false hits: 0.85  (hit rate 60%)
+
+D4's default is 0.92. Measured verdict: SAFE at 40% hit rate, 0 false hit(s).
+
+NOTE ON SCOPE: this uses a deterministic bag-of-words embedder, not the production
+model, because Phase 2B runs in replay with no key and no spend. It calibrates the
+METHOD and proves the two-sided harness works. The number must be re-measured
+against the real embedder on the real corpus before it is trusted in production.

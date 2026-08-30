@@ -76,6 +76,7 @@ class CassetteProvider:
         *,
         estimate_usd: float = DEFAULT_ESTIMATE_USD,
         topic_id: str | None = None,
+        tier: str | None = None,
     ) -> None:
         """`ledger` wires the D8 budget guard into the only path that can spend money.
 
@@ -100,6 +101,7 @@ class CassetteProvider:
         self._ledger = ledger
         self._estimate_usd = estimate_usd
         self._topic_id = topic_id
+        self._tier = tier
         self.last_was_cache_hit = False
 
     @property
@@ -180,6 +182,7 @@ class CassetteProvider:
             request_hash=request_hash(kind, req),
             cache_hit=self.last_was_cache_hit,
             topic_id=self._topic_id,
+            tier=self._tier,
         )
 
     def chat(self, req: ChatRequest) -> ChatResponse:

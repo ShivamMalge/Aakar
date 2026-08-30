@@ -45,18 +45,20 @@ class CostLedger:
         request_hash: str,
         cache_hit: bool,
         topic_id: str | None = None,
+        tier: str | None = None,
     ) -> None:
         self._spent += usage.usd
         self._conn.execute(
             """
-            INSERT INTO llm_calls (id, owner_id, kind, model, mode, cache_hit,
+            INSERT INTO llm_calls (id, owner_id, kind, tier, model, mode, cache_hit,
                                    prompt_tokens, completion_tokens, usd, topic_id, request_hash)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 new_id("call"),
                 self._owner_id,
                 kind,
+                tier,
                 model,
                 mode,
                 int(cache_hit),
@@ -68,6 +70,17 @@ class CostLedger:
             ),
         )
         self._conn.commit()
+
+    def by_tier(self) -> dict[str, float]:
+        """Spend split by tier — the number 2B.8 exists to make measurable."""
+        return {
+            str(row["tier"] or "untiered"): float(row["t"])
+            for row in self._conn.execute(
+                "SELECT tier, COALESCE(SUM(usd), 0.0) AS t FROM llm_calls"
+                " WHERE owner_id = ? GROUP BY tier",
+                (self._owner_id,),
+            )
+        }
 
     def total_usd(self) -> float:
         row = self._conn.execute(

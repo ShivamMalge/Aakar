@@ -23,6 +23,7 @@ EXPECTED_TABLES = {
     "llm_calls",
     "qa_cache_meta",
     "ingest_jobs",
+    "waitlist",
     "schema_meta",
 }
 

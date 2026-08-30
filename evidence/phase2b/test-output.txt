@@ -1,0 +1,12 @@
+=== PYTEST (services/api, replay mode) ===
+702 passed, 4 warnings in 34.60s
+
+=== RUFF / MYPY --strict ===
+All checks passed!
+51 files already formatted
+Success: no issues found in 51 source files
+
+=== VITEST / TSC (apps/web) ===
+ Test Files  12 passed (12)
+      Tests  439 passed (439)
+tsc: no errors

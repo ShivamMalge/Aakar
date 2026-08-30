@@ -591,3 +591,97 @@ $ curl -s localhost:6333/healthz              -> healthz check passed
 - The upload route, real chunking, and the `warning_scope` answer all need LightningParse.
 - Ingest limit numbers are **proposed**, not settled.
 - Qdrant is verified healthy but nothing writes to it yet — collections land in 2B.
+
+---
+
+## Phase 2B (items 8–12) — spend controls · **complete, awaiting approval**
+
+Date: 2026-08-27. Rulings first, then 2B.8–2B.12. Retrieval (2B.1–2B.7 in the roadmap's
+own numbering) is untouched; this round is the economics and the failure modes.
+
+### Built
+
+- **2B.8 Model tiering.** Two tiers, configured separately, **recorded in the ledger by
+  tier** — the tier is a call-site fact, not inferred from the model name, so a deployment
+  using one model for both still produces a truthful split.
+- **2B.9 Semantic QA cache.** Keyed `(corpus_id, part scope, question embedding)`. Parts
+  sharing an `instance_of` are **one cache scope** (D-022), so two mitochondria share
+  answers. Cross-corpus isolation is structural: `corpus_id` is in the SQL filter, so the
+  similarity search only ranks what is already reachable.
+- **2B.10 Per-owner question quota**, separate from the global budget. Both must pass.
+- **2B.11 Degraded mode**, with the three causes distinguished per D-035.
+- **2B.12 Registration ceiling** with a waitlist, default 25.
+
+### Threshold calibration — measured, both sides (G-03)
+
+`evidence/phase2b/cache-calibration.txt`:
+
+```
+threshold  false hits   hit rate   hits  misses  rejected  verdict
+     0.80           3      100%      5       0         2  UNSAFE - answers questions not asked
+     0.85           0       60%      3       2         5  usable
+     0.90           0       40%      2       3         5  usable
+     0.92           0       40%      2       3         5  usable
+```
+
+**0.80 scores a 100% hit rate and three false hits.** That is the failure the amendment
+warned about, demonstrated rather than asserted: hit rate alone is trivially maximised by
+lowering the threshold, at which point the cache answers questions the student did not ask —
+fluently, cited, and about the right part. One false hit disqualifies a threshold outright;
+it is absolute rather than a rate, because there is no hit rate that buys back a confidently
+wrong answer.
+
+**Scope limit, stated plainly:** this uses a deterministic bag-of-words embedder, because 2B
+runs in replay with no key and no spend. It calibrates the **method** and proves the
+two-sided harness works. **The number must be re-measured against the real embedder on the
+real corpus before it is trusted.** D4's 0.92 is safe here, but "safe on a synthetic
+embedder" is not the claim that matters.
+
+### Gate evidence
+
+`evidence/phase2b/gate.txt`:
+
+| gate item | result |
+| --- | --- |
+| cache hit rate, two owners, one corpus | **5/5 = 100%**, second reader's marginal cost **$0.0000** |
+| ledger tier split | `generation $0.1000 / 2 calls`, `answer $0.0100 / 10 calls` |
+| per-owner quota | alice **REFUSED** at 5/5; bob **ALLOWED**, unaffected |
+| provider hard-disabled | `CassetteMiss`; cached answer still served, library readable, **no 500** |
+| ingest limits at the boundary | 2A, unchanged and still green |
+
+Degraded mode, and why the causes had to stay separate:
+
+```
+budget exhausted:     upload=True  generate=False  cached=True
+worker stalled:       upload=False generate=True   cached=True
+```
+
+A stalled worker stops **uploads** while questions keep working. A merged "unavailable"
+state would have told the student their questions were down when they were not.
+
+### Numbers proposed
+
+| control | value | reasoning |
+| --- | --: | --- |
+| `max_questions_per_day` | 100 | a student asks tens per chapter; a count rather than a spend, because a student cannot feel dollars |
+| `max_accounts` | 25 | deliberately far below the 500 the ingest bounds were reasoned against — a ceiling to raise deliberately, not discover by being overrun |
+| `max_concurrent_ocr` | 2 | OCR is CPU-bound; raising it on a saturated machine lengthens every job instead of adding throughput |
+| `max_queue_depth` | 50 | ~7 hours of backlog at 2 concurrent; beyond that a queued job is indistinguishable from a lost one |
+
+### Not built, and why
+
+- **Retrieval itself** (hybrid BM25 + dense, widening, summary cards, the panel UI).
+  2B.8–2B.12 was the requested scope. The cache and tiering are the layers *around*
+  retrieval and are testable without it; the transcripts and citation-accuracy items need
+  the retrieval that is not yet written.
+- **The `/ask` route.** The controls exist as a library with their refusals tested. Wiring a
+  route before retrieval exists would mean stubbing the answer, and a stub would make the
+  quota and cache demos measure nothing.
+
+### Carried forward
+
+- The threshold number is method-calibrated only; re-measure on the real embedder.
+- Qdrant is verified healthy but still holds no collections — chunk indexing lands with
+  retrieval.
+- A "processing" state now exists in the product and the UI does not account for it
+  (recorded in D-035, not built).

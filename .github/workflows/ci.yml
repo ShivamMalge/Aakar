@@ -42,6 +42,9 @@ jobs:
       # budget guard covers it. Named separately for the same reason as the corpus tests.
       - name: ingest limits and dedupe
         run: uv run pytest tests/test_ingest.py tests/test_migration.py tests/test_async_ingest.py -q
+      # 2B: tiering, the semantic cache, quotas, degraded mode and the account ceiling.
+      - name: rag spend controls
+        run: uv run pytest tests/test_rag_controls.py -q
       - run: uv run pytest -q
 
   web:
