@@ -1228,12 +1228,62 @@ Recorded **before** the Qdrant collection is created, as required. Changing dime
 later means re-embedding every corpus, and with content-addressed corpora (D-029) that is
 every corpus every owner shares.
 
-| | value |
-| --- | --- |
-| model | `text-embedding-004` (`AAKAR_EMBED_MODEL`) |
-| **dimensions** | **768** |
-| distance | cosine |
-| collection | `chunks` |
+> ### AMENDED 2026-08-30 — the model originally pinned here was already dead
+>
+> This entry first pinned **`text-embedding-004`**. That model was **shut down on
+> 14 January 2026** — *seven months before it was pinned here.* Not deprecated, not
+> scheduled: gone.
+>
+> **Why nothing caught it.** Every ingest in this project has run on the replay embedder,
+> so no model name had ever been resolved against the provider. The first real call would
+> have been the first 404 — in production, on a student's upload, at the moment the whole
+> pipeline was finally being used for real.
+>
+> **The pattern, which matters more than the fact.** Pinning protects against *drift*: the
+> model changing under you. It does nothing about a pin to something that no longer exists,
+> and from inside a replay-mode test suite those two are indistinguishable — both produce a
+> green suite. I had reasoned carefully about dimensionality being a one-way door while
+> never checking that the door led anywhere. D-045 adds the check.
+>
+> The corrected pin is below. The 768-dimension collection width, `ensure_collection`'s
+> mismatch refusal and the dimension-matched replay embedder all survive unchanged, because
+> 768 is a recommended MRL tier on the new model too — which is why this was the cheapest
+> possible moment for the correction: nothing was embedded yet.
+
+| | value | note |
+| --- | --- | --- |
+| model | **`gemini-embedding-001`** | stable, no announced shutdown (verified 2026-08-30) |
+| **dimensions** | **768** | via `output_dimensionality`; native is 3072 |
+| distance | cosine | |
+| normalization | **manual L2, by us** | see below — this is the trap |
+| task type | `RETRIEVAL_DOCUMENT` indexing, `RETRIEVAL_QUERY` querying | |
+| collection | `chunks` | unchanged |
+
+### MRL truncation returns UNNORMALIZED vectors — confirmed from the docs
+
+The provider's embeddings documentation states it directly: only the default 3072-dimension
+output is normalized for you, and *"if you are using `gemini-embedding-001`, you must
+manually normalize non-3072 dimensions"*, with an L2 example. `gemini-embedding-2`
+auto-normalizes truncated dimensions; `-001` does not.
+
+**Why this would have been invisible.** Cosine on an unnormalized vector does not fail. It
+returns a number in [-1, 1] — just the wrong one, weighted by magnitude. Retrieval quietly
+degrades, the relevance floor starts refusing questions the chapter does cover, and every
+symptom points at "the embedder is weak" rather than "we skipped a division". It is
+precisely the class of bug that survives to production because nothing ever raises.
+
+**Implemented as unconditional.** `l2_normalize` is applied to every vector from every
+source, not behind a model check. Normalizing a unit vector is a no-op, so there is no
+branch to get wrong — and a future model that changes its normalization behaviour cannot
+silently break this.
+
+### `gemini-embedding-2` considered and rejected — for now
+
+The deprecation page names `gemini-embedding-2` as 004's replacement, and it would remove
+the manual-normalization footgun entirely by auto-normalizing truncated dimensions. It is
+listed as **`gemini-embedding-2-preview`**, and a preview model is the wrong thing to put
+behind a one-way door: re-embedding every shared corpus is the exact cost this decision
+exists to avoid paying twice. Revisit when it reaches stable.
 
 **Why 768 and not a reduced dimension.** `text-embedding-004` emits 768 natively. Truncating
 would save index memory at a corpus size that does not need saving, and would make the
@@ -1250,7 +1300,7 @@ never uses, and the first real ingest would be the first time the real shape ran
 deterministic embedder used in replay is dimension-matched on purpose.
 
 **Recorded limitation.** The vectors this project can produce today are *not* from
-`text-embedding-004` — there is no API key, and CI runs in replay. Everything below the
+`gemini-embedding-001` — there is no API key, and CI runs in replay. Everything below the
 provider abstraction is the real path; the vectors themselves are not. Any threshold
 calibrated on them measures the **method**, not the number (D-041).
 
@@ -1286,3 +1336,79 @@ curation gate wants when ranking what a human should check.
 picking one arbitrarily. A single `display_confidence` property combines them for the one
 place that wants a single word, so the combination lives in one function rather than in
 every caller.
+
+---
+
+## D-045 — Every model pin is validated at boot; two of three were already dead
+
+**Status:** Accepted (architect ruling) · **Phase:** 2C · **Audit result**
+
+The architect flagged one dead pin. Checking every one, as instructed, found **two**.
+
+| setting | was pinned to | status | now |
+| --- | --- | --- | --- |
+| `AAKAR_EMBED_MODEL` | `text-embedding-004` | **shut down 2026-01-14** | `gemini-embedding-001` |
+| `AAKAR_MODEL` | `gemini-2.0-flash` | **shut down 2026-06-01** | `gemini-3.6-flash` |
+| `AAKAR_VLM_MODEL` | `gemini-2.0-flash` | **shut down 2026-06-01** | `gemini-3.6-flash` |
+| `AAKAR_ANSWER_MODEL` | falls back to `AAKAR_MODEL` | inherited the same dead pin | inherits the fix |
+
+Verified 2026-08-30 against the provider's deprecation and model pages. `gemini-2.0-flash`
+is listed as *"Shut down"*, with `gemini-3.6-flash` named as its replacement. So **every
+model this project would ever have called was retired**, and the generation model had been
+dead for three months.
+
+`gemini-3.6-flash` rather than the newer `gemini-3.7-flash`: 3.6 is the provider's own
+stated migration target for 2.0-flash, it is stable, and it is multimodal — which the VLM
+critic (D3) needs. Moving to 3.7 is a deliberate upgrade, not a repair, and mixing the two
+would confuse a forced correction with a chosen improvement.
+
+### Why nothing caught it, and what now does
+
+Every test in this project runs in `replay`, against a stub provider or the local embedder.
+**No model name had ever been resolved against the provider**, so a pin to a live model and
+a pin to a retired one produced identical green suites.
+
+Two layers, because they fail in different circumstances:
+
+1. **`RETIRED_MODELS`** — a local registry with shutdown dates, checked inside
+   `Settings.from_env()`, so it runs at **boot in every mode with no network**. This is the
+   layer that catches what actually happened, and it works in CI where there is no key. It
+   requires maintenance, and that is the point: a retirement is a fact about the world that
+   someone has to write down.
+2. **`assert_live_models`** — asks the provider which models a key can reach. Only usable in
+   `live`/`record`, which is exactly why layer 1 has to exist: a check needing a key would
+   never have run here.
+
+A future retirement is *allowed* until its shutdown date, so an announcement does not force
+a migration on a schedule the provider did not set. `test_no_shipped_default_is_a_retired_model`
+is the standing regression guard.
+
+### The general lesson, recorded because it will recur
+
+This is agents.md R1's shape in a new place. R1 says a default that is always overridden is
+never exercised. Here a *pin* that is never resolved is never exercised — and the pin
+existed specifically to make the dependency trustworthy. **A guard that has never been
+executed against reality is indistinguishable from one that does not work**, which is R2,
+arriving from a direction R2 did not anticipate.
+
+---
+
+## D-046 — Alias coverage is load-bearing for provenance; verify it in Phase 3
+
+**Status:** Recorded, not built (architect instruction) · **Phase:** 3
+
+Provenance resolution matches chunk text **whole-word** (D-030, 2C.6), so `iris` does not
+match `irises`. That is the right trade — substring matching fires on `irishman`, and a part
+promoted to `strong` by a coincidental prefix is the fabricated-confidence failure the whole
+design exists to prevent. Inflected forms are reached through `aliases`, which is what D5
+made them for.
+
+**The consequence for Phase 3.** If the generator emits `"iris"` without `"irises"`,
+provenance **under-reports systematically**: parts sit at `weak` while the chapter names
+them plainly, the curation gate fills with parts that look ungrounded, and a human wastes
+review time on a vocabulary problem that reads as an evidence problem.
+
+The VLM critic — or a separate deterministic check, which is likely the better fit since
+this is a text question and not a visual one — must verify **alias coverage against the
+chapter's actual inflections** before completeness is judged. Recorded now so it is designed
+in rather than discovered when the pilot batch's completeness numbers look inexplicably low.

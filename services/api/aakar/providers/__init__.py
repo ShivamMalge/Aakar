@@ -11,6 +11,14 @@ from .base import (
 )
 from .cassette import Cassette, CassetteMiss, CassetteProvider
 from .cost import CostLedger
+from .models import (
+    RETIRED_MODELS,
+    RetiredModel,
+    assert_live_models,
+    check_configured_models,
+    check_model,
+    resolve_live,
+)
 from .stub import StubProvider
 
 __all__ = [
@@ -20,7 +28,13 @@ __all__ = [
     "CassetteProvider",
     "ChatRequest",
     "ChatResponse",
+    "RETIRED_MODELS",
     "CostLedger",
+    "RetiredModel",
+    "check_configured_models",
+    "assert_live_models",
+    "check_model",
+    "resolve_live",
     "EmbedRequest",
     "EmbedResponse",
     "Provider",

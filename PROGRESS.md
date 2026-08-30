@@ -808,3 +808,39 @@ disagree precisely on the cases a threshold has to separate.
   questions only.
 - The answer tier currently stitches retrieved chunks rather than calling a model —
   `generate` is injected, and no prompt is written yet.
+
+---
+
+## D-043 correction · 2026-08-30 (pre-2D, blocking)
+
+The architect flagged one dead model pin. **Checking every one, as instructed, found two.**
+
+| setting | was | status | now |
+| --- | --- | --- | --- |
+| `AAKAR_EMBED_MODEL` | `text-embedding-004` | shut down **2026-01-14** | `gemini-embedding-001` |
+| `AAKAR_MODEL` | `gemini-2.0-flash` | shut down **2026-06-01** | `gemini-3.6-flash` |
+| `AAKAR_VLM_MODEL` | `gemini-2.0-flash` | shut down **2026-06-01** | `gemini-3.6-flash` |
+
+Every model this project would ever have called was retired. The embedding model had been
+dead seven months when I pinned it; the generation model, three.
+
+**MRL normalization — answered from the docs, and it is a real trap.**
+`gemini-embedding-001` does **not** normalize below its native 3072 dimensions; the docs
+say the caller must L2 normalize. Cosine on an unnormalized vector does not fail, it just
+returns the wrong number — retrieval degrades, the floor starts refusing covered questions,
+and every symptom points at a weak embedder. Implemented **unconditionally**, so there is no
+model branch to get wrong later. `gemini-embedding-2` auto-normalizes but is `-preview`,
+which is the wrong thing behind a one-way door.
+
+**Boot check (D-045), in two layers.** A local retirement registry checked inside
+`Settings.from_env()` — no network, runs in every mode, and is the layer that catches what
+actually happened; plus a live provider check for `live`/`record`. Evidence in
+`evidence/phase2c/model-pin-audit.txt`.
+
+**The pattern, recorded because it will recur.** Pinning protects against *drift*. It does
+nothing about a pin to something that no longer exists, and inside a replay-mode suite the
+two are identical — both green. I reasoned carefully about dimensionality being a one-way
+door without ever checking the door led anywhere.
+
+Also recorded, not built: **D-046**, alias coverage is load-bearing for provenance, and
+Phase 3 must verify it against the chapter's actual inflections.

@@ -22,6 +22,8 @@ import os
 from dataclasses import dataclass
 from enum import StrEnum
 
+from aakar.config import DEFAULT_EMBED_MODEL, DEFAULT_MODEL, DEFAULT_VLM_MODEL
+
 
 class Tier(StrEnum):
     GENERATION = "generation"
@@ -45,10 +47,10 @@ class TierConfig:
         # AAKAR_MODEL stays the generation default so existing config keeps working; the
         # answer tier falls back to it rather than silently choosing something cheaper,
         # because a silent downgrade of answer quality is worse than an obvious bill.
-        generation = os.environ.get("AAKAR_MODEL", "gemini-2.0-flash")
+        generation = os.environ.get("AAKAR_MODEL", DEFAULT_MODEL)
         return TierConfig(
             generation_model=generation,
             answer_model=os.environ.get("AAKAR_ANSWER_MODEL", generation),
-            vlm_model=os.environ.get("AAKAR_VLM_MODEL", "gemini-2.0-flash"),
-            embed_model=os.environ.get("AAKAR_EMBED_MODEL", "text-embedding-004"),
+            vlm_model=os.environ.get("AAKAR_VLM_MODEL", DEFAULT_VLM_MODEL),
+            embed_model=os.environ.get("AAKAR_EMBED_MODEL", DEFAULT_EMBED_MODEL),
         )

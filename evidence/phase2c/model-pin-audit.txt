@@ -1,0 +1,35 @@
+=== MODEL PIN AUDIT (D-045) - every pin checked, 2026-08-30 ===
+Sources: ai.google.dev/gemini-api/docs/deprecations and .../docs/models
+
+setting                was pinned to            status                 now
+---------------------------------------------------------------------------------------
+AAKAR_EMBED_MODEL      text-embedding-004       SHUT DOWN 2026-01-14   gemini-embedding-001
+AAKAR_MODEL            gemini-2.0-flash         SHUT DOWN 2026-06-01   gemini-3.6-flash
+AAKAR_VLM_MODEL        gemini-2.0-flash         SHUT DOWN 2026-06-01   gemini-3.6-flash
+AAKAR_ANSWER_MODEL     (falls back to MODEL)    inherited the dead pin inherits the fix
+
+Two of three distinct pins were retired; the third inherited one of them.
+The generation model had been dead three months, the embedding model seven.
+
+=== MRL normalization - answered from the provider docs, not assumed ===
+  gemini-embedding-001 native width : 3072
+  output_dimensionality accepted    : 128-3072 (recommended 768 / 1536 / 3072)
+  normalized at 3072                : YES
+  normalized below 3072             : NO   <-- the trap
+  gemini-embedding-2                : auto-normalizes, but is -preview only
+
+  Docs: 'if you are using gemini-embedding-001, you must manually normalize
+         non-3072 dimensions', with an L2 example.
+
+  Implemented UNCONDITIONALLY: l2_normalize runs on every vector from every source.
+  Normalizing a unit vector is a no-op, so there is no model branch to get wrong.
+
+=== the boot check that would have caught this ===
+$ AAKAR_MODEL=gemini-2.0-flash  -> Settings.from_env()
+  RetiredModel: AAKAR_MODEL is set to 'gemini-2.0-flash', which the provider shut down on 2026-06-01 (was Aakar's pinned generation AND VLM model until D-045). Use 'gemini-3.6-flash'. A pinned model that no longer exists fails on first real call, not at boot — which is why this check exists (D-045).
+
+$ AAKAR_EMBED_MODEL=text-embedding-004  -> Settings.from_env()
+  RetiredModel: AAKAR_EMBED_MODEL is set to 'text-embedding-004', which the provider shut down on 2026-01-14 (was Aakar's pinned embedding model until D-043 was amended). Use 'gemini-embedding-001'. A pinned model that no longer exists fails on first real call, not at boot — which is why this check exists (D-045).
+
+$ with the corrected defaults
+  OK: model=gemini-3.6-flash  vlm=gemini-3.6-flash  embed=gemini-embedding-001

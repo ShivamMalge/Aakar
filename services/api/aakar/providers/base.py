@@ -38,6 +38,12 @@ class VlmRequest:
 class EmbedRequest:
     model: str
     texts: tuple[str, ...]
+    #: Matryoshka (MRL) truncation. `gemini-embedding-001` defaults to 3072 and accepts
+    #: 128-3072; we ask for 768 (D-043).
+    output_dimensionality: int | None = None
+    #: `RETRIEVAL_DOCUMENT` when indexing, `RETRIEVAL_QUERY` when searching. The provider
+    #: embeds the two asymmetrically, and using one for both loses that.
+    task_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -87,7 +93,14 @@ def request_hash(kind: str, req: ChatRequest | VlmRequest | EmbedRequest) -> str
             "images": [hashlib.sha256(b).hexdigest() for b in req.images],
         }
     else:
-        payload = {"model": req.model, "texts": list(req.texts)}
+        # Both extra fields change the returned vectors, so both belong in the cassette
+        # key. A recording made at 3072 must not replay for a request asking for 768.
+        payload = {
+            "model": req.model,
+            "texts": list(req.texts),
+            "output_dimensionality": req.output_dimensionality,
+            "task_type": req.task_type,
+        }
 
     return hashlib.sha256(f"{kind}:{_canonical(payload)}".encode()).hexdigest()
 
