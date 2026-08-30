@@ -85,6 +85,10 @@ CREATE TABLE IF NOT EXISTS documents (
     -- LightningParse's per-DOCUMENT extraction tier ('digital' | 'scanned'). Measured,
     -- not assumed: see aakar/ingest/parser.py for what 0.4.1 actually emits.
     parse_tier   TEXT,
+    -- LightningParse's `metadata.warnings`: a per-DOCUMENT array (measured — see
+    -- aakar/ingest/parser.py). Stored here rather than on chunks, because attributing a
+    -- document-wide string to one paragraph would be a claim the parser never made.
+    parse_warnings_json TEXT NOT NULL DEFAULT '[]',
     storage_path TEXT NOT NULL,
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );

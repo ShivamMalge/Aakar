@@ -22,6 +22,10 @@ evidence/            gate screenshots & transcripts (committed; open corpus only
 
 ## Getting started
 
+**System dependency (D-038):** OCR needs [Tesseract](https://github.com/tesseract-ocr/tesseract)
+on `PATH`. Without it, scanned uploads are refused with a reason rather than succeeding
+into an empty corpus — but they are refused. Digital-native PDFs need nothing extra.
+
 ```bash
 cp .env.example .env      # AAKAR_AUTH_SECRET must be >= 32 bytes
 make install              # both stacks

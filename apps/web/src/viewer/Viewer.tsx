@@ -103,6 +103,27 @@ export function Viewer({ spec, options }: { spec: SceneSpec; options?: Partial<V
           data-labels-dropped={String(labelState?.dropped.length ?? 0)}
           data-labels-dropped-occluded={String(labelState?.droppedOccluded ?? 0)}
           data-labels-dropped-for-space={String(labelState?.droppedForSpace ?? 0)}
+          /*
+            The derived parent relations, carried out for Phase 3 (architect ruling).
+            They come from `compile()` — which has already run by the time this renders —
+            and NOT from the drawn frame, so a spec too broken to render still yields a
+            diagnosis. That is precisely when the repair loop needs one.
+          */
+          data-relations={JSON.stringify(
+            [...scene.parts.values()]
+              .filter((part) => part.containment !== undefined)
+              .map((part) => ({
+                p: part.containment!.partId,
+                parent: part.containment!.parentId,
+                rel: part.containment!.relation,
+                cp: part.containment!.childInParent,
+                pc: part.containment!.parentInChild,
+                gap: part.containment!.relativeGap,
+              })),
+          )}
+          data-warnings={JSON.stringify(
+            result.ok ? result.warnings.map((w) => ({ code: w.code, p: w.partId })) : [],
+          )}
           hidden
         />
       ) : null}

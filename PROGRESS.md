@@ -685,3 +685,35 @@ state would have told the student their questions were down when they were not.
   retrieval.
 - A "processing" state now exists in the product and the UI does not account for it
   (recorded in D-035, not built).
+
+---
+
+## OCR investigation · 2026-08-27 (pre-2C)
+
+Asked before starting 2C: is OCR (a) opt-in, (b) Tesseract-dependent, or (c) absent?
+
+**(b), and it works.** Evidence in `evidence/phase2c/ocr-investigation.txt`; full reasoning
+in D-038.
+
+Two of my own earlier claims were wrong, and both mattered:
+
+1. **"A text-layer-free PDF produces zero blocks."** I had tested with `add_blank_page`,
+   which makes a genuinely empty page — that correctly yields nothing and was never evidence
+   about OCR. A real scan (a text PDF rasterised to JPEG and re-wrapped) parses with
+   `tier: "scanned"` and blocks carrying `source: "ocr"`.
+2. **"0.4.1 emits no warnings array."** `metadata.warnings` is an *optional* key, present
+   only when there is something to report. Every document I had measured was clean. It is
+   **per-document** — which is the answer 2A.5 asked for (D-039).
+
+**The 25 s/page figure does not hold: measured 3.3–3.8 s/page, ~6.6x faster.** Every limit
+rationale is restated in D-038; the numbers are unchanged pending approval, with one
+recommendation to raise `max_ocr_pages` 40 → 80, since 40 currently rejects a scanned
+chapter of 40–60 pages, which is a primary case.
+
+**Tesseract is now a deployment requirement** (D-038), noted in the README and combined with
+D-035 it rules out serverless *and* most managed Python runtimes for the ingest component.
+
+Also landed: a corpus with zero chunks is never created — the job fails with
+`no_extractable_text` instead. And the two rulings: the derived relation now comes from
+`compile()` and rides the sentinel (D-040), and the cache threshold defaults to 0.92 as
+config rather than a constant (D-041).

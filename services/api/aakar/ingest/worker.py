@@ -14,6 +14,7 @@ delays the honest answer; a job that fails is finished, with its reason stored.
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 
@@ -63,6 +64,24 @@ def process_one(
             parsed, page_map, document_id=job.document_id, corpus_id=str(row["corpus_id"])
         )
 
+        # A corpus with zero chunks must never be created silently. An empty corpus looks
+        # ingested, retrieves nothing, and produces "your chapter does not cover this" for
+        # every question — which is indistinguishable, to the student, from a chapter that
+        # genuinely says nothing. Fail loudly instead.
+        if not chunks:
+            finish(
+                conn,
+                job.id,
+                "failed",
+                failure_reason=(
+                    f"no_extractable_text: this document produced no readable text "
+                    f"(parser tier: {parsed.tier}). If it is a scan, the pages may be "
+                    f"blank or unreadable."
+                ),
+            )
+            log.warning("ingest.empty", job=job.id, tier=parsed.tier)
+            return job.id
+
         # Progress is written as pages complete, never interpolated (D-034). Chunks are
         # grouped by page so the number reported is a number of pages actually finished.
         by_page: dict[int, list[Chunk]] = {}
@@ -74,7 +93,8 @@ def process_one(
             record_progress(conn, job.id, done)
 
         conn.execute(
-            "UPDATE documents SET parse_tier = ? WHERE id = ?", (parsed.tier, job.document_id)
+            "UPDATE documents SET parse_tier = ?, parse_warnings_json = ? WHERE id = ?",
+            (parsed.tier, json.dumps(list(parsed.warnings)), job.document_id),
         )
         conn.commit()
         finish(conn, job.id, "succeeded")

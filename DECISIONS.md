@@ -1041,3 +1041,146 @@ visible rejection and the cost of a too-high one is a queue nobody drains.
 
 **The bound counts every owner**, which is the entire point — no single owner is doing
 anything wrong when it trips.
+
+---
+
+## D-038 — Tesseract is a deployment requirement; OCR runs at ~3.8 s/page, not 25
+
+**Status:** Accepted · **Phase:** 2A · **Corrects** D-036 and D-037's arithmetic
+
+The architect asked which of three things was true about OCR in LightningParse 0.4.1. The
+answer is **(b)**, and establishing it corrected two of my own earlier claims.
+
+**Evidence** (`evidence/phase2c/ocr-investigation.txt`):
+
+1. `parse_pdf(path)` takes **only a path** — OCR is not behind a parameter, so (a) is out.
+2. The package README: *"OCR (Tier 2) additionally requires Tesseract on your `PATH`. It is
+   invoked only when a page has no extractable text."* Two tiers, selected **per page**;
+   documents containing both report `tier: "mixed"`.
+3. Tesseract **5.4.0 is present on this machine**, at `/c/Program Files/Tesseract-OCR/`.
+4. A genuine scan — a text PDF rasterised to JPEG at 150/300 dpi and re-wrapped — parses
+   with `tier: "scanned"` and blocks carrying **`source: "ocr"`**, text extracted correctly.
+
+**My earlier claim that a text-layer-free PDF "produces zero blocks" was wrong**, and wrong
+in an instructive way: I had tested with `pypdf.add_blank_page`, which makes a genuinely
+empty page. A blank page correctly yields nothing. That was never evidence about OCR, and I
+generalised from it.
+
+### The 25 s/page figure does not hold
+
+| pages | dpi | wall s | **s/page** | tier |
+| --: | --: | --: | --: | --- |
+| 1 | 150 | 3.78 | **3.78** | scanned |
+| 3 | 150 | 11.35 | **3.78** | scanned |
+| 1 | 300 | 3.33 | **3.33** | scanned |
+| 3 | 300 | 10.54 | **3.51** | scanned |
+
+**3.3–3.8 s/page**, stable across page count and resolution — roughly **6.6× faster** than
+the figure every ingest limit was justified against. Restated consequences:
+
+| claim as written | corrected |
+| --- | --- |
+| 40 OCR pages ≈ 17 min | ≈ **2.5 min** |
+| 400 pages/day/owner ≈ 2.8 CPU-hours | ≈ **25 CPU-minutes** |
+| 500 accounts ≈ 1,400 CPU-hours/day | ≈ **211 CPU-hours/day** |
+| queue depth 50 ≈ 7 hours backlog | ≈ **1 hour** |
+
+**The numbers are kept, the rationale is corrected.** Two reasons not to relax them to
+match:
+
+1. **The measurement is a floor, not a ceiling.** The scan was synthetic: clean, high
+   contrast, upright. Tesseract's runtime varies widely with real degradation, and the
+   package's own README warns about "heavy combined distortion". Planning against the best
+   case would be over-fitting to it.
+2. A limit that must be raised is a one-line change; a limit that must be lowered is
+   discovered under load.
+
+**One recommendation, pending approval: raise `max_ocr_pages` from 40 to 80.** A scanned
+textbook chapter runs 20–60 pages, so 40 currently rejects a legitimate primary case — and
+at the measured rate 80 pages is ~5 minutes, which the queue absorbs. Left at 40 until
+confirmed, since 40 was explicitly approved.
+
+### Deployment requirement
+
+**Tesseract on `PATH` is now a deployment requirement, not merely a library dependency.**
+It cannot be expressed in `pyproject.toml`. Combined with D-035 (the worker must be a
+persistent process), the ingest component needs a container or host that carries a
+system binary — which rules out most managed Python runtimes as well as serverless.
+
+Without it, LightningParse raises `OcrMissingDependencyError`, which
+`aakar/ingest/parser.py` already translates into an explicit rejection addressed to the
+operator rather than to the uploader. So a missing Tesseract degrades to "scanned uploads
+are refused with a reason", never to "scanned uploads succeed into an empty corpus".
+
+### A corpus with zero chunks is never created
+
+Independently of OCR, and worth having regardless: a parse that yields no chunks now
+**fails the job explicitly** with `no_extractable_text`, rather than succeeding. An empty
+corpus looks ingested, retrieves nothing, and answers every question with "your chapter
+does not cover this" — indistinguishable, to the student, from a chapter that genuinely
+says nothing.
+
+---
+
+## D-039 — `metadata.warnings` exists, and is per-document
+
+**Status:** Accepted · **Phase:** 2A · **Corrects** D-036
+
+D-036 said LightningParse 0.4.1 emits no warnings array. **Wrong.** `metadata.warnings` is
+an *optional* key, present only when the parser has something to report; every document I
+had measured was clean, so I read absence-in-this-output as absence-from-the-schema. It
+appears immediately on a document with a problem:
+
+```
+metadata keys: ['page_count', 'parse_time_ms', 'tier', 'warnings']
+warnings: ["Page 1: content stream uses unsupported filter 'JBIG2Decode', falling back to OCR"]
+```
+
+**So the answer the amendment asked for is: warnings are PER-DOCUMENT.** Each entry names
+its page in prose, but the array is a flat list of strings rather than structured per-page
+data — attributing one to a chunk would mean parsing that prose, which is a provenance
+claim the parser never made.
+
+**Stored accordingly:** `documents.parse_warnings_json` holds the array; `chunks.source`
+(per block, `digital` | `ocr`) remains the finest per-chunk signal, and
+`chunks.warning_scope` records `document` when the document carries warnings, so the UI can
+say what a warning actually covers.
+
+---
+
+## D-040 — The derived relation comes from `compile()`, carried on the sentinel
+
+**Status:** Accepted (architect ruling) · **Phase:** 1–3
+
+I recommended the screenshot harness return the relation alongside the capture. The
+architect accepted the mechanism and rejected the timing, on my own objection: coupling it
+to a successful render means a spec too broken to render yields no diagnosis **precisely
+when the repair loop needs one**, and structurally broken specs are the main thing that
+loop exists to fix.
+
+**Decision:** the relation is emitted from `compile()`, *before* the frame is drawn, and the
+sentinel carries it out — `data-relations` (partId, parentId, relation, and the three
+measures) and `data-warnings` alongside the existing label counts.
+
+This keeps both properties intact: **single derivation** (D-026 — one implementation, so
+two stacks cannot disagree about whether a spec is broken) and **single capture path**
+(D-009 — no second Node entry point to drift from the viewer). A render failure now yields
+a relation *plus* a render error, which is a far better critic input than nothing.
+
+---
+
+## D-041 — The cache threshold defaults conservative, and is config
+
+**Status:** Accepted (architect ruling) · **Phase:** 2B
+
+The measured table showed 0.85 was also false-hit-free on a synthetic embedder. **0.92 is
+chosen anyway.**
+
+**Rationale, as ruled:** a false hit is a correctness failure that reaches a student as a
+confidently wrong answer; a low hit rate is only cost. Those are not symmetric, and cost is
+the one you can afford to be wrong about.
+
+`AAKAR_CACHE_THRESHOLD` makes it **config, not a constant**, so the re-measurement against
+the real embedder can land without a code change. That re-measurement is a gate item in
+whichever phase introduces the real embedder, and it uses the same two-sided method —
+**false-hit count included, never a hit rate alone**.

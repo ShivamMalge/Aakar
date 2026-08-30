@@ -1,0 +1,45 @@
+=== OCR INVESTIGATION â€” LightningParse 0.4.1 ===
+Question: is OCR (a) opt-in, (b) Tesseract-dependent, or (c) absent?
+
+--- evidence 1: parse_pdf takes only a path, so OCR is not behind a parameter ---
+  signature: (path)
+  docstring: 'Parse a PDF file and return structured JSON.\n\nGIL is released during the actual parsing work.'
+
+--- evidence 2: the package README names the dependency ---
+   Tier 1 (digital-native) extraction works out of the box with no system dependencies.
+   **OCR (Tier 2) additionally requires [Tesseract](https://github.com/tesseract-ocr/tesseract) on your `PATH`.** It is invoked only when a page has no e
+   - **Content stream filter support (`ASCII85Decode` and friends)**: Tier 1 extraction previously decoded only `FlateDecode` and `LZWDecode`. Content st
+   - **Tier 2 — Scanned/image PDFs:** routed per-page to OCR (Tesseract) when no text layer is present.
+   OCR (Tier 2) and mixed-document handling are benchmarked separately — pypdf and pdfplumber can't perform OCR, so comparing their near-instant-but-empt
+
+--- evidence 3: Tesseract IS present on this machine ---
+  which: /c/Program Files/Tesseract-OCR/tesseract
+  version: tesseract v5.4.0.20240606
+
+--- evidence 4: a REAL scan is OCRed (source='ocr'), timed ---
+  (my earlier 'zero blocks' result used add_blank_page: a blank page correctly
+   yields nothing. It was not evidence about OCR.)
+
+   pages  dpi     MB   wall s   s/page  blocks    tier
+   ------------------------------------------------------
+       1  150   0.11     3.78     3.78       8  scanned
+       3  150   0.34    11.35     3.78      24  scanned
+       1  300   0.32     3.33     3.33       8  scanned
+       3  300   0.97    10.54     3.51      24  scanned
+
+   sample OCR block: source='ocr'
+     'The Human Eye\nThe lens focuses light onto the retina.\nThe co...'
+
+--- evidence 5: metadata.warnings EXISTS (optional key, per document) ---
+   metadata keys: ['page_count', 'parse_time_ms', 'tier', 'warnings']
+   warnings: ["Page 1: content stream uses unsupported filter 'JBIG2Decode', falling back to OCR"]
+
+=== VERDICT: (b) â€” OCR requires Tesseract, which is present, and it WORKS ===
+
+Consequences:
+  * 25 s/page is WRONG. Measured 3.3-3.8 s/page: ~6.6x faster.
+  * Aakar CAN ingest a scanned textbook. The primary case is not blocked.
+  * Tesseract is now a DEPLOYMENT REQUIREMENT, not just a library (D-038).
+  * Every limit's rationale is restated; the numbers are unchanged pending approval,
+    with one recommendation: raise max_ocr_pages 40 -> 80 (see report).
+  * 2A.5 corrected AGAIN: metadata.warnings exists, PER DOCUMENT.

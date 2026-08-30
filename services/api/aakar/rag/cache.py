@@ -34,14 +34,32 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sqlite3
 from collections.abc import Sequence
 from dataclasses import dataclass
 
 from aakar.db import new_id
 
-#: D4's default. Calibrated against hit rate AND false-hit count, never hit rate alone.
+#: D4's default, and the architect's ruling: **default conservative**.
+#:
+#: A false hit is a correctness failure that reaches a student as a confidently wrong
+#: answer; a low hit rate is only cost. Those are not symmetric, and cost is the one you
+#: can afford to be wrong about. The measured table (evidence/phase2b/cache-calibration)
+#: showed 0.85 was also false-hit-free on a synthetic embedder — 0.92 is chosen anyway,
+#: because "safe on a synthetic embedder" is not the claim that matters.
 DEFAULT_THRESHOLD = 0.92
+
+
+def configured_threshold() -> float:
+    """The live threshold. **Config, not constant** (architect ruling).
+
+    Re-measuring against the real embedder is a gate item in whichever phase introduces
+    it — with the same two-sided method, false-hit count included, not a hit rate alone.
+    Making it configurable is what lets that re-measurement land without a code change.
+    """
+    return float(os.environ.get("AAKAR_CACHE_THRESHOLD", DEFAULT_THRESHOLD))
+
 
 Vector = Sequence[float]
 
@@ -91,7 +109,7 @@ def lookup(
     corpus_id: str,
     scope: str,
     question_vector: Vector,
-    threshold: float = DEFAULT_THRESHOLD,
+    threshold: float | None = None,
 ) -> CachedAnswer | None:
     """Best entry above `threshold` within this corpus and scope, or None.
 
@@ -99,6 +117,9 @@ def lookup(
     guaranteed to be reachable. Doing it the other way round — search then filter — is how
     a cross-corpus leak happens when someone forgets the second step.
     """
+    if threshold is None:
+        threshold = configured_threshold()
+
     rows = conn.execute(
         """
         SELECT id, question, answer_json, vector_json

@@ -4,35 +4,38 @@ Spec §3 pins LightningParse. It **is** available: PyPI `lightningparse`, pinned
 My Phase 2A report said otherwise and was wrong — `importlib.find_spec` only sees installed
 packages, and I drew a conclusion about PyPI from that plus one failed download command.
 
-## What 0.4.1 actually emits — measured, not assumed
+## What 0.4.1 emits — measured, and corrected twice
 
-The amendment asked to capture "the warnings array" and report whether it is per-chunk or
-per-document. **There is no warnings array in 0.4.1.** The output is::
+My first answer said "there is no warnings array". **That was wrong**, for a reason worth
+recording: ``metadata.warnings`` is an *optional* key, present only when the parser has
+something to report. Every document I had measured was clean, so I read absence-in-this-
+output as absence-from-the-schema. It appears the moment a page has a problem::
 
-    {"metadata": {"tier", "page_count", "parse_time_ms"},
-     "pages": [{"page_num", "blocks": [{"type","text","spans","bbox","section_id","source"}]}]}
+    Page 1: content stream uses unsupported filter 'JBIG2Decode', falling back to OCR
 
-The quality signals that do exist, and their granularity:
+I also reported that a text-layer-free PDF "produces zero blocks", implying no OCR path.
+**Also wrong**: I had tested with genuinely blank pages, which correctly yield nothing. A
+real scan OCRs fine — see ``tier`` and ``source`` below.
 
-==========================  =============  ==============================
-signal                      granularity    observed values
-==========================  =============  ==============================
-``metadata.tier``           per DOCUMENT   ``digital`` | ``scanned``
-``block.source``            per BLOCK      ``digital``
+The signals, and their granularity:
+
+==========================  =============  ============================================
+signal                      granularity    observed
+==========================  =============  ============================================
+``metadata.warnings``       per DOCUMENT   flat list of strings, each naming its page
+``metadata.tier``           per DOCUMENT   ``digital`` | ``scanned`` | ``mixed``
+``block.source``            per BLOCK      ``digital`` | ``ocr``
 ``block.section_id``        per BLOCK      ``header``, …
-==========================  =============  ==============================
+==========================  =============  ============================================
 
-So the finest available granularity is **per block, which is finer than per chunk** — a
-chunk is built from one or more blocks. ``source`` is therefore stored per chunk, and a
-chunk assembled from blocks with differing sources would be marked ``mixed`` rather than
-being given one of them arbitrarily.
+**The answer the amendment asked for: warnings are PER-DOCUMENT.** They name a page in
+their text, but they are a flat list of strings rather than structured per-page data, so
+attributing one to a chunk would mean parsing prose — a provenance claim the parser never
+made. They are stored at document level, and ``chunks.warning_scope`` records ``document``
+when the document carries any, so the UI can say what a warning actually covers.
 
-``warnings_json`` and ``warning_scope`` are kept for the day the parser gains a warnings
-array; ``warning_scope`` now defaults to ``none``, which is a measured fact about 0.4.1
-rather than the hedge it was in 2A.
-
-One further measured behaviour, useful at the boundary: **a PDF with no text layer reports
-``tier: "scanned"`` and produces zero blocks.** LightningParse says so itself, cheaply.
+``block.source`` remains the finest per-chunk signal, and it distinguishes ``digital`` from
+``ocr`` text — exactly the provenance-strength input 2A.5 wanted.
 
 This module does not modify LightningParse, and nothing here reimplements it.
 """
@@ -59,6 +62,11 @@ class ParsedDocument:
     parse_time_ms: int
     #: (page_index, section_id, source, text) per block, in reading order.
     blocks: tuple[tuple[int, str | None, str, str], ...]
+    #: `metadata.warnings` — a per-DOCUMENT array. Present only when something went wrong,
+    #: which is why an earlier reading of a clean document concluded it did not exist.
+    #: Each entry names its page by convention ("Page 1: ..."), but it is a flat list of
+    #: strings, not structured per-page data, so it is stored at document level.
+    warnings: tuple[str, ...] = ()
 
 
 def parse(path: Path) -> ParsedDocument:
@@ -122,6 +130,7 @@ def parse(path: Path) -> ParsedDocument:
         page_count=int(metadata.get("page_count", 0)),
         parse_time_ms=int(metadata.get("parse_time_ms", 0)),
         blocks=tuple(blocks),
+        warnings=tuple(str(w) for w in (metadata.get("warnings") or [])),
     )
 
 
@@ -150,8 +159,11 @@ def to_chunks(
                 text=text,
                 section=section,
                 source=source,
-                warnings=(),  # measured: 0.4.1 emits no warnings array at all
-                warning_scope="none",
+                # Warnings are per-DOCUMENT (see ParsedDocument.warnings), so a chunk
+                # records the SCOPE rather than copying a document-wide string onto one
+                # paragraph — which would be a provenance claim the parser never made.
+                warnings=(),
+                warning_scope="document" if parsed.warnings else "none",
             )
         )
     return chunks

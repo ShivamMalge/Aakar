@@ -1,7 +1,15 @@
 """Retrieval, caching and the spend controls around them (Phase 2B)."""
 
 from .benchmark import QuestionPair, ThresholdResult, evaluate, format_table, recommend
-from .cache import DEFAULT_THRESHOLD, CachedAnswer, cosine, lookup, scope_key, store
+from .cache import (
+    DEFAULT_THRESHOLD,
+    CachedAnswer,
+    configured_threshold,
+    cosine,
+    lookup,
+    scope_key,
+    store,
+)
 from .degraded import DegradedReason, ServiceState, assess
 from .quota import OwnerQuota, QuotaExceeded, check_owner_quota, questions_today
 from .registration import RegistrationPolicy, account_count, has_capacity, register_or_waitlist
@@ -22,6 +30,7 @@ __all__ = [
     "account_count",
     "assess",
     "check_owner_quota",
+    "configured_threshold",
     "cosine",
     "evaluate",
     "format_table",

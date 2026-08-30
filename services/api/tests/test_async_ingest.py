@@ -389,3 +389,77 @@ def _text_pdf(text: str = "The lens focuses light onto the retina.") -> bytes:
         out += f"{offsets[i]:010d} 00000 n \n".encode()
     out += f"trailer\n<< /Size {len(objs) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
     return bytes(out)
+
+
+# ------------------------------------------- the cross-thread connection fix
+
+
+def test_a_connection_survives_the_dependency_to_async_endpoint_thread_hop(
+    client: TestClient,
+) -> None:
+    """Confirming the fix, not noting it.
+
+    FastAPI runs a *sync* dependency (`get_conn`) in a threadpool while an `async def`
+    endpoint body runs on the event loop thread. A sqlite3 connection defaults to
+    `check_same_thread=True` and raises `ProgrammingError` when used from a different
+    thread than the one that opened it — so `/ingest/upload`, the first async endpoint in
+    the project, could not touch the database at all.
+
+    `connect()` now opens with `check_same_thread=False`. Each request still gets its own
+    connection, so none is shared between threads concurrently; only the hop between the
+    dependency and the body crosses a thread boundary.
+
+    This test exercises the real route through TestClient, which runs the app in a
+    separate thread — the same hop production has.
+    """
+    response = client.post(
+        "/ingest/upload", files={"file": ("ch1.pdf", make_pdf(2), "application/pdf")}
+    )
+    assert response.status_code == 202, response.text
+
+    # And the write is durable, i.e. the connection really worked rather than failing quietly.
+    job = client.get(f"/ingest/jobs/{response.json()['job_id']}")
+    assert job.status_code == 200
+    assert job.json()["pages_total"] == 2
+
+
+def test_repeated_requests_each_get_a_working_connection(client: TestClient) -> None:
+    """Guards the guard: one lucky request would pass the test above."""
+    for pages in (1, 2, 3):
+        response = client.post(
+            "/ingest/upload", files={"file": (f"c{pages}.pdf", make_pdf(pages), "application/pdf")}
+        )
+        assert response.status_code == 202, response.text
+        assert response.json()["page_count"] == pages
+
+
+# --------------------------------------------------- a corpus is never empty
+
+
+def test_a_document_with_no_extractable_text_fails_rather_than_creating_an_empty_corpus(
+    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
+) -> None:
+    """An empty corpus looks ingested, retrieves nothing, and answers every question with
+    "your chapter does not cover this" — indistinguishable, to the student, from a chapter
+    that genuinely says nothing."""
+    from aakar.ingest.chunks import load_chunks
+
+    blank = tmp_path / "blank.pdf"
+    blank.write_bytes(make_pdf(2))  # genuinely blank pages: nothing to extract, nothing to OCR
+
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
+    conn.execute(
+        "INSERT INTO documents (id, owner_id, corpus_id, filename, content_hash,"
+        " page_count, storage_path) VALUES ('d1', ?, 'c1', 'blank.pdf', 'h1', 2, ?)",
+        (owner_id, str(blank)),
+    )
+    conn.commit()
+    job_id = enqueue(conn, "d1", owner_id, 2)
+
+    process_one(conn, tmp_path)
+    job = get_job_for_owner(conn, job_id, owner_id)
+
+    assert job is not None
+    assert job.status == "failed", "an empty parse must not be reported as success"
+    assert "no_extractable_text" in (job.failure_reason or "")
+    assert load_chunks(conn, "d1") == []
