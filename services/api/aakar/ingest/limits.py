@@ -73,17 +73,14 @@ class IngestLimits:
     * ``max_pages`` — 120. A textbook *chapter* is the unit this product works on (spec §1:
       "upload a chapter"), and chapters run 20–60 pages. 120 accepts a generous chapter and
       refuses a whole book, which is the shape of the DoS.
-    * ``max_ocr_pages`` — 40. The expensive one. At the **measured** 3.8 s/page that is
-      ~2.5 minutes of CPU, not the ~17 minutes originally claimed. Still deliberately below
-      ``max_pages``, because a 120-page scan is ~7.6 minutes as a single job and the queue
-      bound (D-037) is what keeps that from monopolising a worker. A document over this
-      limit is refused rather than partially OCR'd, so the uploader is told rather than
-      left with a silently incomplete corpus.
+    * ``max_ocr_pages`` — **80** (raised from 40 on the measurement). At 3.8 s/page that is
+      ~5 minutes of CPU. 40 rejected a scanned chapter of 40–60 pages, which is a primary
+      case; 80 accepts one while staying below ``max_pages``, so a scanned *book* is still
+      refused. A document over this limit is refused rather than partially OCR'd, so the
+      uploader is told rather than left with a silently incomplete corpus.
 
-      **Recommended revision, pending approval: raise to 80.** A scanned textbook chapter
-      runs 20–60 pages, so 40 currently rejects a legitimate primary case — and at 3.8
-      s/page, 80 pages is ~5 minutes, which the queue absorbs comfortably. Kept at the
-      approved 40 until that is confirmed.
+      This bounds PAGES, not TIME. ``max_job_seconds`` in ``jobs.py`` bounds the latter,
+      because a pathological document can be arbitrarily slow per page.
     * ``max_documents_per_day`` — 20, ``max_pages_per_day`` — 400. Per owner. 400 pages/day
       is ~10 chapters, comfortably beyond honest study use, and at 3.8 s/page caps one
       account at ~25 CPU-minutes/day even if every page needs OCR — not the 2.8 hours
@@ -95,7 +92,7 @@ class IngestLimits:
 
     max_bytes: int = 64 * 1024 * 1024
     max_pages: int = 120
-    max_ocr_pages: int = 40
+    max_ocr_pages: int = 80
     max_documents_per_day: int = 20
     max_pages_per_day: int = 400
 

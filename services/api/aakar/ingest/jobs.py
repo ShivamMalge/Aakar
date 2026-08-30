@@ -47,12 +47,35 @@ class GlobalBounds:
 
     max_concurrent_ocr: int = 2
     max_queue_depth: int = 50
+    #: Per-job wall clock, seconds. **1800 (30 minutes).**
+    #:
+    #: `max_ocr_pages` bounds PAGES, not TIME, and the 3.3-3.8 s/page measurement came
+    #: from a clean synthetic scan while the parser's own README warns about degraded
+    #: ones. A pathological document could otherwise hold one of two worker slots
+    #: indefinitely, and one stuck job halves capacity.
+    #:
+    #: 30 minutes is ~6x the clean worst case for a maximum-size job (80 OCR pages at
+    #: 3.8 s/page is ~5 minutes), which is deliberate headroom: Tesseract on a skewed,
+    #: noisy, small-type scan can run several times slower, and killing legitimate
+    #: degraded work is a failure the uploader cannot fix. It still bounds a pathological
+    #: job to half an hour rather than to "hours".
+    #:
+    #: Lower it once real-world timings exist. Like every other bound here it is
+    #: configurable, and the cost of a too-high value is one occupied slot rather than
+    #: an unbounded one.
+    max_job_seconds: int = 1800
 
 
 GLOBAL_DEFAULTS = GlobalBounds()
 
 #: Terminal states. A job in one of these is not coming back.
 FINISHED = ("succeeded", "failed", "rejected")
+
+#: Failure reasons the status endpoint distinguishes. A timeout and a parse failure need
+#: different messages: one says "this document was too slow", the other "this document
+#: could not be read", and only the first is worth retrying on a quieter system.
+TIMEOUT_REASON = "timed_out"
+EMPTY_REASON = "no_extractable_text"
 
 
 @dataclass(frozen=True)

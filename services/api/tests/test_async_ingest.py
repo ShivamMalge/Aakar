@@ -463,3 +463,119 @@ def test_a_document_with_no_extractable_text_fails_rather_than_creating_an_empty
     assert job.status == "failed", "an empty parse must not be reported as success"
     assert "no_extractable_text" in (job.failure_reason or "")
     assert load_chunks(conn, "d1") == []
+
+
+# ---------------------------------------------------- per-job wall clock (D-042)
+
+
+def test_a_slow_document_is_killed_and_the_slot_released(
+    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
+) -> None:
+    """max_ocr_pages bounds PAGES; this bounds TIME.
+
+    A pathological document could otherwise hold one of two worker slots indefinitely, and
+    one stuck job halves capacity. Driven with a 0-second budget so the timeout is real
+    rather than simulated.
+    """
+    pdf = tmp_path / "slow.pdf"
+    pdf.write_bytes(_text_pdf())
+
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
+    conn.execute(
+        "INSERT INTO documents (id, owner_id, corpus_id, filename, content_hash,"
+        " page_count, storage_path) VALUES ('d1', ?, 'c1', 'slow.pdf', 'h1', 1, ?)",
+        (owner_id, str(pdf)),
+    )
+    conn.execute(
+        "INSERT INTO document_pages (document_id, page_index, page_label) VALUES ('d1', 0, '1')"
+    )
+    conn.commit()
+    bounds = GlobalBounds(max_concurrent_ocr=1, max_queue_depth=10, max_job_seconds=0)
+    job_id = enqueue(conn, "d1", owner_id, 1, bounds)
+
+    process_one(conn, tmp_path, bounds)
+    job = get_job_for_owner(conn, job_id, owner_id)
+
+    assert job is not None
+    assert job.status == "failed"
+    assert "timed_out" in (job.failure_reason or ""), job.failure_reason
+    # Distinguished from a parse failure: the document may be valid and merely slow, so
+    # "could not be read" would be a false statement to show the uploader.
+    assert "could not be read" not in (job.failure_reason or "")
+
+
+def test_a_timed_out_job_leaves_no_partial_corpus(
+    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
+) -> None:
+    """Same rule as no_extractable_text: a half-ingested chapter that looks ingested is
+    worse than a clean failure."""
+    from aakar.ingest.chunks import load_chunks
+
+    pdf = tmp_path / "slow.pdf"
+    pdf.write_bytes(_text_pdf())
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
+    conn.execute(
+        "INSERT INTO documents (id, owner_id, corpus_id, filename, content_hash,"
+        " page_count, storage_path) VALUES ('d1', ?, 'c1', 'slow.pdf', 'h1', 1, ?)",
+        (owner_id, str(pdf)),
+    )
+    conn.commit()
+    bounds = GlobalBounds(max_job_seconds=0)
+    enqueue(conn, "d1", owner_id, 1, bounds)
+    process_one(conn, tmp_path, bounds)
+
+    assert load_chunks(conn, "d1") == []
+    tier = conn.execute("SELECT parse_tier FROM documents WHERE id='d1'").fetchone()["parse_tier"]
+    assert tier is None, "a timed-out parse must not have written document metadata"
+
+
+def test_the_slot_is_free_again_after_a_timeout(
+    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
+) -> None:
+    """Releasing the worker is the point. A killed job that still held its slot would be
+    the same outage with extra steps."""
+    pdf = tmp_path / "slow.pdf"
+    pdf.write_bytes(_text_pdf())
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
+    for i in (1, 2):
+        conn.execute(
+            "INSERT INTO documents (id, owner_id, corpus_id, filename, content_hash,"
+            " page_count, storage_path) VALUES (?, ?, 'c1', 'slow.pdf', ?, 1, ?)",
+            (f"d{i}", owner_id, f"h{i}", str(pdf)),
+        )
+    conn.commit()
+    bounds = GlobalBounds(max_concurrent_ocr=1, max_queue_depth=10, max_job_seconds=0)
+    enqueue(conn, "d1", owner_id, 1, bounds)
+    enqueue(conn, "d2", owner_id, 1, bounds)
+
+    assert process_one(conn, tmp_path, bounds) is not None
+    # With max_concurrent_ocr=1, the second only runs if the first genuinely released.
+    assert process_one(conn, tmp_path, bounds) is not None
+
+
+def test_a_generous_budget_still_parses_normally(
+    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
+) -> None:
+    """Guards the guard: a timeout that fires on everything passes the tests above."""
+    from aakar.ingest.chunks import load_chunks
+
+    pdf = tmp_path / "fine.pdf"
+    pdf.write_bytes(_text_pdf())
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
+    conn.execute(
+        "INSERT INTO documents (id, owner_id, corpus_id, filename, content_hash,"
+        " page_count, storage_path) VALUES ('d1', ?, 'c1', 'fine.pdf', 'h1', 1, ?)",
+        (owner_id, str(pdf)),
+    )
+    conn.execute(
+        "INSERT INTO document_pages (document_id, page_index, page_label) VALUES ('d1', 0, '1')"
+    )
+    conn.commit()
+    bounds = GlobalBounds(max_job_seconds=120)
+    job_id = enqueue(conn, "d1", owner_id, 1, bounds)
+
+    process_one(conn, tmp_path, bounds)
+    job = get_job_for_owner(conn, job_id, owner_id)
+    assert job is not None
+    assert job.status == "succeeded", job.failure_reason
+    assert load_chunks(conn, "d1"), "the isolated parse must produce the same chunks"

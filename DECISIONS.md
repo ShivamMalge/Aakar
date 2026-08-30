@@ -1184,3 +1184,105 @@ the one you can afford to be wrong about.
 the real embedder can land without a code change. That re-measurement is a gate item in
 whichever phase introduces the real embedder, and it uses the same two-sided method —
 **false-hit count included, never a hit rate alone**.
+
+---
+
+## D-042 — Per-job wall-clock timeout: 1800 s
+
+**Status:** Accepted (architect ruling) · **Phase:** 2A
+
+`max_ocr_pages` bounds **pages**, not **time**, and the 3.3–3.8 s/page measurement came from
+a clean synthetic scan while the parser's README warns about degraded ones. A pathological
+document could hold one of two worker slots indefinitely, and one stuck job halves capacity.
+
+**Default 1800 s (30 minutes).** That is ~6× the clean worst case for a maximum-size job
+(80 OCR pages at 3.8 s/page ≈ 5 minutes). The headroom is deliberate in one direction and
+bounded in the other: Tesseract on a skewed, noisy, small-type scan runs several times
+slower, and **killing legitimate degraded work is a failure the uploader cannot fix**, while
+a pathological job is capped at half an hour rather than "hours". Configurable, and it
+should be lowered once real-world timings exist.
+
+**Implemented as a killable subprocess, not a thread.** `lightningparse.parse_pdf` is one
+blocking call into Rust. It releases the GIL, so a thread stays responsive — but a thread
+cannot be *killed*, so abandoning one would leave the work running and free the slot in name
+only. `parse_isolated` runs `aakar.ingest._parse_subprocess` under `subprocess.run(timeout=)`,
+which genuinely terminates it.
+
+**On expiry:** the job is marked `failed` with reason `timed_out:`, **distinguished from a
+parse failure**. The document may be perfectly valid and merely slow, so "could not be read"
+would be a false statement — and only a timeout is worth retrying on a quieter system.
+Nothing is written, because chunks are stored after the parse returns, so there is no
+partial corpus. Same rule as `no_extractable_text`: a half-ingested chapter that looks
+ingested is worse than a clean failure.
+
+`max_ocr_pages` raised **40 → 80** on the same ruling: 40 rejected a scanned chapter of
+40–60 pages, which is a primary case.
+
+---
+
+## D-043 — Embedding model and dimensionality, fixed before the collection exists
+
+**Status:** Accepted · **Phase:** 2C · **One-way door**
+
+Recorded **before** the Qdrant collection is created, as required. Changing dimensionality
+later means re-embedding every corpus, and with content-addressed corpora (D-029) that is
+every corpus every owner shares.
+
+| | value |
+| --- | --- |
+| model | `text-embedding-004` (`AAKAR_EMBED_MODEL`) |
+| **dimensions** | **768** |
+| distance | cosine |
+| collection | `chunks` |
+
+**Why 768 and not a reduced dimension.** `text-embedding-004` emits 768 natively. Truncating
+would save index memory at a corpus size that does not need saving, and would make the
+stored vectors incomparable with anything re-embedded later at full width. The saving is
+hypothetical; the incompatibility would be permanent.
+
+**Cosine, not dot product.** The cache already compares with cosine (`rag/cache.py`), and two
+similarity measures in one system is a bug waiting to be written — a threshold calibrated
+against one silently means something else against the other.
+
+**The replay embedder produces 768 dimensions too.** This matters more than it looks: a test
+collection built at the stub's natural width would exercise a collection shape production
+never uses, and the first real ingest would be the first time the real shape ran. The
+deterministic embedder used in replay is dimension-matched on purpose.
+
+**Recorded limitation.** The vectors this project can produce today are *not* from
+`text-embedding-004` — there is no API key, and CI runs in replay. Everything below the
+provider abstraction is the real path; the vectors themselves are not. Any threshold
+calibrated on them measures the **method**, not the number (D-041).
+
+---
+
+## D-044 — OCR text is weaker evidence; source is a second axis, not more states
+
+**Status:** Accepted (architect ruling) · **Phase:** 2C
+
+`chunks.source` (`digital` | `ocr`) is a **confidence** signal, not just provenance
+metadata: OCR misreads are silent and produce plausible wrong words, so a citation resolving
+to an OCR'd chunk is less trustworthy than one resolving to extracted text.
+
+**Proposal, as asked: do not collapse it into the four states.** Keep
+`{none, unverified, weak, strong}` and carry `source` **alongside** it.
+
+The two answer different questions:
+
+* **strength** — *does the chapter assert this part exists?* (D-030)
+* **source** — *how reliably did we read the chapter?*
+
+They are independent. A part can be `strong` because three chunks name it while every one of
+those chunks was OCR'd; that is a strong claim read through an unreliable lens, and it is
+genuinely different from both `weak/digital` and `strong/digital`.
+
+**Collapsing them multiplies the enum to six** (`strong_digital`, `strong_ocr`, `weak_ocr`, …)
+and every consumer then switches on six cases to ask a question about one axis. Worse, it
+makes "strong regardless of how we read it" inexpressible, which is exactly the query the
+curation gate wants when ranking what a human should check.
+
+**Represented as** `ResolvedProvenance(strength, source, chunk_ids, ...)`, where `source` is
+`digital` | `ocr` | `mixed` — `mixed` when the supporting chunks disagree, rather than
+picking one arbitrarily. A single `display_confidence` property combines them for the one
+place that wants a single word, so the combination lives in one function rather than in
+every caller.

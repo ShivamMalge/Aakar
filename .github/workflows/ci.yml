@@ -45,6 +45,11 @@ jobs:
       # 2B: tiering, the semantic cache, quotas, degraded mode and the account ceiling.
       - name: rag spend controls
         run: uv run pytest tests/test_rag_controls.py -q
+      # 2C. The Qdrant-backed tests skip when no index is reachable rather than failing,
+      # so CI stays green without a service container while still running locally against
+      # a real one. A fake index would prove the harness works, not the collection shape.
+      - name: retrieval and /ask
+        run: uv run pytest tests/test_retrieval.py -q
       - run: uv run pytest -q
 
   web:

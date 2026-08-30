@@ -16,21 +16,35 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import structlog
 
 from .chunks import Chunk, store_chunks
-from .jobs import GLOBAL_DEFAULTS, GlobalBounds, claim_next, finish, record_progress
+from .jobs import (
+    EMPTY_REASON,
+    GLOBAL_DEFAULTS,
+    TIMEOUT_REASON,
+    GlobalBounds,
+    claim_next,
+    finish,
+    record_progress,
+)
 from .limits import IngestRejected
 from .pages import PageMap
-from .parser import parse, to_chunks
+from .parser import parse_isolated, to_chunks
 
 log = structlog.get_logger()
 
 
 def process_one(
-    conn: sqlite3.Connection, storage_root: Path, bounds: GlobalBounds = GLOBAL_DEFAULTS
+    conn: sqlite3.Connection,
+    storage_root: Path,
+    bounds: GlobalBounds = GLOBAL_DEFAULTS,
+    *,
+    indexer: Callable[[list[Chunk]], int] | None = None,
 ) -> str | None:
     """Claim and run a single job. Returns the job id, or None when there is nothing to do.
 
@@ -49,7 +63,9 @@ def process_one(
         return job.id
 
     try:
-        parsed = parse(Path(str(row["storage_path"])))
+        # Killable subprocess under a wall clock (D-042). `max_ocr_pages` bounds pages;
+        # this bounds time, which is the thing a pathological document actually consumes.
+        parsed = parse_isolated(Path(str(row["storage_path"])), bounds.max_job_seconds)
 
         labels = [
             str(r["page_label"])
@@ -74,7 +90,7 @@ def process_one(
                 job.id,
                 "failed",
                 failure_reason=(
-                    f"no_extractable_text: this document produced no readable text "
+                    f"{EMPTY_REASON}: this document produced no readable text "
                     f"(parser tier: {parsed.tier}). If it is a scan, the pages may be "
                     f"blank or unreadable."
                 ),
@@ -92,6 +108,13 @@ def process_one(
             store_chunks(conn, by_page[page_index])
             record_progress(conn, job.id, done)
 
+        # Embedding and indexing happen INSIDE the job, after chunks are stored, so a
+        # failure here fails the job rather than leaving a document that is chunked but
+        # unsearchable — which would answer every question with "not in your chapter".
+        if indexer is not None:
+            indexed = indexer(chunks)
+            log.info("ingest.indexed", job=job.id, vectors=indexed)
+
         conn.execute(
             "UPDATE documents SET parse_tier = ?, parse_warnings_json = ? WHERE id = ?",
             (parsed.tier, json.dumps(list(parsed.warnings)), job.document_id),
@@ -100,6 +123,24 @@ def process_one(
         finish(conn, job.id, "succeeded")
         log.info("ingest.succeeded", job=job.id, chunks=len(chunks), tier=parsed.tier)
 
+    except subprocess.TimeoutExpired:
+        # Distinguished from a parse failure on purpose: the document may be perfectly
+        # valid and merely slow, so "could not be read" would be a false statement. Only
+        # this one is worth retrying on a quieter system.
+        #
+        # Nothing was written — chunks are stored inside the try, after the parse returns —
+        # so there is no partial corpus to clean up. Same rule as no_extractable_text: a
+        # half-ingested chapter that looks ingested is worse than a clean failure.
+        finish(
+            conn,
+            job.id,
+            "failed",
+            failure_reason=(
+                f"{TIMEOUT_REASON}: this document took longer than "
+                f"{bounds.max_job_seconds}s to process and was stopped"
+            ),
+        )
+        log.warning("ingest.timeout", job=job.id, seconds=bounds.max_job_seconds)
     except IngestRejected as rejected:
         # A parser-side refusal reaches the queue as a failure with the same vocabulary the
         # boundary uses, so the status endpoint can show one kind of message.
@@ -113,10 +154,14 @@ def process_one(
 
 
 def drain(
-    conn: sqlite3.Connection, storage_root: Path, bounds: GlobalBounds = GLOBAL_DEFAULTS
+    conn: sqlite3.Connection,
+    storage_root: Path,
+    bounds: GlobalBounds = GLOBAL_DEFAULTS,
+    *,
+    indexer: Callable[[list[Chunk]], int] | None = None,
 ) -> int:
     """Run every claimable job, then return. Used by tests and by a one-shot invocation."""
     processed = 0
-    while process_one(conn, storage_root, bounds) is not None:
+    while process_one(conn, storage_root, bounds, indexer=indexer) is not None:
         processed += 1
     return processed

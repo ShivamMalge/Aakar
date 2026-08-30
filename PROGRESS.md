@@ -717,3 +717,94 @@ Also landed: a corpus with zero chunks is never created — the job fails with
 `no_extractable_text` instead. And the two rulings: the derived relation now comes from
 `compile()` and rides the sentinel (D-040), and the cache threshold defaults to 0.92 as
 config rather than a constant (D-041).
+
+---
+
+## Phase 2C — retrieval and `/ask` · **complete, awaiting approval**
+
+Date: 2026-08-27. Pre-2C items first (`max_ocr_pages` 40 → 80, per-job timeout), then 2C.
+
+### Pre-2C
+
+- **`max_ocr_pages` 40 → 80**, as approved.
+- **Per-job wall-clock timeout, 1800 s** (D-042). Implemented as a **killable subprocess**,
+  not a thread: `parse_pdf` is one blocking call into Rust, and a thread cannot be killed,
+  so abandoning one would free the worker slot in name only. On expiry the job fails with
+  `timed_out:` — **distinguished from a parse failure**, because the document may be valid
+  and merely slow, and only a timeout is worth retrying on a quieter system.
+
+### Built
+
+| item | outcome |
+| --- | --- |
+| 2C.1 chunking + embedding into Qdrant | model and dimensionality recorded in **D-043 before the collection existed**; `ensure_collection` refuses a width mismatch |
+| 2C.2 part-scoped retrieval | scope = name + aliases, or `instance_of` where present (D-022) |
+| 2C.3 relevance floor | `Retrieval.covered`; below it, a first-class "not in your chapter" result |
+| 2C.4 `/ask` ordering | grant → **cache** → quota → budget → retrieval → answer tier |
+| 2C.5 citations | `Citation.render()` is the only formatter, and it renders the **label** |
+| 2C.6 provenance resolution | `unverified` → `weak`/`strong` from real chunk text, with `source` as a second axis (D-044) |
+
+### Gate evidence
+
+`evidence/phase2c/gate.txt` — a real PDF with **front matter**, so labels diverge from
+indices, ingested through the real worker into a real Qdrant:
+
+```
+page labels read from the PDF: ['i', 'ii', '1', '2', '3']
+
+chunk   index  label  source   text
+2           2      1  digital  The lens is a transparent biconvex structure
+```
+
+| gate item | result |
+| --- | --- |
+| answer with correct page labels, hand-verified | **`[p. 1]`** for the sentence at page **index 2** — rendering the index would have printed `[p. 2]` |
+| absent question → below-threshold, not fabricated | `kind=not_in_chapter`, **zero citations** |
+| zero-provenance part → no citations, says so | `kind=no_provenance`, strength `none`, zero citations |
+| cache hit consumes no quota, no budget | quota **0**, answer still served, `llm_calls 0 → 0` |
+| re-measured threshold with false-hit counts | method closed, **number open** — see below |
+
+`evidence/phase2c/cache-recalibration.txt`, at production dimensionality (768):
+
+```
+threshold  false hits   hit rate   verdict
+     0.70           3      100%    UNSAFE - answers questions not asked
+     0.80           3       80%    UNSAFE - answers questions not asked
+     0.85           0       80%    usable
+     0.92           0       40%    usable      <- configured default
+```
+
+### The one gate item not fully closed
+
+**"Re-measured cache threshold on the real embedder"** — the *method* half is closed; the
+*number* half is not. `text-embedding-004` needs an API key, and CI runs in replay with no
+key and no spend, so the vectors come from the local embedder. It is dimension-matched to
+production and exercises the whole path, but a lexical embedder scores paraphrases that
+share **words** while a semantic one scores paraphrases that share **meaning** — and those
+disagree precisely on the cases a threshold has to separate.
+
+`AAKAR_CACHE_THRESHOLD` exists so the real measurement lands as config, not a code change.
+
+### Found while building
+
+- **Qdrant's `delete_collection` leaves its data directory** under a Windows bind mount, so
+  the next `create_collection` fails with "data already exists". The test fixture now clears
+  *points* rather than the collection — which is also what production does, since it never
+  drops the collection.
+- **`qdrant-client` resolved to 1.19 against a 1.12 server**, which the client warns about
+  on every call. Pinned to `>=1.12,<1.13` to match the image in `docker-compose.yml`.
+- **Whole-word matching means "irises" does not match the term "iris".** That is the right
+  trade — substring matching fires on "irishman", and a part promoted to `strong` by a
+  coincidental prefix is the fabricated-confidence failure D-030 exists to prevent. Inflected
+  forms are reached through aliases, which is the designed mechanism (D5). My first test
+  asserted the opposite and was wrong.
+
+### Carried forward
+
+- The threshold number, pending a real embedder.
+- The relevance floor (0.35) is calibrated against the same local embedder and needs the
+  same re-measurement.
+- Summary cards and suggested questions (D4) are not built; `/ask` answers free-form
+  questions only.
+- The answer tier currently stitches retrieved chunks rather than calling a model —
+  `generate` is injected, and no prompt is written yet.

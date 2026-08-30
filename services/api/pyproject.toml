@@ -17,6 +17,11 @@ dependencies = [
     # Spec S3s pinned parser. Pinned exactly: 3.1.0 also exists on PyPI but is out of
     # sequence with the 0.x line, so an unpinned range could resolve to it silently.
     "lightningparse==0.4.1",
+    # Chunk index. Collection shape is fixed by D-043: 768 dims, cosine.
+    # Pinned to the same minor as the server image in docker-compose.yml (v1.12.1): the
+    # client warns loudly on a major/minor mismatch, and an unpinned range silently
+    # resolved to 1.19 against a 1.12 server.
+    "qdrant-client>=1.12,<1.13",
 ]
 
 [project.optional-dependencies]

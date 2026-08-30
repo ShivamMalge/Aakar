@@ -43,6 +43,8 @@ This module does not modify LightningParse, and nothing here reimplements it.
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -69,12 +71,72 @@ class ParsedDocument:
     warnings: tuple[str, ...] = ()
 
 
-def parse(path: Path) -> ParsedDocument:
-    """Run LightningParse, translating its errors into ingest rejections.
+class ParseTimeout(Exception):
+    """The parse exceeded its wall-clock budget and was killed.
 
-    Its exception types are the parser's own vocabulary; the boundary speaks
-    ``RejectionCode``, so every refusal — whoever raised it — reaches the uploader with a
-    remedy attached.
+    Deliberately not an `IngestRejected`: the document may be perfectly valid and merely
+    slow, so the message the uploader sees must not say it could not be read.
+    """
+
+    def __init__(self, seconds: int) -> None:
+        super().__init__(f"parsing exceeded {seconds}s and was stopped")
+        self.seconds = seconds
+
+
+#: Exit codes from `_parse_subprocess`, mapped back to the boundary vocabulary.
+_EXIT_REASONS = {
+    10: (
+        "this PDF is damaged and could not be read",
+        "Re-export or repair the PDF, then upload again.",
+    ),
+    11: (
+        "this PDF uses a feature the parser does not support",
+        "Re-save it as a standard PDF, then upload again.",
+    ),
+    12: (
+        "this document needs OCR, which is not available on this server",
+        "Upload a version with selectable text, or ask for OCR to be enabled.",
+    ),
+    13: (
+        "OCR could not read this document",
+        "Upload a clearer scan, or a version with selectable text.",
+    ),
+}
+
+
+def parse_isolated(path: Path, timeout_seconds: int) -> ParsedDocument:
+    """Parse in a **killable subprocess**, under a wall-clock budget.
+
+    `lightningparse.parse_pdf` is one blocking call into Rust. It releases the GIL, so a
+    thread running it stays responsive — but a thread cannot be killed, so abandoning one
+    would leave the work running and free the worker slot in name only. A subprocess can
+    be terminated, which is what releasing the slot actually requires.
+    """
+    completed = subprocess.run(  # noqa: S603 - fixed argv, no shell, path is ours
+        [sys.executable, "-m", "aakar.ingest._parse_subprocess", str(path)],
+        capture_output=True,
+        timeout=timeout_seconds,
+        check=False,
+    )
+
+    if completed.returncode in _EXIT_REASONS:
+        message, remedy = _EXIT_REASONS[completed.returncode]
+        detail = completed.stderr.decode(errors="replace").strip().split(":", 1)[-1]
+        raise IngestRejected(RejectionCode.UNPARSEABLE, f"{message}: {detail}"[:400], remedy=remedy)
+    if completed.returncode != 0:
+        raise IngestRejected(
+            RejectionCode.UNPARSEABLE,
+            f"the parser exited with code {completed.returncode}",
+            remedy="Re-export the PDF, then upload again.",
+        )
+
+    return _from_json(completed.stdout.decode("utf-8", errors="replace"))
+
+
+def parse(path: Path) -> ParsedDocument:
+    """In-process parse. Used by tests and by anything already bounded elsewhere.
+
+    Production goes through `parse_isolated`, which is the one with a timeout.
     """
     try:
         raw = lightningparse.parse_pdf(str(path))
@@ -105,6 +167,10 @@ def parse(path: Path) -> ParsedDocument:
             remedy="Upload a clearer scan, or a version with selectable text.",
         ) from exc
 
+    return _from_json(raw)
+
+
+def _from_json(raw: str) -> ParsedDocument:
     document = json.loads(raw)
     metadata = document.get("metadata", {})
     blocks: list[tuple[int, str | None, str, str]] = []
