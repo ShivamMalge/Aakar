@@ -331,11 +331,11 @@ def test_chunks_store_both_page_spaces_and_their_warning_scope(
     assert [c.page.label for c in loaded] == ["vii", "1"]
     assert loaded[0].warnings == ("low_confidence_ocr",)
 
-    # 2A.5: the scope defaults to "unknown" because LightningParse could not be run here,
-    # so nothing in this repository knows whether its warnings are per-chunk.
-    assert all(c.warning_scope == "unknown" for c in loaded)
+    # 2A.5, answered by running the parser: LightningParse 0.4.1 emits no warnings array
+    # at all, so "none" is a measured fact rather than the hedge it was in 2A.
+    assert all(c.warning_scope == "none" for c in loaded)
 
     summary = warning_summary(conn, "d1")
     assert summary["chunks"] == 2
     assert summary["with_warnings"] == 1
-    assert summary["scope_unknown"] == 2
+    assert summary["scope_none"] == 2

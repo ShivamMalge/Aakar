@@ -29,6 +29,10 @@ from aakar.db import (
 # are included because they are part of the surface even though we did not write them.
 KNOWN_ROUTES = {
     ("GET", "/healthz"),
+    # Owner-scoped, added in 2A. Their cross-owner isolation is asserted in
+    # tests/test_async_ingest.py — 404, not 403, so an id cannot be probed for existence.
+    ("POST", "/ingest/upload"),
+    ("GET", "/ingest/jobs/{job_id}"),
     ("POST", "/auth/login"),
     ("POST", "/auth/logout"),
     ("GET", "/auth/me"),
@@ -97,7 +101,7 @@ def test_owner_id_is_not_null_on_exactly_the_owner_scoped_tables(
         f"  in schema but not registered: {sorted(with_notnull_owner - set(OWNER_SCOPED_TABLES))}\n"
         f"  registered but not enforced : {sorted(set(OWNER_SCOPED_TABLES) - with_notnull_owner)}"
     )
-    assert len(OWNER_SCOPED_TABLES) == 6
+    assert len(OWNER_SCOPED_TABLES) == 7
 
 
 def test_a_registered_owner_scoped_table_really_is_scoped(conn: sqlite3.Connection) -> None:
@@ -119,6 +123,7 @@ def test_a_content_addressed_table_has_no_owner(conn: sqlite3.Connection) -> Non
         assert (
             _column(conn, table, "content_hash") is not None
             or _column(conn, table, "corpus_id") is not None
+            or _column(conn, table, "document_id") is not None
         )
 
 
@@ -272,15 +277,15 @@ def test_two_owners_rows_do_not_leak_across_a_scoped_query(conn: sqlite3.Connect
 # ------------------------------------------------------------------- routes
 
 
-def test_no_route_serves_an_owner_scoped_resource() -> None:
-    """The tripwire for the cross-owner isolation tests that cannot be written yet.
+def test_the_route_surface_is_pinned() -> None:
+    """Every owner-scoped route must arrive with its isolation test.
 
-    Every route today is either unauthenticated (`/healthz`, the docs) or returns only the
-    caller's own session (`/auth/*`). None takes a resource id, so there is no route on
-    which owner A could request owner B's row. Upload lands later in 2A.
+    This began as a tripwire for routes that did not exist. It has now fired once, for
+    2A's upload and job-status endpoints, and did its job: their cross-owner assertions
+    live in `tests/test_async_ingest.py` and were written before this list was updated.
 
-    When the first grant-scoped route lands this test fails, and whoever adds it has to
-    add the cross-owner 404 assertions alongside it rather than after.
+    A route serving an owner-scoped or grant-scoped resource must 404 — never 403 — for a
+    caller who cannot reach it, because a 403 confirms the id is real.
     """
     app = create_app()
     found = {

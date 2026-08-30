@@ -14,6 +14,7 @@ EXPECTED_TABLES = {
     "group_members",
     "corpora",
     "chunks",
+    "document_pages",
     "corpus_grants",
     "documents",
     "topics",
@@ -21,6 +22,7 @@ EXPECTED_TABLES = {
     "approvals",
     "llm_calls",
     "qa_cache_meta",
+    "ingest_jobs",
     "schema_meta",
 }
 

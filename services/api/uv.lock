@@ -13,6 +13,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "lightningparse" },
     { name = "passlib", extra = ["argon2"] },
     { name = "pydantic" },
     { name = "pyjwt" },
@@ -40,6 +41,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.112" },
+    { name = "lightningparse", specifier = "==0.4.1" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.13" },
     { name = "passlib", extras = ["argon2"], specifier = ">=1.7.4" },
     { name = "playwright", marker = "extra == 'dev'", specifier = ">=1.48" },
@@ -768,6 +770,27 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/6c/f0/89eb11dffbe9279ff37144dec786927314502ae0b114f1449dc78c458aab/librt-0.15.0-cp315-cp315t-win32.whl", hash = "sha256:c16d15ee371643ab48dc8248a3e680ebbeca573a13af2c3dd0c985b142d77162", size = 104313, upload-time = "2026-08-07T10:49:12.305Z" },
     { url = "https://files.pythonhosted.org/packages/6d/4a/1f1978c200f563beda63c36adff2d65bbecb81e365e8e69e572f5f70fbc6/librt-0.15.0-cp315-cp315t-win_amd64.whl", hash = "sha256:dbd605739f228912dc49027cb764456b9757750bdc2b6b7773164db7096c6fd1", size = 126889, upload-time = "2026-08-07T10:49:13.881Z" },
     { url = "https://files.pythonhosted.org/packages/38/a6/800800bfed7b1fb10fc3f3d557785c3854e80d3f7a9800d784b176a1fc2d/librt-0.15.0-cp315-cp315t-win_arm64.whl", hash = "sha256:84d244b00604d17df3fc7736c327892d6bba66181254aa4087be807b6c342bdc", size = 110700, upload-time = "2026-08-07T10:49:15.499Z" },
+]
+
+[[package]]
+name = "lightningparse"
+version = "0.4.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/da/58cd0c3a1ea8842e18ff693cd4d82658e1510e68b5873bd5fb2114d83a93/lightningparse-0.4.1.tar.gz", hash = "sha256:51099874d3f5eb0c2a89654168fc4f7632e29748798002086f45bc93c89d747a", size = 1037137, upload-time = "2026-08-16T14:55:07.129Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fc/e5/422a1aea0dbc61ba378533b469365a61eaa78965fb2c01ebd43af86099d9/lightningparse-0.4.1-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:2864958e7dd4b19c7ae897a3c86e7f70bb9f3ef6f5fac3ef0b5246f1f3b63e37", size = 1249188, upload-time = "2026-08-16T14:54:40.548Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/88/1f1bc76a9573575700081aa7df1c8f7f9523cf31a27f918e10b42fe1be49/lightningparse-0.4.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:fee4800af826bebb3b56b64abcf378101f25dcbc63979c8c41a5cb0724b9d562", size = 1181756, upload-time = "2026-08-16T14:54:41.968Z" },
+    { url = "https://files.pythonhosted.org/packages/c0/51/0656aba6640021a7b627e46d304b1d48b186aeafc675209af62f0aa32421/lightningparse-0.4.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9ca765c0a99ee7713105c69c01a4ca7cf5b561804efedc34db7bad8b67651e7f", size = 1337954, upload-time = "2026-08-16T14:54:43.563Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/5e/1e47c5b09649ecabdf518979802747bdf31a577b6a98414696ac20fe15ce/lightningparse-0.4.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:29ea32faa86e1edb77ac5df312ab5022da12051c082c30b4a7aa8a20a59182e1", size = 1508385, upload-time = "2026-08-16T14:54:45.124Z" },
+    { url = "https://files.pythonhosted.org/packages/be/9e/49b48d605ddfbd0a4fedf32bbcb37b3e58bf3b4ac20dfd379fd19d97e849/lightningparse-0.4.1-cp312-cp312-win_amd64.whl", hash = "sha256:486f03116a9dc0b06392ba04d03282b5a5e2c0c0ecc4d879d549764c46980ff6", size = 1140834, upload-time = "2026-08-16T14:54:46.392Z" },
+    { url = "https://files.pythonhosted.org/packages/8d/51/a44cebe37e47913b22802914961be40b876ce781d398a61b2165cad4baff/lightningparse-0.4.1-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:a9daa7ded951b15a750c1314f45d3d505c0a8b9674e7d9a54611cf65a46cdcc8", size = 1249190, upload-time = "2026-08-16T14:54:47.731Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/6e/c72b75f34f3a48d7c48f035a481cdc54766e58af577c76dfe2aafcc8eef5/lightningparse-0.4.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:1a9e09ab6478e9d9b178bcc678eb24fdfdd86d5136f3aa1d528ba545de5fda6f", size = 1181757, upload-time = "2026-08-16T14:54:49.029Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/fb/a8c1a30b423a0c42844fc7377255f646ef08ce5a50b611d2e5c05bbb0fae/lightningparse-0.4.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4b7155059d3b0737c5007976e9abd3696b929a473747b55dd46cc679e7527fde", size = 1337955, upload-time = "2026-08-16T14:54:50.476Z" },
+    { url = "https://files.pythonhosted.org/packages/07/9e/d5c1bf3a9dab81e1d7b82eac3ebe7f8e4823e7ae1847f03f58736e518f7c/lightningparse-0.4.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1edce65b19396383561cc03a1ba567a13c6dbbfe78e62f2456652a1980ac51d8", size = 1508385, upload-time = "2026-08-16T14:54:52Z" },
+    { url = "https://files.pythonhosted.org/packages/98/02/921c02a74f62f028d2e3a5ddcb291fa4bab4f4a14f473e6e597bfac46f47/lightningparse-0.4.1-cp313-cp313-win_amd64.whl", hash = "sha256:68d410ae850199bd42a753a57f126082cbd8bdd4ee8a77a3879f9af0afe91e47", size = 1140828, upload-time = "2026-08-16T14:54:53.287Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/32/abab03a8fc4b9920d2fae9891eb8042112369489935c08e6837c43154efc/lightningparse-0.4.1-cp314-cp314-macosx_10_12_x86_64.whl", hash = "sha256:c43a8bf49101f72e2c1120d5659946dae53b15680ed56ca278695b6448e74dcf", size = 1249188, upload-time = "2026-08-16T14:54:54.625Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/f2/0fa9b7892c2162d8d3726128bc4690310214baf73aea93ee0e773951d5b3/lightningparse-0.4.1-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:f15aae659cd2509dddba164c4efc79f604e0709b01a728ed93d13827b72e1dc0", size = 1181756, upload-time = "2026-08-16T14:54:56.034Z" },
+    { url = "https://files.pythonhosted.org/packages/97/60/a153cfdf3ee05620436cb88d915202c73dc686ccaf1c5d53a2c46f71bf0d/lightningparse-0.4.1-cp314-cp314-win_amd64.whl", hash = "sha256:6352449c001b486fa91d52170b649fdac14b40a7c54126b24b80cff3500d7d36", size = 1140832, upload-time = "2026-08-16T14:54:57.5Z" },
 ]
 
 [[package]]

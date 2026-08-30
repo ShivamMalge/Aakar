@@ -11,6 +11,16 @@ is not yet known; it does not fake a parser.
 """
 
 from .corpus import CorpusResolution, can_read, content_hash, resolve_corpus
+from .jobs import (
+    GLOBAL_DEFAULTS,
+    GlobalBounds,
+    Job,
+    claim_next,
+    enqueue,
+    finish,
+    get_job_for_owner,
+    record_progress,
+)
 from .limits import (
     DEFAULTS,
     IngestLimits,
@@ -22,18 +32,30 @@ from .limits import (
     inspect_pdf,
 )
 from .pages import PageMap, PageRef
+from .parser import ParsedDocument, parse, to_chunks
 
 __all__ = [
     "DEFAULTS",
     "CorpusResolution",
     "IngestLimits",
     "IngestRejected",
+    "GLOBAL_DEFAULTS",
+    "GlobalBounds",
+    "Job",
     "PageMap",
+    "ParsedDocument",
     "PageRef",
     "PdfFacts",
     "RejectionCode",
     "check_file",
     "can_read",
+    "claim_next",
+    "enqueue",
+    "finish",
+    "get_job_for_owner",
+    "parse",
+    "record_progress",
+    "to_chunks",
     "check_quota",
     "content_hash",
     "resolve_corpus",

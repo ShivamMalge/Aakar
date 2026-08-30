@@ -12,8 +12,11 @@ dependencies = [
     "passlib[argon2]>=1.7.4",
     "python-multipart>=0.0.12",
     # Ingest boundary only: page count, encryption detection and page LABELS (2A.3/4/6).
-    # NOT a replacement for LightningParse, which owns chunking and page-numbered text.
+    # Deliberately NOT the parser — LightningParse owns chunking and page-numbered text.
     "pypdf>=5.1",
+    # Spec S3s pinned parser. Pinned exactly: 3.1.0 also exists on PyPI but is out of
+    # sequence with the 0.x line, so an unpinned range could resolve to it silently.
+    "lightningparse==0.4.1",
 ]
 
 [project.optional-dependencies]
@@ -52,7 +55,9 @@ warn_unreachable = true
 files = ["aakar", "tests"]
 
 [[tool.mypy.overrides]]
-module = ["passlib.*"]
+# lightningparse ships a Rust extension with no py.typed marker; parser.py wraps it and
+# is itself fully typed, so the untyped boundary stops at that one module.
+module = ["passlib.*", "lightningparse.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

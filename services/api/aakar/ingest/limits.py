@@ -35,6 +35,8 @@ class RejectionCode(StrEnum):
     ENCRYPTED = "encrypted"
     UNPARSEABLE = "unparseable"
     EMPTY = "empty"
+    # Global, not per-owner: the system is full even though this owner did nothing wrong.
+    QUEUE_FULL = "queue_full"
 
 
 class IngestRejected(Exception):
@@ -87,9 +89,12 @@ class PdfFacts:
 
     page_count: int
     #: Pages with no extractable text layer — these are the ones that would need OCR.
+    #: A lower bound once it reaches `max_ocr_pages + 1`, because the scan stops there.
     ocr_pages: int
     #: The publisher's own page labels, one per page, index-aligned. See `pages.py`.
     page_labels: tuple[str, ...]
+    #: How many pages were actually read. Proves the scan is bounded rather than total.
+    pages_examined: int = 0
 
 
 def inspect_pdf(data: bytes, limits: IngestLimits = DEFAULTS) -> PdfFacts:
@@ -156,17 +161,44 @@ def inspect_pdf(data: bytes, limits: IngestLimits = DEFAULTS) -> PdfFacts:
             remedy="Upload a document with at least one page.",
         )
 
+    # BOUNDED text-layer detection.
+    #
+    # An earlier version called extract_text() on every page, which is exactly what the
+    # architect asked to rule out: it parsed the whole document to decide whether to
+    # accept it. Two bounds now apply, in this order:
+    #
+    #   1. `page_count` comes from the PAGE TREE, which is structure, not content. A
+    #      400-page upload is refused by `check_file` after reading no page content at
+    #      all.
+    #   2. This scan stops the moment the OCR count exceeds what could ever be accepted,
+    #      so a scanned book is refused after ~`max_ocr_pages + 1` pages rather than
+    #      after all of them.
+    #
+    # The worst case for an ACCEPTED document is therefore `max_pages` pages of text
+    # extraction (120), and `max_pages` is itself checked before this runs.
     ocr_pages = 0
+    scanned = 0
+    ceiling = limits.max_ocr_pages + 1
     for page in pages:
+        scanned += 1
         try:
             text = page.extract_text() or ""
         except Exception:  # noqa: BLE001 - a page we cannot read is a page needing OCR
             text = ""
         if not text.strip():
             ocr_pages += 1
+            if ocr_pages >= ceiling:
+                # Already past any acceptable value; the exact count cannot change the
+                # verdict, so the remaining pages are not read.
+                break
 
     labels = _page_labels(reader, len(pages))
-    return PdfFacts(page_count=len(pages), ocr_pages=ocr_pages, page_labels=labels)
+    return PdfFacts(
+        page_count=len(pages),
+        ocr_pages=ocr_pages,
+        page_labels=labels,
+        pages_examined=scanned,
+    )
 
 
 def _page_labels(reader: pypdf.PdfReader, count: int) -> tuple[str, ...]:
@@ -184,14 +216,41 @@ def _page_labels(reader: pypdf.PdfReader, count: int) -> tuple[str, ...]:
     return tuple(str(label) for label in labels)
 
 
+def page_count_only(data: bytes) -> int:
+    """Page count from the page tree alone — structure, no content.
+
+    Split out so `check_file` can refuse an over-long document before any page is read.
+    """
+    reader = pypdf.PdfReader(io.BytesIO(data))
+    return len(reader.pages)
+
+
 def check_file(data: bytes, limits: IngestLimits = DEFAULTS) -> PdfFacts:
-    """Every per-document limit, cheapest first. Raises on the first violation."""
+    """Every per-document limit, cheapest first. Raises on the first violation.
+
+    Order matters and is part of the bound: bytes, then page count from the page tree,
+    then the text-layer scan. Nothing reads page content until the two cheaper limits
+    have passed.
+    """
     if len(data) > limits.max_bytes:
         raise IngestRejected(
             RejectionCode.TOO_LARGE,
             f"this file is {len(data) / 1024 / 1024:.1f} MB; the limit is "
             f"{limits.max_bytes / 1024 / 1024:.0f} MB",
             remedy="Upload a single chapter rather than a whole book.",
+        )
+
+    # Page count first, from the page tree, so an over-long document is refused without
+    # reading a single page of content.
+    try:
+        count = page_count_only(data)
+    except Exception:  # noqa: BLE001 - malformed; inspect_pdf classifies it properly
+        count = -1
+    if count > limits.max_pages:
+        raise IngestRejected(
+            RejectionCode.TOO_MANY_PAGES,
+            f"this document has {count} pages; the limit is {limits.max_pages}",
+            remedy="Split it and upload the chapter you want to study.",
         )
 
     facts = inspect_pdf(data, limits)

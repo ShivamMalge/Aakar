@@ -82,6 +82,9 @@ CREATE TABLE IF NOT EXISTS documents (
     -- Page counts are stored as both a LABEL and an INDEX everywhere downstream (2A.6);
     -- this is the physical count, which is the index space.
     page_count   INTEGER,
+    -- LightningParse's per-DOCUMENT extraction tier ('digital' | 'scanned'). Measured,
+    -- not assumed: see aakar/ingest/parser.py for what 0.4.1 actually emits.
+    parse_tier   TEXT,
     storage_path TEXT NOT NULL,
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -98,6 +101,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_owner_hash ON documents(owner_id
 -- warnings_json holds whatever the parser reported about THIS chunk. Provenance strength
 -- in the UI derives from it. See aakar/ingest/chunks.py for what is and is not known
 -- about its granularity today.
+-- The page map, stored rather than recomputed (2A.6). Labels come from the PDF at the
+-- boundary; the worker must not re-derive them, because a re-derivation that disagrees
+-- with the one the limits were checked against is a silent inconsistency.
+CREATE TABLE IF NOT EXISTS document_pages (
+    document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    page_index  INTEGER NOT NULL,
+    page_label  TEXT NOT NULL,
+    PRIMARY KEY (document_id, page_index)
+);
+
 CREATE TABLE IF NOT EXISTS chunks (
     id            TEXT PRIMARY KEY,
     corpus_id     TEXT NOT NULL REFERENCES corpora(id) ON DELETE CASCADE,
@@ -107,17 +120,45 @@ CREATE TABLE IF NOT EXISTS chunks (
     page_label    TEXT NOT NULL,
     section       TEXT,
     text          TEXT NOT NULL,
+    -- 2A.5, ANSWERED. LightningParse 0.4.1 emits NO warnings array; this was measured,
+    -- not assumed. What it does emit is `block.source` (per BLOCK, finer than per-chunk)
+    -- and `metadata.tier` (per document). `source` is stored here at block granularity,
+    -- which is the finest available.
+    source        TEXT NOT NULL DEFAULT 'unknown',
+    -- Kept for the day the parser gains a warnings array. `scope` records what a
+    -- populated value would describe, so a parser upgrade cannot silently reinterpret it.
     warnings_json TEXT NOT NULL DEFAULT '[]',
-    -- Whether warnings_json describes this chunk or the whole document it came from.
-    -- Recorded per row rather than assumed, because a parser upgrade changes it and a
-    -- silently reinterpreted column is worse than a verbose one.
-    warning_scope TEXT NOT NULL DEFAULT 'document'
-        CHECK (warning_scope IN ('chunk', 'document', 'unknown')),
+    warning_scope TEXT NOT NULL DEFAULT 'none'
+        CHECK (warning_scope IN ('block', 'chunk', 'document', 'none', 'unknown')),
     created_at    TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE (document_id, ordinal)
 );
 CREATE INDEX IF NOT EXISTS idx_chunks_corpus ON chunks(corpus_id);
 CREATE INDEX IF NOT EXISTS idx_chunks_page ON chunks(document_id, page_index);
+
+-- D-034: ingest is ASYNCHRONOUS. max_ocr_pages 40 at ~25 s/page is ~17 minutes for one
+-- upload, and no HTTP request survives that, so ingest cannot be request/response.
+--
+-- The boundary checks stay SYNCHRONOUS: a rejection is never asynchronous, because the
+-- student must find out at upload rather than minutes later. Only accepted work is queued.
+CREATE TABLE IF NOT EXISTS ingest_jobs (
+    id             TEXT PRIMARY KEY,
+    document_id    TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    owner_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status         TEXT NOT NULL
+                   CHECK (status IN ('queued','running','succeeded','failed','rejected')),
+    -- Real progress, written as work completes (D-034). Never interpolated from elapsed
+    -- time: a progress bar that moves while nothing happens is worse than none.
+    pages_done     INTEGER NOT NULL DEFAULT 0,
+    pages_total    INTEGER NOT NULL,
+    failure_reason TEXT,
+    created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+    started_at     TEXT,
+    finished_at    TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_ingest_jobs_owner ON ingest_jobs(owner_id);
+-- The worker claims by (status, created_at); the global bound counts by status.
+CREATE INDEX IF NOT EXISTS idx_ingest_jobs_queue ON ingest_jobs(status, created_at);
 
 CREATE TABLE IF NOT EXISTS topics (
     id         TEXT PRIMARY KEY,

@@ -1,27 +1,20 @@
 """Chunk storage, and the parser warnings that ride with it (2A.5, 2A.6).
 
-## What is NOT here, and why
+## 2A.5, answered
 
-**LightningParse is not available in this environment.** It is not installed, and it is not
-on PyPI — spec §3 describes it as Shivam's own library. Chunking, page-numbered text
-extraction and the warnings array all belong to it.
+**Answered, by running it.** LightningParse 0.4.1 emits **no warnings array at all**. What
+it does emit is ``block.source`` (per BLOCK — finer than per chunk) and ``metadata.tier``
+(per document). So ``source`` is stored per chunk at block granularity, which is the finest
+available, and ``warning_scope`` defaults to ``"none"`` as a measured fact rather than a
+hedge. See ``parser.py`` for the full measurement.
 
-So this module does not parse anything. It defines the shape those results land in, and it
-is explicit about the one thing 2A.5 asked to be reported:
+``warnings_json`` and ``warning_scope`` are kept for the day the parser gains a warnings
+array: the cost is one string per chunk, and the cost of the alternative is a UI that
+attributes a document-wide signal to one paragraph — a provenance claim, exactly the class
+of error D-030 exists to stop.
 
-> **Whether LightningParse's warnings are per-chunk or per-document is UNKNOWN here,
-> because the library could not be run.**
-
-Rather than guess, `warning_scope` is stored per row, and `Chunk.warning_scope` defaults to
-``"unknown"`` for anything this repository writes without having seen the parser. When
-LightningParse is wired in, whoever does it sets the scope truthfully and the column stops
-being a question. The cost of that column is one string per chunk; the cost of assuming
-per-chunk resolution that does not exist is a UI that attributes a document-wide warning to
-one paragraph, which is a provenance claim — exactly the class of error D-030 exists to
-stop.
-
-The instruction not to modify LightningParse from this repository is respected: nothing
-here imports it, wraps it, or reimplements it.
+The instruction not to modify LightningParse from this repository is respected: `parser.py`
+calls it and translates its errors, and nothing reimplements it.
 
 ## Page label and page index
 
@@ -41,7 +34,7 @@ from aakar.db import new_id
 from .pages import PageRef
 
 #: Whether a warnings array describes one chunk or the document it came from.
-WarningScope = Literal["chunk", "document", "unknown"]
+WarningScope = Literal["block", "chunk", "document", "none", "unknown"]
 
 
 @dataclass(frozen=True)
@@ -59,10 +52,12 @@ class Chunk:
     page: PageRef
     text: str
     section: str | None = None
+    #: LightningParse `block.source` — per BLOCK, the finest granularity it offers.
+    source: str = "unknown"
     warnings: tuple[str, ...] = ()
-    #: Defaults to "unknown" on purpose — see the module docstring. A writer that knows
-    #: better must say so; a writer that does not must not claim resolution it lacks.
-    warning_scope: WarningScope = "unknown"
+    #: 0.4.1 emits no warnings array, so "none" is a MEASURED default rather than the
+    #: hedge it was in 2A. A parser that gains one must say what a value describes.
+    warning_scope: WarningScope = "none"
     id: str = field(default_factory=lambda: new_id("chunk"))
 
 
@@ -72,8 +67,8 @@ def store_chunks(conn: sqlite3.Connection, chunks: list[Chunk]) -> int:
         """
         INSERT INTO chunks
             (id, corpus_id, document_id, ordinal, page_index, page_label, section,
-             text, warnings_json, warning_scope)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             text, source, warnings_json, warning_scope)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         [
             (
@@ -85,6 +80,7 @@ def store_chunks(conn: sqlite3.Connection, chunks: list[Chunk]) -> int:
                 chunk.page.label,
                 chunk.section,
                 chunk.text,
+                chunk.source,
                 json.dumps(list(chunk.warnings)),
                 chunk.warning_scope,
             )
@@ -99,7 +95,7 @@ def load_chunks(conn: sqlite3.Connection, document_id: str) -> list[Chunk]:
     rows = conn.execute(
         """
         SELECT id, corpus_id, document_id, ordinal, page_index, page_label, section,
-               text, warnings_json, warning_scope
+               text, source, warnings_json, warning_scope
         FROM chunks WHERE document_id = ? ORDER BY ordinal
         """,
         (document_id,),
@@ -114,6 +110,7 @@ def load_chunks(conn: sqlite3.Connection, document_id: str) -> list[Chunk]:
             page=PageRef(index=int(row["page_index"]), label=str(row["page_label"])),
             section=row["section"],
             text=str(row["text"]),
+            source=str(row["source"]),
             warnings=tuple(json.loads(row["warnings_json"])),
             warning_scope=row["warning_scope"],
         )
@@ -128,12 +125,15 @@ def warning_summary(conn: sqlite3.Connection, document_id: str) -> dict[str, int
     very different things depending on whether those warnings were attributed per chunk or
     copied from the document.
     """
-    summary = {"chunks": 0, "with_warnings": 0, "scope_chunk": 0, "scope_document": 0}
-    summary["scope_unknown"] = 0
+    summary = {"chunks": 0, "with_warnings": 0}
+    summary.update({f"scope_{s}": 0 for s in ("block", "chunk", "document", "none", "unknown")})
+    summary.update({f"source_{s}": 0 for s in ("digital", "ocr", "mixed", "unknown")})
 
     for chunk in load_chunks(conn, document_id):
         summary["chunks"] += 1
         if chunk.warnings:
             summary["with_warnings"] += 1
         summary[f"scope_{chunk.warning_scope}"] += 1
+        key = f"source_{chunk.source}"
+        summary[key] = summary.get(key, 0) + 1
     return summary

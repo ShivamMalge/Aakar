@@ -27,11 +27,12 @@ OWNER_SCOPED_TABLES = (
     "approvals",
     "llm_calls",
     "qa_cache_meta",
+    "ingest_jobs",
 )
 
 #: No owner column at all. Reachable only through a grant (D-029). `chunks` belongs to
 #: the corpus it was parsed from, so it inherits the corpus's sharing exactly.
-CONTENT_ADDRESSED_TABLES = ("corpora", "chunks")
+CONTENT_ADDRESSED_TABLES = ("corpora", "chunks", "document_pages")
 
 #: The grant itself: held by exactly one of an owner or a group (ruling e).
 GRANT_TABLES = ("corpus_grants",)
@@ -50,7 +51,7 @@ ALL_CATEGORIES = {
     "meta": META_TABLES,
 }
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 def new_id(prefix: str) -> str:
@@ -58,8 +59,19 @@ def new_id(prefix: str) -> str:
 
 
 def connect(db_path: Path) -> sqlite3.Connection:
+    """Open a connection.
+
+    `check_same_thread=False` because FastAPI runs a *sync* dependency in a threadpool
+    while an `async def` endpoint body runs on the event loop thread — so a connection
+    opened by `get_conn` is used from a different thread than the one that made it. This
+    is a production concern, not a test artefact; it surfaced in a test only because that
+    is where an async upload endpoint first existed.
+
+    Safe here: each request gets its own connection, so none is shared between threads
+    concurrently. Python's sqlite3 is built in serialized mode, which handles the rest.
+    """
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn

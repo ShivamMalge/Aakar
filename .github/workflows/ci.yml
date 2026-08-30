@@ -41,7 +41,7 @@ jobs:
       # 2A: the ingest boundary is a denial-of-service surface, not a cost surface, so no
       # budget guard covers it. Named separately for the same reason as the corpus tests.
       - name: ingest limits and dedupe
-        run: uv run pytest tests/test_ingest.py tests/test_migration.py -q
+        run: uv run pytest tests/test_ingest.py tests/test_migration.py tests/test_async_ingest.py -q
       - run: uv run pytest -q
 
   web:

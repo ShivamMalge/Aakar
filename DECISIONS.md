@@ -915,3 +915,129 @@ Two lesser instances recorded but not changed: the render route pins `shot`, `ex
 values agree), and `Settings.from_env`'s `AAKAR_PROVIDER_MODE` default is never exercised
 because the Makefile and CI both set it explicitly. Both are noted here so a future change
 to either default is known to be untested from those paths.
+
+---
+
+## D-034 — Ingest is asynchronous; rejection is not
+
+**Status:** Accepted (architect ruling) · **Phase:** 2A
+
+`max_ocr_pages` of 40 at ~25 s/page is ~17 minutes for one upload. No HTTP request survives
+that, so ingest cannot be request/response — and the upload route could not have been built
+as one. This was missing from the Phase 2 amendment and is mandatory given the approved
+limits.
+
+**The split that matters.** Every boundary check runs **synchronously**, before the
+response: size, page count, OCR page count, encryption, the per-owner daily quota, and the
+global queue bound. Only accepted work is queued. A rejection that arrives seventeen minutes
+later is a worse product than one that arrives immediately, and an unbounded queue turns a
+rejection into a resource commitment that merely happens later.
+
+**Implemented:** `ingest_jobs` (queued/running/succeeded/failed/rejected, with
+`pages_done`/`pages_total`, timestamps and `failure_reason`); `POST /ingest/upload` returning
+**202 Accepted** with a job id — not 200, because nothing has been parsed and 200 would say
+otherwise; `GET /ingest/jobs/{id}` owner-scoped, **404 not 403** for another owner, because a
+403 confirms the id is real; and a worker in `aakar/ingest/worker.py` that runs in a separate
+process.
+
+**Progress is real.** `pages_done` is written as pages complete, never interpolated from
+elapsed time. A bar that moves while nothing happens is worse than no bar.
+
+**Found while building:**
+
+- **The queue was not actually FIFO.** `created_at` has one-second resolution, so jobs
+  submitted in the same second tied, and the tiebreak was `id` — a random uuid. Ordering is
+  now `created_at, rowid`, which is monotonic in insertion order. The old behaviour was
+  arbitrary under exactly the load where FIFO matters.
+- **A connection opened by a sync FastAPI dependency is used from a different thread** than
+  an `async def` endpoint body, because the dependency runs in the threadpool. `connect()`
+  now passes `check_same_thread=False`. This is a production concern; it surfaced in a test
+  only because that is where an async endpoint first existed.
+
+---
+
+## D-035 — The worker is a persistent process; this component cannot be serverless
+
+**Status:** Accepted · **Phase:** 2A · **Consequence of** D-034
+
+Recorded so the deployment choice is made with this in mind rather than discovered by it.
+
+The ingest worker does minutes-long, CPU-bound work that outlives any request. **Serverless
+is out for this component.** The API can still be deployed however one likes; the worker
+needs a process that stays alive, with disk access to the uploaded file.
+
+Two further consequences the architect flagged, recorded here so they are not rediscovered:
+
+1. **Degraded mode must distinguish "worker unavailable" from "budget exhausted."** They are
+   different causes with different recoveries — a stalled worker is an operational problem
+   that resolves without the user doing anything, while an exhausted budget needs an
+   explicit decision. Implemented in 2B as separate `DegradedReason` values with separate
+   messages.
+2. **A "processing" state now exists in the product**, and the UI design does not account for
+   it. Recorded, not built: the viewer has no notion of a document that exists but is not yet
+   readable.
+
+---
+
+## D-036 — LightningParse is available; 2A.5 is answered by measurement
+
+**Status:** Accepted · **Phase:** 2A · **Corrects** the Phase 2A report
+
+**My Phase 2A report was wrong.** It said LightningParse was "not installed and not on
+PyPI". It *is* on PyPI, as `lightningparse`, and the source is `ShivamMalge/LightningParse`.
+The error was method: `importlib.find_spec` only sees *installed* packages, and I drew a
+conclusion about PyPI from that plus one failed download command. Pinned at **0.4.1**
+exactly — a `3.1.0` also exists on PyPI, out of sequence with the 0.x line, so an unpinned
+range could resolve to it silently.
+
+**2A.5, answered by running it. There is no warnings array in 0.4.1.** The amendment's
+premise does not hold for this version. What it emits:
+
+```
+{"metadata": {"tier", "page_count", "parse_time_ms"},
+ "pages": [{"page_num", "blocks": [{"type","text","spans","bbox","section_id","source"}]}]}
+```
+
+| signal | granularity | observed |
+| --- | --- | --- |
+| `metadata.tier` | per **document** | `digital` \| `scanned` |
+| `block.source` | per **block** | `digital` |
+| `block.section_id` | per **block** | `header`, … |
+
+So the finest available granularity is **per block, which is finer than per chunk** — a chunk
+is built from blocks. `source` is stored per chunk at block granularity; `metadata.tier` is
+stored per document on `documents.parse_tier`.
+
+`warning_scope` now defaults to **`none`** — a measured fact about 0.4.1, not the hedge it
+was in 2A. `warnings_json` and `warning_scope` are kept for the day the parser gains a
+warnings array, so a future version cannot silently reinterpret an existing column.
+
+**One further measured behaviour, useful at the boundary:** a PDF with no text layer reports
+`tier: "scanned"` and produces **zero blocks**. LightningParse says so itself, cheaply.
+
+Chunking is one chunk per block for now. Blocks already carry `section_id`, so they are
+heading-aware, and merging them would coarsen the `source` signal 2A.5 exists to preserve.
+Whether to merge short adjacent blocks is a retrieval-quality question, and it should be
+settled against measured hit rates rather than guessed at.
+
+---
+
+## D-037 — Global ingest bounds
+
+**Status:** Accepted (architect ruling) · **Phase:** 2A
+
+Per-owner quotas stop one user hurting everyone; they do nothing about fifty users doing it
+collectively. At the approved 400 pages/day against a 500-account ceiling that is ~200,000
+pages/day — roughly **1,400 CPU-hours**, about 58 machine-days of work per day.
+
+| bound | proposed | reasoning |
+| --- | --- | --- |
+| `max_concurrent_ocr` | **2** | the binding resource is CPU and OCR is CPU-bound, so useful concurrency is bounded by cores, not patience. Raising it on a saturated machine does not add throughput — it lengthens every job at once, turning one slow upload into several |
+| `max_queue_depth` | **50** | at 2 concurrent and a 17-minute worst case, a full queue is ~7 hours of backlog. Beyond that a queued job is indistinguishable from a lost one |
+
+Queue-full is rejected **at submission**, with the current depth in the message so a retry is
+informed. Both are configurable; both default low, because the cost of a too-low bound is a
+visible rejection and the cost of a too-high one is a queue nobody drains.
+
+**The bound counts every owner**, which is the entire point — no single owner is doing
+anything wrong when it trips.
