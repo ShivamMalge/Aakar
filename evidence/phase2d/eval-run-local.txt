@@ -6,6 +6,8 @@ Aakar 2D.1 evaluation harness
   answer fixtures: 8 (hand-written, not model output)
   embedder       : local (hashed bag-of-words + character trigrams @ 768d)
   labels verified: False
+  scope limit    : One OpenStax chapter: clean, digital-native, professionally edited, English.
+  scope limit    : c06 carries `source: "ocr"` and is otherwise clean, verbatim text.
 
   PROVISIONAL. Method closed, numbers open.
    - golden labels are PROPOSED and not human-verified

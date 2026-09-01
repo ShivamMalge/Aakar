@@ -1478,3 +1478,91 @@ Three mechanisms keep that from being a comment nobody reads:
 
 Scoped to 15 questions over 10 chunks on purpose. Verification is manual work with no
 substitute, and **a set too large to hand-check is a set that will not be hand-checked.**
+
+---
+
+## D-049 — A cached answer must be field-for-field identical to a fresh one
+
+**Status:** Built · **Phase:** post-2D.1, architect ruling
+
+D-047 fixed a specific instance: `display_confidence` vanished on a cache hit. That was
+found by looking, and looking does not scale — **anything computed at answer time and not
+stored can vanish the same way, and every fresh-path test stays green while it does.** So
+the instance is replaced by a property.
+
+**The invariant.** For the same question against the same corpus, the answer the second
+student receives is identical to the one the first received, field by field, except for the
+handful of fields whose job is to differ.
+
+**Enforced by inversion.** `ALLOWED_TO_DIFFER` lists the *exemptions* — `kind`,
+`from_cache`, `similar_question`, `retrieval` — and the comparison is driven by
+`dataclasses.fields(Answer)` plus every `property` on the class. A field added later is
+therefore compared **by default**. Listing the fields to check instead would have meant a
+new field silently uncovered, which is the failure mode this decision exists to close. A
+second test strips the stored provenance and requires the comparison to fail, because a
+comparison that has never caught a divergence has not been shown to work (R2).
+
+### What it found immediately — including one I had reported as fixed
+
+The first run diverged on three things, all from the same root:
+
+| field | fresh | cached |
+| --- | --- | --- |
+| `provenance.source` | `ocr` | `mixed` |
+| `provenance.naming_chunk_ids` | 1 id | `()` |
+| `provenance.retrieved_chunk_ids` | 5 ids | `()` |
+| **`display_confidence`** | **`strong (OCR)`** | **`strong (partly OCR)`** |
+
+The last row matters most: **`display_confidence` was the field D-047 claimed to have
+fixed, and it was still diverging.** D-047 stored `strength` and re-derived `source` from
+the cached citations, reasoning that a derived value cannot drift from what it derives from.
+The reasoning was sound and the premise was false — **the fresh path does not derive
+`source` from the citations at all.** It reads it from the chunks that *name the part*, a
+strict subset. The reconstruction was plausible, self-consistent, and a different value.
+
+`naming_chunk_ids` and `retrieved_chunk_ids` were lost outright. Nothing reads them today;
+the curation gate will.
+
+**The fix** stores the whole provenance in one payload written once, and validates both
+enums against their `Literal` members on the way back out rather than trusting JSON from the
+database. Rows written before this report `unknown` — inventing `strong` for a row that
+never recorded one would fabricate the confidence the axis exists to qualify.
+
+**The general shape, because it is now the second instance.** Storing part of a value and
+reconstructing the rest is not a saving; it is a second implementation of the derivation,
+built from different inputs, that nothing compares against the first. Store the whole value
+or recompute the whole value — never half of each.
+
+---
+
+## D-050 — DEFAULT_FLOOR raised to 0.45, interim and uncertified
+
+**Status:** Built, **uncertified** · **Phase:** post-2D.1 · **Supersedes the value in 2C.3**
+
+`DEFAULT_FLOOR` moves from 0.35 to **0.45**.
+
+**The finding is not the number, it is that 0.35 was never measured.** It was picked by
+judgement when the floor was built in 2C.3 and shipped as though it had been calibrated.
+The 2D.1 sweep is the first time any value was tested against questions with known answers,
+and 0.35 admitted **two of five hard negatives** on the golden chapter — questions the
+chapter cannot answer, cleared to a confident cited answer assembled from irrelevant text.
+
+**Why 0.45 despite the number not transferring.** The measurement is on a lexical embedder
+and does not carry to a semantic one. The **asymmetry does**, and it is embedder-independent:
+false coverage reaches a student as a fluent, cited, wrong answer about their own textbook,
+while a false "your chapter does not cover this" costs only usefulness and is a true
+statement they can act on. Those are not symmetric, so the tie is broken toward refusing.
+Same reasoning as the 0.92 cache threshold (D-041). 0.45 is the lowest swept value admitting
+zero false coverage.
+
+**What it costs, stated rather than buried.** On the golden set, coverage falls from 100% to
+80% — `q04` and `q08` stop clearing. On the five-sentence `test_retrieval` fixture the cost
+is total: a directly-covered question scores about 0.43 there, so at 0.45 that corpus admits
+nothing, and three `/ask` tests now pin the floor explicitly via `AAKAR_RELEVANCE_FLOOR`.
+That is a property of a toy corpus scored by word overlap, not of the floor — but it is the
+cost being accepted, and it is written down rather than absorbed.
+
+**Uncertified.** To be replaced by 2D.2's measurement against `gemini-embedding-001`. Until
+then `test_the_shipped_default_floor_both_admits_and_refuses` holds it to both halves of its
+job on a real chapter — a floor at 1.0 refuses everything and would otherwise pass every
+safety test written about it.

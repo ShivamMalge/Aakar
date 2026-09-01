@@ -8,6 +8,16 @@
     "why_this_one": "D-005: everything committed under evidence/ must come from the open corpus. This is openly licensed and quotable in full.",
     "PAGE_LABELS_ARE_PROPOSED": "The passages were retrieved as HTML, which has no PDF pagination. The page_label values below are ASSIGNED BY SECTION ORDER, not read from a PDF. They exercise the label/index split correctly, but they are NOT verifiable against a printed page. The label-vs-index mechanism itself was already proven in 2C against a real PDF with a real /PageLabels tree; what this fixture is for is faithfulness, not pagination. A genuine end-to-end page check needs the OpenStax PDF."
   },
+
+  "SCOPE_LIMITS": {
+    "read_this_before_quoting_any_number": "Two limits bound everything measured against this file. Neither is a defect in the fixture; both change what its numbers mean, and both are easy to forget once a number has been written down once.",
+
+    "1_this_is_a_ceiling_not_a_typical_case": "One OpenStax chapter: clean, digital-native, professionally edited, English. Aakar's real input is scanned Indian textbooks — photographed or flatbed-scanned pages, mixed scripts, marginalia, tighter typesetting, and prose that was not written to be machine-read. Faithfulness measured here is close to the best this system will ever do. Nothing about it predicts the failure rate on the actual corpus; it establishes that the failures we DO see on a clean chapter are real, since the input cannot be blamed for them.",
+
+    "2_c06_tests_the_display_path_not_ocr_noise": "c06 carries `source: \"ocr\"` and is otherwise clean, verbatim text. It exercises the SECOND AXIS — that an OCR-derived citation reaches the student marked differently from a digital one (D-044, D-047) — and it exercises nothing about whether real OCR errors cause citation failures. Those are different questions. A chunk with genuine artefacts (transposed characters, split or merged words, a dropped diacritic, a column read across the gutter) would test whether a garbled chunk still gets cited as though it were sound, and whether the lexical support check silently scores a misread word as unsupported. FUTURE WORK: add one chunk of real Tesseract output over a real scanned page, alongside the digital text of the same page, and measure the difference.",
+
+    "what_would_close_these": "A second golden set built from an actual scanned textbook page, OCR'd by the real pipeline, with labels verified by hand against the printed page. That closes the pagination gap above and both limits here at once, and it is the fixture that would let these numbers speak about the product rather than about the method."
+  },
   "chunks": [
     {
       "id": "c01",

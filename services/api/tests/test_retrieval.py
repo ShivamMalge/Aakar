@@ -6,6 +6,7 @@ would prove the test harness works, not that the collection shape and the filter
 
 from __future__ import annotations
 
+import dataclasses
 import sqlite3
 from collections.abc import Iterator
 
@@ -31,6 +32,7 @@ from aakar.rag import (
     retrieve,
     upsert_chunks,
 )
+from aakar.rag.ask import Answer
 from aakar.rag.index import Hit, client
 from aakar.rag.quota import OwnerQuota, QuotaExceeded
 
@@ -126,6 +128,28 @@ def indexed(conn: sqlite3.Connection) -> Iterator[tuple[str, Embedder]]:
     )
 
 
+@pytest.fixture
+def lexical_floor(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Pin the floor for tests whose subject is not the floor.
+
+    D-050 raised `DEFAULT_FLOOR` to 0.45. Against this five-sentence fixture, embedded by
+    the *lexical* replay embedder, a directly-covered question ("what does the lens do",
+    with a chunk that opens "The lens is...") scores about 0.43 — so at the shipped default
+    this corpus admits nothing at all, and three tests about the `/ask` ordering would start
+    failing for a reason that has nothing to do with what they test.
+
+    That is a fact about a toy corpus scored by word overlap, not a defect in the floor. It
+    is also the cost the architect's ruling accepts: a false "not in your chapter" is a
+    worse experience and a true statement, while false coverage is a confident wrong answer.
+
+    The shipped default is still exercised, in two places that can carry the meaning:
+    `test_an_uncovered_question_falls_below_the_floor` here, and the golden-set sweep in
+    `test_evals.py`, which asserts the default both admits real questions and refuses every
+    hard negative. Neither is skipped by this fixture (agents.md R1, R2).
+    """
+    monkeypatch.setenv("AAKAR_RELEVANCE_FLOOR", "0.35")
+
+
 # ----------------------------------------------------------- scope and index
 
 
@@ -169,7 +193,9 @@ def test_a_dimensionality_mismatch_is_refused(indexed: tuple[str, Embedder]) -> 
 
 
 @needs_qdrant
-def test_a_covered_question_retrieves_its_chunk(indexed: tuple[str, Embedder]) -> None:
+def test_a_covered_question_retrieves_its_chunk(
+    indexed: tuple[str, Embedder], lexical_floor: None
+) -> None:
     owner, embedder = indexed
     found = retrieve(
         client(),
@@ -307,7 +333,7 @@ def test_only_cited_chunks_count_when_a_spec_supplied_them() -> None:
 
 @needs_qdrant
 def test_ask_answers_from_the_chapter_and_cites_the_page_LABEL(
-    indexed: tuple[str, Embedder], conn: sqlite3.Connection
+    indexed: tuple[str, Embedder], conn: sqlite3.Connection, lexical_floor: None
 ) -> None:
     """2C.5. The label is what the student can look up; the index is an implementation
     detail that happens to be off by one here."""
@@ -357,7 +383,7 @@ def test_ask_returns_not_in_chapter_rather_than_fabricating(
 
 @needs_qdrant
 def test_a_cache_hit_consumes_no_quota_and_no_budget(
-    indexed: tuple[str, Embedder], conn: sqlite3.Connection
+    indexed: tuple[str, Embedder], conn: sqlite3.Connection, lexical_floor: None
 ) -> None:
     """The ordering IS the design: the cache lookup sits above quota and budget."""
     owner, embedder = indexed
@@ -450,3 +476,132 @@ def test_an_owner_without_a_grant_is_refused(
             part_id="lens",
             name="Lens",
         )
+
+
+# ------------------------------------------- D-049 fresh/cached equivalence
+
+
+#: Fields a cached answer is ALLOWED to differ on, with the reason. **Everything else** —
+#: every dataclass field and every derived property of `Answer` — must be identical between
+#: the answer the first student gets and the one the second student gets.
+#:
+#: The list is inverted on purpose. An allowlist of *comparisons* would silently stop
+#: covering a field added later; an allowlist of *exemptions* means a new field is compared
+#: by default, so one added without a stored counterpart fails here immediately instead of
+#: degrading on the second student's question, which is where nobody is looking.
+ALLOWED_TO_DIFFER = {
+    "kind": "'cached' is the point — it is what tells the panel nothing was spent",
+    "from_cache": "the flag whose whole job is to differ",
+    "similar_question": "only a cache hit can have matched a paraphrase (D4)",
+    "retrieval": "an internal handle on the search, never shown and never stored",
+}
+
+
+def _comparable(answer: Answer) -> dict[str, object]:
+    """Every dataclass field and every public property, minus the exemptions."""
+    names = {f.name for f in dataclasses.fields(answer)}
+    names |= {n for n, v in vars(type(answer)).items() if isinstance(v, property)}
+    return {n: getattr(answer, n) for n in sorted(names) if n not in ALLOWED_TO_DIFFER}
+
+
+def test_the_divergence_exemptions_name_real_fields() -> None:
+    """Guards the guard: a typo in `ALLOWED_TO_DIFFER` would silently exempt nothing while
+    looking like it exempted something, and the reverse — a renamed field — would leave a
+    dead exemption quietly widening as the class changes around it."""
+    answer = Answer(kind="generated", text="x")
+    names = {f.name for f in dataclasses.fields(answer)}
+    names |= {n for n, v in vars(Answer).items() if isinstance(v, property)}
+    assert set(ALLOWED_TO_DIFFER) <= names
+    assert len(_comparable(answer)) >= 5, "the comparison must actually cover something"
+
+
+@needs_qdrant
+def test_a_cached_answer_is_field_for_field_identical_to_a_fresh_one(
+    indexed: tuple[str, Embedder], conn: sqlite3.Connection
+) -> None:
+    """D-049. The property behind the `display_confidence` drop, generalised.
+
+    Anything computed at answer time and not stored vanishes on the second student's
+    question, and every fresh-path test stays green while it does. So the invariant is not
+    "provenance survives the cache" — that is one instance — it is **fresh == cached, field
+    by field**, driven by the field list rather than by whichever fields someone remembered.
+
+    The question deliberately reaches the OCR chunk, because the source axis is the part
+    most likely to be reconstructed rather than stored.
+    """
+    owner, embedder = indexed
+    kwargs = {
+        "owner_id": owner,
+        "corpus_id": "c1",
+        "topic_id": "t1",
+        "question": "what fluid fills the anterior chamber?",
+        "part_id": "aqueous",
+        "name": "Aqueous humour",
+        "aliases": ["aqueous humor"],
+    }
+    fresh = ask(conn, client(), embedder, **kwargs)  # type: ignore[arg-type]
+    cached = ask(conn, client(), embedder, **kwargs)  # type: ignore[arg-type]
+
+    assert fresh.kind == "generated"
+    assert cached.kind == "cached" and cached.from_cache
+
+    left, right = _comparable(fresh), _comparable(cached)
+    differing = {k: (left[k], right[k]) for k in left if left[k] != right[k]}
+    assert not differing, f"cached answer diverges from fresh: {differing}"
+
+
+@needs_qdrant
+def test_the_equivalence_check_can_see_a_dropped_field(
+    indexed: tuple[str, Embedder], conn: sqlite3.Connection
+) -> None:
+    """R2. A comparison that never caught a divergence has not been shown to work.
+
+    Drives the same comparison against a payload with the provenance deliberately stripped —
+    exactly the shape a field added later without a stored counterpart would produce — and
+    requires it to fail.
+    """
+    owner, embedder = indexed
+    kwargs = {
+        "owner_id": owner,
+        "corpus_id": "c1",
+        "topic_id": "t1",
+        "question": "what fluid fills the anterior chamber?",
+        "part_id": "aqueous",
+        "name": "Aqueous humour",
+    }
+    fresh = ask(conn, client(), embedder, **kwargs)  # type: ignore[arg-type]
+
+    conn.execute(
+        "UPDATE qa_cache_meta SET answer_json = json_remove(answer_json, '$.provenance')",
+    )
+    conn.commit()
+    degraded = ask(conn, client(), embedder, **kwargs)  # type: ignore[arg-type]
+
+    left, right = _comparable(fresh), _comparable(degraded)
+    assert {k: (left[k], right[k]) for k in left if left[k] != right[k]}, (
+        "stripping the stored provenance produced no visible divergence, so the "
+        "comparison would not catch a field added without a stored counterpart"
+    )
+
+
+@needs_qdrant
+def test_an_uncovered_question_answers_the_same_way_every_time(
+    indexed: tuple[str, Embedder], conn: sqlite3.Connection
+) -> None:
+    """`not_in_chapter` is never cached — there is nothing to spend and nothing to store.
+    It must therefore be *reproducible* rather than *restored*, and the second student must
+    get the same refusal rather than a different one."""
+    owner, embedder = indexed
+    kwargs = {
+        "owner_id": owner,
+        "corpus_id": "c1",
+        "topic_id": "t1",
+        "question": "what is the treatment for glaucoma?",
+        "part_id": "glaucoma",
+        "name": "Glaucoma",
+    }
+    first = ask(conn, client(), embedder, **kwargs)  # type: ignore[arg-type]
+    second = ask(conn, client(), embedder, **kwargs)  # type: ignore[arg-type]
+    assert first.kind == "not_in_chapter"
+    assert second.kind == "not_in_chapter", "a refusal must not become a cache hit"
+    assert _comparable(first) == _comparable(second)

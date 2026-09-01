@@ -33,6 +33,7 @@ from aakar.providers import BudgetExceeded, CostLedger
 from . import cache
 from .embedding import Embedder
 from .provenance_resolve import (
+    ChunkSource,
     ResolvedProvenance,
     ResolvedStrength,
     combine_sources,
@@ -124,6 +125,52 @@ class Answer:
         return tuple(c.page_label for c in self.citations if c.source == "ocr")
 
 
+def _provenance_payload(provenance: ResolvedProvenance) -> dict[str, object]:
+    """The whole provenance, stored (D-049).
+
+    An earlier version stored only `strength` and re-derived `source` from the cached
+    citations, on the reasoning that a derived value cannot drift out of step with what it
+    is derived from. That was wrong in a way worth recording: **the fresh path does not
+    derive source from the citations at all.** It reads it from the chunks that *name the
+    part*, which is a strict subset, so re-deriving produced a genuinely different answer —
+    `strong (OCR)` fresh became `strong (partly OCR)` cached. The reconstruction was
+    plausible, self-consistent, and not the same value.
+
+    Drift is handled by storing provenance and citations in one payload written once, not
+    by recomputing half of it later.
+    """
+    return {
+        "strength": provenance.strength,
+        "source": provenance.source,
+        "naming_chunk_ids": list(provenance.naming_chunk_ids),
+        "retrieved_chunk_ids": list(provenance.retrieved_chunk_ids),
+    }
+
+
+def _stored_provenance(payload: object) -> ResolvedProvenance | None:
+    """Rebuild provenance from the cached payload, or `None` if it holds none.
+
+    Validates both enums against their `Literal` members rather than trusting the JSON:
+    the payload is a runtime fact from the database, and an unrecognised value must read as
+    "no provenance" rather than be cast into a state the rest of the code assumes is one of
+    four. Rows written before D-049 have no `provenance` key and report `unknown` — the
+    honest reading, where inventing `strong` for a row that never recorded one would
+    fabricate exactly the confidence this axis exists to qualify.
+    """
+    if not isinstance(payload, dict):
+        return None
+    strength = str(payload.get("strength", ""))
+    source = str(payload.get("source", ""))
+    if strength not in get_args(ResolvedStrength) or source not in get_args(ChunkSource):
+        return None
+    return ResolvedProvenance(
+        strength=cast(ResolvedStrength, strength),
+        source=cast(ChunkSource, source),
+        naming_chunk_ids=tuple(str(c) for c in payload.get("naming_chunk_ids", ())),
+        retrieved_chunk_ids=tuple(str(c) for c in payload.get("retrieved_chunk_ids", ())),
+    )
+
+
 def _citations(retrieval: Retrieval) -> tuple[Citation, ...]:
     return tuple(
         Citation(
@@ -181,23 +228,11 @@ def ask(
             )
             for c in (stored if isinstance(stored, list) else [])
         )
-        # Strength is stored with the answer so a cached one keeps its confidence. Without
-        # it the same answer reads as `strong (OCR)` when generated and `unknown` when
-        # served from cache — the OCR warning would survive exactly until the answer became
-        # popular enough for a second student to ask. Source is re-derived from the stored
-        # citations rather than persisted, so it cannot drift out of step with them.
-        cached_provenance: ResolvedProvenance | None = None
-        stored_strength = str(hit.answer.get("strength", ""))
-        if stored_strength in get_args(ResolvedStrength):
-            cached_provenance = ResolvedProvenance(
-                strength=cast(ResolvedStrength, stored_strength),
-                source=combine_sources([c.source for c in citations]),
-            )
         return Answer(
             kind="cached",
             text=str(hit.answer.get("text", "")),
             citations=citations,
-            provenance=cached_provenance,
+            provenance=_stored_provenance(hit.answer.get("provenance")),
             from_cache=True,
             similar_question=hit.question if hit.is_paraphrase else None,
         )
@@ -271,9 +306,9 @@ def ask(
         answer={
             "text": answer.text,
             "citations": [c.__dict__ for c in citations],
-            # See the cache-hit branch: without this a popular answer silently loses its
-            # provenance the moment it starts being served from cache.
-            "strength": provenance.strength,
+            # See `_provenance_payload`: without this a popular answer silently loses its
+            # provenance the moment it starts being served from cache (D-049).
+            "provenance": _provenance_payload(provenance),
         },
     )
     return answer

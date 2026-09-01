@@ -28,10 +28,15 @@ from .index import Hit, search
 
 #: Below this best-score, the chapter does not cover the question.
 #:
-#: Conservative for the same reason as the cache threshold (D-041): answering from thin
-#: evidence produces a fluent, cited, wrong answer, while refusing produces a true one the
-#: student can act on. Config, because it must be re-measured against the real embedder.
-DEFAULT_FLOOR = 0.35
+#: **INTERIM AND UNCERTIFIED (D-050).** 0.35 was picked by judgement and never measured;
+#: the 2D.1 sweep found it admits false coverage even on a lexical embedder. 0.45 is the
+#: lowest value that admitted none there. That number does not transfer between embedders —
+#: but the *asymmetry* does, and it is what sets the direction: false coverage reaches a
+#: student as a confident answer assembled from irrelevant text, while a false
+#: "not in your chapter" costs only usefulness. Same reasoning as the 0.92 cache threshold.
+#:
+#: To be replaced by 2D.2's measurement against the real embedder. Config, so it can be.
+DEFAULT_FLOOR = 0.45
 
 
 def relevance_floor() -> float:

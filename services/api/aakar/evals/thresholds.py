@@ -38,7 +38,11 @@ from aakar.rag.retrieval import DEFAULT_FLOOR, part_scope_terms
 from .embedders import NamedEmbedder, embedder_from_env
 from .golden import GoldenSet, load_golden_set, rank
 
-FLOORS: tuple[float, ...] = (0.15, 0.25, DEFAULT_FLOOR, 0.45, 0.55, 0.65, 0.75)
+#: The sweep must span both failure modes or it measures nothing: low enough that the hard
+#: negatives get through, high enough that real questions get refused. `DEFAULT_FLOOR` is
+#: folded in rather than listed, so the shipped value is always one of the rows even after
+#: 2D.2 moves it.
+FLOORS: tuple[float, ...] = tuple(sorted({0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, DEFAULT_FLOOR}))
 
 
 @dataclass(frozen=True)

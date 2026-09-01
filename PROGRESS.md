@@ -949,3 +949,78 @@ see it, plus one where it vanished entirely on a cache hit. All three fixed; see
   indexed end-to-end `/ask` tests were not re-run.
 - **The golden labels have not been verified by a human.** That is the next manual step and
   no number above counts until it happens.
+
+---
+
+## Post-2D.1 corrections · 2026-09-01 (four architect items)
+
+### 1. D-049 — fresh/cached equivalence as a property, and what it found
+
+Generalised the `display_confidence` drop into an invariant driven by the field list, with
+the exemptions inverted so a field added later is compared by default.
+
+It diverged on the first run, on four fields — **including `display_confidence`, the one
+D-047 had just claimed to fix.** D-047 stored `strength` and re-derived `source` from the
+cached citations. The fresh path does not derive `source` from the citations; it reads it
+from the chunks that *name the part*, a strict subset. So the reconstruction produced
+`strong (partly OCR)` where the fresh answer said `strong (OCR)` — plausible,
+self-consistent, and a different value. `naming_chunk_ids` and `retrieved_chunk_ids` were
+lost outright; nothing reads them today, the curation gate will.
+
+**I reported that field as fixed at the 2D.1 gate. It was not.** The per-instance fix was
+reasoned about correctly and rested on a false premise, and only the property caught it.
+
+Fix: store the whole provenance in one payload, validate both enums on the way back out.
+Now covered by three Qdrant-backed tests — the equivalence itself, an R2 test that strips
+the stored provenance and requires the comparison to fail, and one asserting a
+`not_in_chapter` refusal is reproducible rather than restored (it is never cached).
+
+### 2. D-050 — DEFAULT_FLOOR 0.35 → 0.45, interim and uncertified
+
+The finding is that **0.35 was never measured** — picked by judgement in 2C.3 and shipped as
+though calibrated. It admits 2 of 5 hard negatives on the golden chapter. 0.45 is the lowest
+swept value admitting none.
+
+Cost, stated: golden-set coverage 100% → 80% (`q04`, `q08` stop clearing). On the
+five-sentence `test_retrieval` fixture the cost is total — a directly-covered question
+scores ~0.43 there, so three `/ask` tests now pin the floor via `AAKAR_RELEVANCE_FLOOR` with
+the reason written down. The shipped default is still exercised on a real chapter by
+`test_the_shipped_default_floor_both_admits_and_refuses`, which requires both halves: a
+floor at 1.0 refuses everything and would otherwise pass every safety test written about it.
+
+### 3. Qdrant gap closed — and it was not an environment blocker
+
+Docker Desktop was installed and the CLI present; the **daemon was simply not running**.
+Started it, brought up Qdrant, and the ten previously skipped tests pass.
+
+**788 passed, 0 skipped.** Not a standing blocker: a machine-state problem I should have
+resolved rather than reported around, in Phase 0 and again here. The recurrence was mine,
+not the environment's. Bringing the daemon up is now part of running the suite, and it is
+what let D-049's tests exist at all — they need a real index.
+
+### 4. Golden set scope limits recorded — and printed
+
+Two `SCOPE_LIMITS` entries in `chapter.json`:
+
+- **A ceiling, not a typical case.** One clean, digital-native, professionally edited
+  English OpenStax chapter. The real input is scanned Indian textbooks. Faithfulness here is
+  close to the best this system will do; what it establishes is that failures seen on a
+  clean chapter are real, since the input cannot be blamed for them.
+- **`c06` tests the display path, not OCR noise.** It is clean verbatim text labelled `ocr`.
+  It proves the second axis reaches the student; it says nothing about whether real OCR
+  artefacts cause citation failures. Future work named in the file: one chunk of real
+  Tesseract output over a real scanned page, beside the digital text of the same page.
+
+Both are loaded into `GoldenSet.scope_limits` and printed by the runner on every run — a
+caveat that has to be looked up is a caveat that will not be. A test asserts both are
+present in the file and reach the report.
+
+### Verification
+
+788 pytest (0 skipped), 439 vitest, ruff + mypy-strict + tsc clean. Evidence regenerated in
+`evidence/phase2d/`.
+
+### Still open
+
+2D.2 is not started, per instruction: the golden labels are still unverified, and no pin has
+been resolved against a live provider.

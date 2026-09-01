@@ -61,6 +61,9 @@ class GoldenSet:
     verified: bool
     verified_by: str | None
     source: str
+    #: The chapter's own SCOPE_LIMITS block. Carried rather than left in the file so the
+    #: caveats travel with the numbers instead of waiting to be looked up.
+    scope_limits: dict[str, str]
 
     @property
     def provisional(self) -> bool:
@@ -132,6 +135,7 @@ def load_golden_set(directory: Path | None = None, *, corpus_id: str = "golden")
         verified=verified,
         verified_by=verified_by,
         source=str(chapter["source"]["work"]),
+        scope_limits={str(k): str(v) for k, v in chapter.get("SCOPE_LIMITS", {}).items()},
     )
 
 

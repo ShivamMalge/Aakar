@@ -8,6 +8,7 @@ next to the golden set rather than inline, because they are data a human has to 
 
 from __future__ import annotations
 
+import io
 import json
 import sqlite3
 from pathlib import Path
@@ -18,7 +19,7 @@ from qdrant_client import QdrantClient
 from aakar.evals import faithfulness as f
 from aakar.evals.embedders import EMBEDDERS, embedder_from_env, resolve_embedder
 from aakar.evals.golden import GOLDEN_DIR, load_golden_set, rank
-from aakar.evals.run import grade, load_answers
+from aakar.evals.run import grade, load_answers, main
 from aakar.evals.thresholds import calibrate_relevance_floor
 from aakar.rag.answer import build_prompt
 from aakar.rag.ask import Answer, Citation, ask
@@ -26,6 +27,7 @@ from aakar.rag.cache import scope_key, store
 from aakar.rag.embedding import Embedder, local_embed
 from aakar.rag.index import Hit
 from aakar.rag.provenance_resolve import ResolvedProvenance
+from aakar.rag.retrieval import DEFAULT_FLOOR
 
 
 def chunk(chunk_id: str, text: str, *, source: str = "digital", page: str = "1") -> Hit:
@@ -296,6 +298,53 @@ def test_the_sweep_actually_refuses_something_at_a_high_floor() -> None:
     assert any(r.missed > 0 for r in calibration.results), "no floor was too high"
 
 
+def test_the_scope_limits_are_recorded_and_reach_the_report() -> None:
+    """Both limits the architect named must be in the file AND printed by the runner.
+
+    A caveat that lives only in a JSON file is a caveat that gets skipped the first time
+    someone copies a number out of a terminal — which is exactly how a ceiling becomes a
+    typical case in someone's memory.
+    """
+    limits = load_golden_set().scope_limits
+    numbered = {k: v for k, v in limits.items() if k[:1].isdigit()}
+    assert len(numbered) == 2, "one limit per architect ruling: clean corpus, and clean OCR"
+    joined = " ".join(numbered.values()).lower()
+    assert "scanned indian textbook" in joined
+    assert "c06" in joined and "artefact" in joined
+
+    out = io.StringIO()
+    main(out)
+    printed = out.getvalue()
+    assert printed.count("scope limit") == 2
+
+
+def test_the_shipped_default_floor_both_admits_and_refuses() -> None:
+    """R1 and R2 on `DEFAULT_FLOOR` itself (D-050).
+
+    A floor is trivially "safe" at 1.0, where it refuses everything and answers nothing. So
+    the shipped default has to be shown doing both halves of its job on a real chapter: it
+    must refuse every one of the five hard negatives, and it must still admit real
+    questions. The number stays PROVISIONAL — this is the local lexical embedder — but the
+    *shape* of the requirement does not depend on the embedder, and this is the test that
+    fails loudly if 2D.2's measurement moves the default somewhere useless.
+    """
+    calibration = calibrate_relevance_floor(embedder=resolve_embedder("local"))
+    shipped = next(r for r in calibration.results if r.floor == DEFAULT_FLOOR)
+    assert shipped.false_coverage == 0, f"the default admits {shipped.false_ids}"
+    assert shipped.covered > 0, "a floor that admits nothing is not a floor, it is an outage"
+
+
+def test_raising_the_floor_is_what_closed_the_false_coverage() -> None:
+    """Records the finding behind D-050 as an executable fact, not a note in a file: the
+    previous default of 0.35 admitted questions this chapter cannot answer, and 0.45 is the
+    lowest swept value that admits none. If a future change makes 0.35 safe again, this
+    fails and the decision gets revisited deliberately."""
+    calibration = calibrate_relevance_floor(embedder=resolve_embedder("local"))
+    previous = next(r for r in calibration.results if r.floor == 0.35)
+    assert previous.false_coverage > 0, "0.35 was picked without measurement; this is why"
+    assert DEFAULT_FLOOR == 0.45
+
+
 def test_the_floor_result_carries_its_embedder_and_verification_state() -> None:
     calibration = calibrate_relevance_floor(embedder=resolve_embedder("local"))
     assert calibration.provisional
@@ -434,7 +483,12 @@ def test_a_cached_answer_keeps_its_ocr_warning(conn: sqlite3.Connection, owner_i
                     "source": "ocr",
                 }
             ],
-            "strength": "strong",
+            "provenance": {
+                "strength": "strong",
+                "source": "ocr",
+                "naming_chunk_ids": ["c06"],
+                "retrieved_chunk_ids": ["c06"],
+            },
         },
     )
 

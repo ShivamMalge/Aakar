@@ -90,6 +90,11 @@ def main(out: TextIO = sys.stdout) -> int:
     print(f"  answer fixtures: {len(fixtures)} (hand-written, not model output)", file=out)
     print(f"  embedder       : {embedder.label}", file=out)
     print(f"  labels verified: {golden.verified}", file=out)
+    for key, note in golden.scope_limits.items():
+        if key[:1].isdigit():
+            # Only the numbered limits. Printed on every run rather than left in the file,
+            # because a caveat that has to be looked up is a caveat that will not be.
+            print(f"  scope limit    : {note.split('.')[0]}.", file=out)
     if golden.provisional or not embedder.calibrating:
         print(file=out)
         print("  PROVISIONAL. Method closed, numbers open.", file=out)
