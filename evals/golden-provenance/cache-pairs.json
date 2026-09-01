@@ -1,0 +1,79 @@
+{
+  "what_this_is": "The paraphrase / near-miss set for the semantic cache threshold sweep (D-041, G-03). Committed rather than living in an ad-hoc script, because the 2C recalibration was run from one and could not be re-run against a different embedder without rewriting it.",
+
+  "how_to_read_it": "`paraphrases` mean the same question and MUST hit the cache. `near_misses` are lexically close and semantically different, and MUST NOT — a false hit is not a cheaper answer, it is a wrong answer delivered fluently, cited, and about the right part. False hits are therefore binding and absolute; hit rate is only cost.",
+
+  "why_these_pairs": "Every pair is grounded in the golden chapter, so the same corpus drives the cache sweep, the floor sweep and the faithfulness harness. The near-misses are built to be hard for a LEXICAL embedder and for a SEMANTIC one in different ways: some share almost every content word while asking a different question (nm01, nm03), and some share few words while being genuinely about the same thing — which is where a lexical embedder fails and a semantic one should not. That asymmetry is the point of running this on both.",
+
+  "paraphrases": [
+    {
+      "id": "p01",
+      "seeded": "What does the pupil do?",
+      "probe": "What is the function of the pupil?",
+      "note": "Near-identical wording. If this misses, the threshold is unusable at any setting."
+    },
+    {
+      "id": "p02",
+      "seeded": "Where is visual acuity greatest in the retina?",
+      "probe": "Which part of the retina gives the sharpest vision?",
+      "note": "Same question, almost no shared content words. This is the one a lexical embedder should fail and a semantic one should pass."
+    },
+    {
+      "id": "p03",
+      "seeded": "What fluid fills the posterior cavity of the eye?",
+      "probe": "What is the space behind the lens filled with?",
+      "note": "Same question by description rather than by name."
+    },
+    {
+      "id": "p04",
+      "seeded": "What pigment do rods contain?",
+      "probe": "Which photosensitive pigment is found in rod photoreceptors?",
+      "note": "Same question, expanded phrasing."
+    },
+    {
+      "id": "p05",
+      "seeded": "What are the three layers of the eye?",
+      "probe": "Name the three tunics of the eyeball.",
+      "note": "Same question in the technical register the chapter uses."
+    }
+  ],
+
+  "near_misses": [
+    {
+      "id": "nm01",
+      "seeded": "What does the pupil do?",
+      "probe": "What does the iris do?",
+      "note": "Two content words apart, and a different part. The cache is scoped per part, so this also has to be wrong ACROSS scopes to be a real test."
+    },
+    {
+      "id": "nm02",
+      "seeded": "What fluid fills the posterior cavity of the eye?",
+      "probe": "What fluid fills the anterior cavity of the eye?",
+      "note": "One word apart, opposite answer. Aqueous and vitreous humor are different fluids in different chambers."
+    },
+    {
+      "id": "nm03",
+      "seeded": "What pigment do rods contain?",
+      "probe": "What pigment do cones contain?",
+      "note": "One word apart. The chapter answers the first specifically (rhodopsin) and the second only generically."
+    },
+    {
+      "id": "nm04",
+      "seeded": "Where is visual acuity greatest in the retina?",
+      "probe": "Where is visual acuity worst in the retina?",
+      "note": "A single antonym. Any embedder that treats negation as noise hits here, and a student gets the opposite of the truth."
+    },
+    {
+      "id": "nm05",
+      "seeded": "What are the three layers of the eye?",
+      "probe": "What are the three layers of the retina?",
+      "note": "Same shape, different structure. The chapter answers one and not the other."
+    },
+    {
+      "id": "nm06",
+      "seeded": "What does the choroid supply?",
+      "probe": "What does the cornea do?",
+      "note": "Both vascular-tunic vocabulary, unrelated questions. The easy negative, kept as a floor: a threshold that hits here is broken outright."
+    }
+  ]
+}

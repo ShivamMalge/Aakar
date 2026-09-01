@@ -11,6 +11,13 @@ from .base import (
 )
 from .cassette import Cassette, CassetteMiss, CassetteProvider
 from .cost import CostLedger
+from .gemini import (
+    PRICING,
+    GeminiProvider,
+    ProviderError,
+    UnpricedModel,
+    usd_for,
+)
 from .models import (
     RETIRED_MODELS,
     RetiredModel,
@@ -29,7 +36,12 @@ __all__ = [
     "ChatRequest",
     "ChatResponse",
     "RETIRED_MODELS",
+    "PRICING",
     "CostLedger",
+    "GeminiProvider",
+    "ProviderError",
+    "UnpricedModel",
+    "usd_for",
     "RetiredModel",
     "check_configured_models",
     "assert_live_models",

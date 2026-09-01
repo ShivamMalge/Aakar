@@ -34,6 +34,23 @@ from aakar.rag.embedding import (
 #: What every harness accepts: text in, vector out.
 EmbedFn = Callable[[str], Sequence[float]]
 
+
+@dataclass(frozen=True)
+class Embedders:
+    """Query and document embedders, kept apart because the provider is asymmetric.
+
+    `gemini-embedding-001` embeds a passage and a question differently — that is what
+    `RETRIEVAL_DOCUMENT` and `RETRIEVAL_QUERY` are for, and using one for both throws away
+    half of what the model does. A single callable made that mistake invisible: the golden
+    harness embedded **chunk text through the query path**, which the local stub ignores
+    (it has no task type) and the real embedder does not. The bug was undetectable on the
+    embedder it was developed against, which is the whole reason for the 2D.1/2D.2 split.
+    """
+
+    query: EmbedFn
+    document: EmbedFn
+
+
 ENV_VAR = "AAKAR_EVAL_EMBEDDER"
 
 
@@ -49,44 +66,59 @@ class NamedEmbedder:
     calibrating: bool
     #: Why, in one line — printed with the result so the caveat travels with the number.
     caveat: str
-    build: Callable[[], EmbedFn]
+    build: Callable[[], Embedders]
 
     def __call__(self, text: str) -> Sequence[float]:
-        return self.build()(text)
+        """Convenience for a query. Documents must go through `build().document`."""
+        return self.build().query(text)
 
     @property
     def label(self) -> str:
         return f"{self.name} ({self.model} @ {self.dimensions}d)"
 
 
-def _local() -> EmbedFn:
-    return lambda text: local_embed(text, DEFAULT_DIMENSIONS)
+def _local() -> Embedders:
+    """The stub has no task type, so both sides are the same function — stated here rather
+    than left to look like an oversight."""
+    fn: EmbedFn = lambda text: local_embed(text, DEFAULT_DIMENSIONS)  # noqa: E731
+    return Embedders(query=fn, document=fn)
 
 
-def _gemini() -> EmbedFn:
-    """The shipping embedder.
+def _gemini() -> Embedders:
+    """The shipping embedder, **through the cassette** (D8, Rule 7).
 
-    **There is no live provider in the repository yet** — 2D.2 builds it, because it needs a
-    key. This row exists now anyway, and raises rather than silently falling back to
-    ``local``: a fallback would let every harness keep printing numbers while quietly
-    measuring the stub, which is precisely the confusion the split into 2D.1 and 2D.2 was
-    meant to prevent.
+    Mode comes from `AAKAR_PROVIDER_MODE`, so the same registry row serves both halves of
+    2D.2: `record` builds the live provider and writes cassettes, `replay` reads them and
+    never constructs a provider or reads a key. That is what makes "everything downstream
+    stays replay, CI never needs the key" true rather than aspirational — the alternative,
+    a second `gemini-replay` row, would be two code paths that could drift apart while both
+    claiming to measure the same embedder.
 
-    Wiring it up is one line here plus `AAKAR_EVAL_EMBEDDER=gemini`. No harness changes.
+    Built lazily: importing the registry must not construct a provider or read a key, or
+    every replay test would need one merely to enumerate the methods.
     """
-    raise NotImplementedError(
-        "the live embedding provider lands in 2D.2 (it needs an API key). Build it, then "
-        "return Embedder(<provider>, EmbeddingConfig.from_env()).embed_query from here."
-    )
+    from aakar.config import Settings  # noqa: PLC0415 - deliberately lazy
+    from aakar.providers import Cassette, CassetteProvider, GeminiProvider  # noqa: PLC0415
+
+    settings = Settings.from_env()
+    mode = settings.provider_mode
+    inner = GeminiProvider() if mode != "replay" else None
+    return provider_embedder(CassetteProvider(inner, Cassette(settings.cassette_dir), mode))
 
 
-def provider_embedder(provider: Provider) -> EmbedFn:
-    """Adapt any `Provider` into the single-text callable every harness takes.
+def provider_embedder(provider: Provider) -> Embedders:
+    """Adapt any `Provider` into the query/document pair every harness takes.
 
     The seam 2D.2 needs: wiring a real provider in touches this line and the registry row
     below, and nothing that consumes them.
     """
-    return Embedder(provider, EmbeddingConfig.from_env()).embed_query
+    embedder = Embedder(provider, EmbeddingConfig.from_env())
+    return Embedders(
+        query=embedder.embed_query,
+        # One text per call, matching what the harness sends at replay time — a batch here
+        # would record under a different request hash and never be replayed.
+        document=lambda text: embedder.embed([text])[0],
+    )
 
 
 EMBEDDERS: dict[str, NamedEmbedder] = {

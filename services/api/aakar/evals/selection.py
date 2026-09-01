@@ -147,18 +147,18 @@ def margin_distribution(hits: Sequence[Hit], *, z: float = 1.5) -> Selection:
     return Selection(covered=score_z >= z, pool=pool or tuple(hits[:1]), statistic=score_z)
 
 
-UNCERTIFIED = (
-    "not measured against a real embedder. Every number for this method comes from the "
-    "local lexical stub, where similarity is word overlap (D-041)."
-)
+#: A method's caveat is about the METHOD. Which embedder produced a given table is the
+#: embedder's business and is printed from `NamedEmbedder.caveat` — an earlier version
+#: hardcoded "comes from the local lexical stub" here, which then printed a falsehood the
+#: moment the same table was produced on the real embedder.
+UNCERTIFIED = "no architect ruling has certified this method for the shipped path (2D.1f)."
 
 METHODS: dict[str, SelectionMethod] = {
     "absolute": SelectionMethod(
         name="absolute",
         description=f"top-1 >= {DEFAULT_FLOOR} (production)",
         certified=False,
-        caveat=UNCERTIFIED + " D-050 raised the floor to 0.45 on this same evidence and "
-        "recorded it as interim and uncertified for the same reason.",
+        caveat=UNCERTIFIED + " Its floor is DEFAULT_FLOOR, itself interim and uncertified (D-050).",
         select=absolute,
     ),
     "margin_top2": SelectionMethod(
@@ -173,8 +173,8 @@ METHODS: dict[str, SelectionMethod] = {
         description="top-1 at least 1.5 sd above the corpus mean",
         certified=False,
         caveat=UNCERTIFIED
-        + " Additionally measured here over the whole corpus, while production fetches only "
-        "the top 8 — see the docstring; that gap is unclosed.",
+        + " Measured here over the whole corpus while production fetches only the top 8 — "
+        "see the docstring; that gap is unclosed.",
         select=margin_distribution,
     ),
 }

@@ -26,8 +26,11 @@ from .faithfulness import FaithfulnessReport, evaluate_answer, format_report
 from .golden import AnswerFixture, GoldenSet, load_answers, load_golden_set
 from .thresholds import (
     FINE_FLOORS,
+    WIDE_FLOORS,
     calibrate_relevance_floor,
     format_floor_table,
+    format_table,
+    sweep_cache_threshold,
 )
 
 
@@ -84,8 +87,32 @@ def main(out: TextIO = sys.stdout) -> int:
     # 0.05 steps across 0.30-0.60. The coarse sweep's 0.10 rows could hide a viable point
     # between "admits hard negatives" and "refuses real questions" (2D.1f).
     fine = calibrate_relevance_floor(golden, embedder=embedder, floors=FINE_FLOORS)
-    print("absolute floor, 0.05 steps", file=out)
+    print("absolute floor, 0.05 steps, 0.30-0.60 (as specified)", file=out)
     print(format_floor_table(fine), file=out)
+    print(file=out)
+
+    if fine.recommended is None:
+        # The safe floor is outside the requested band. Showing only a table where every
+        # row is UNSAFE would report "no answer" when there is one.
+        print("no safe floor in 0.30-0.60; widening to 0.30-0.90", file=out)
+        print(
+            format_floor_table(
+                calibrate_relevance_floor(golden, embedder=embedder, floors=WIDE_FLOORS)
+            ),
+            file=out,
+        )
+        print(file=out)
+
+    cache = sweep_cache_threshold(embedder)
+    print("cache similarity threshold (D-041)", file=out)
+    print(format_table(cache.results), file=out)
+    best = cache.recommended
+    print(
+        f"  lowest safe threshold: {best.threshold:.2f} (hit rate {best.hit_rate:.0%})"
+        if best
+        else "  no threshold in this sweep avoided every false hit",
+        file=out,
+    )
     print(file=out)
 
     print(format_comparison(compare(golden, embedder=embedder)), file=out)

@@ -1,0 +1,38 @@
+recording against gemini-3.6-flash / gemini-embedding-001
+  10 documents, 32 unique queries
+
+STEP 1 - budget guard, live provider, cap below the preflight estimate
+  REFUSED as required: run would reach $0.0500, over AAKAR_MAX_USD_PER_RUN=$0.04
+  ledger spent: $0.000000 over cap $0.04
+  rows in llm_calls: 0 (zero proves nothing was called)
+
+STEP 2 - budget guard on ACCUMULATED real spend, mid-run
+  cap $0.000005, per-call estimate $0.000002
+  guard never fired after 32 calls (spent $0.00000000)
+
+STEP 3 - recording
+  embedded 42 texts (0 live)
+
+2D.2 - one recorded answer, for hand-verification
+=================================================
+question: What fluid fills the space behind the lens?
+part    : Vitreous humour
+
+passages given to the model (in marker order):
+  [1] c06 (p. 543, ocr) score=0.7741
+       The anterior cavity is the space between the cornea and lens, including the iris and ciliary body. It is filled with a watery fluid called the aqueous humor. The posterior cavity is the space behind the lens that extends to the posterior side of the interior eyeball, where the retina is located. The posterior cavity is filled with a more viscous fluid called the vitreous humor.
+  [2] c03 (p. 542, digital) score=0.6364
+       The middle layer of the eye is the vascular tunic, which is mostly composed of the choroid, ciliary body, and iris. The choroid is a layer of highly vascularized connective tissue that provides a blood supply to the eyeball.
+  [3] c02 (p. 541, digital) score=0.6291
+       The transparent cornea covers the anterior part of the eye. It allows light to enter, and along with the lens, focuses light onto the retina.
+  [4] c01 (p. 541, digital) score=0.6288
+       The eye itself is a hollow sphere composed of three layers of tissue. The outermost layer is the fibrous tunic, which includes the white sclera and clear cornea.
+  [5] c05 (p. 543, digital) score=0.6283
+       The innermost layer of the eye is the neural tunic, or retina, which contains the nervous tissue responsible for photoreception.
+
+answer:
+The space behind the lens is known as the posterior cavity, which extends to the posterior side of the interior eyeball where the retina is located [1]. This cavity is filled with a viscous fluid called the vitreous humor [1].
+
+tokens: 445 in / 46 out  cost: $0.000506
+  ledger total: $0.000506 (paid-tier list price; see PRICING)
+  by tier: {'answer': 0.00050625}

@@ -1629,3 +1629,154 @@ there is slack above the chosen value but none below it.
 
 Recorded because a negative result that is not written down gets re-investigated. The
 finer grid is now part of the standing harness rather than a one-off check.
+
+---
+
+## D-053 — D-045 layer 2 executed; and `.env` is not loaded by the application
+
+**Status:** Measured · **Phase:** 2D.2a
+
+First live execution of the pin-resolution check. All four pins resolve against the
+provider's own listing (52 models, HTTP 200):
+
+| setting | model | provider says |
+| --- | --- | --- |
+| `AAKAR_MODEL` | `gemini-3.6-flash` | version `3.6-flash-07-2026`, 1 048 576 in / 65 536 out, `generateContent` |
+| `AAKAR_VLM_MODEL` | `gemini-3.6-flash` | same row; multimodal, which D3's critic needs |
+| `AAKAR_EMBED_MODEL` | `gemini-embedding-001` | version `001`, 2 048 in, `embedContent` |
+| `AAKAR_ANSWER_MODEL` | `gemini-3.6-flash` | defaults to `AAKAR_MODEL` (2B.8), same row |
+
+The registry (layer 1) and the live check (layer 2) now agree, which is the first time
+either has been compared against reality rather than against the other.
+
+**A gap found while doing it: nothing in the application reads `.env`.** `.env.example`
+opens with "copy to .env and fill", and `Settings.from_env` reads `os.environ` — so a key
+placed exactly where the template says to put it is **invisible to the app**. Only the
+recording harness sees it, because `evals/record.py` parses the file itself.
+
+Not fixed here, because the fix is a choice: add `python-dotenv` (a dependency for one
+feature) or hand-roll fifteen lines of parsing (quoting, comments, escapes — all the places
+a hand-rolled parser goes wrong). Recorded for the architect to rule on. The gap is not
+theoretical: it is the difference between the documented way to configure this project and
+a way that works.
+
+---
+
+## D-054 — The relevance floor did not just move on the real embedder; it inverted
+
+**Status:** Measured (labels still unverified) · **Phase:** 2D.2d · **Supersedes D-050's value**
+
+| floor | local: false coverage | **gemini: false coverage** |
+| --- | --- | --- |
+| 0.35 | 2 | **5 of 5** |
+| **0.45 (shipped)** | **0** | **5 of 5** |
+| 0.55 | 0 | 5 of 5 |
+| 0.65 | 0 | 2 |
+| 0.70 | — | 1 |
+| **0.75** | 0 | **0** (coverage 90%) |
+
+**The shipped floor admits every single hard negative on the embedder that ships.** Not a
+worse number — the opposite verdict. 0.45 was measured as the *lowest safe* value on the
+local stub and is the *most unsafe end* of the real range; the safe floor is 0.75, and at
+0.80 coverage collapses to 20%.
+
+This is the strongest possible vindication of D-041's rule and of the 2D.1/2D.2 split. The
+local measurement was not a conservative approximation of the real one. **A number derived
+from word overlap and a number derived from meaning are not the same quantity**, and
+treating the first as a stand-in would have shipped a floor that answers every question the
+chapter cannot answer.
+
+Also note what the 0.05 sweep across 0.30–0.60 shows on the real embedder: **every row
+UNSAFE**. The band the architect specified — correctly, for the local evidence — does not
+contain the answer at all. The runner now widens to 0.30–0.90 automatically when the
+requested band has no safe row, because a table of nothing but failures reads as "no answer
+exists" when one does.
+
+**Not switched.** The value is a ruling, not an implementation detail, and it rests on a
+golden set whose labels are still unverified.
+
+---
+
+## D-055 — The cache threshold is safe and useless at 0.92
+
+**Status:** Measured · **Phase:** 2D.2d
+
+| threshold | local: false hits / hit rate | **gemini: false hits / hit rate** |
+| --- | --- | --- |
+| 0.80 | 5 / 0% | 4 / **80%** |
+| 0.85 | 3 / 0% | 2 / 40% |
+| 0.90 | 1 / 0% | 1 / 20% |
+| **0.92 (shipped)** | 1 / 0% | **0 / 0%** |
+| 0.95 | 0 / 0% | 0 / 0% |
+
+On the real embedder the shipped threshold makes **no false hits and no hits at all**. The
+cache exists to stop paying twice for the same question and, on this pair set, never fires.
+
+**No threshold both separates and caches.** The paraphrase and near-miss distributions
+overlap: at 0.90 the cache answers one in five questions and gets one wrong. Given D-041's
+rule — a false hit is a wrong answer, a low hit rate is only cost — 0.92 is the correct
+choice among these, and the honest description of it is *"the cache is currently off"*.
+
+Two caveats that are part of the finding, not excuses for it:
+
+* The near-misses are deliberately brutal — `anterior`/`posterior`, `greatest`/`worst`, one
+  antonym apart. They *should* miss, and a set of easy negatives would have produced a
+  flattering number about nothing (R2).
+* The paraphrases are deliberately hard: `p02` shares almost no content words with its
+  probe. That is what a student actually types.
+
+The local column is worth reading too: **0% hit rate at every threshold.** The lexical
+embedder cannot match any of these paraphrases, which is the same fact D-041 recorded,
+finally visible as a number.
+
+---
+
+## D-056 — A defect invisible on the only embedder available to develop against
+
+**Status:** Fixed · **Phase:** 2D.2
+
+The golden harness embedded **chunk text through the query path**. `gemini-embedding-001`
+embeds a passage and a question differently — that is what `RETRIEVAL_DOCUMENT` and
+`RETRIEVAL_QUERY` are for, and the codebase is careful about it everywhere except here.
+
+It was undetectable before a key existed: `local_embed` has no task type, so both paths were
+the same function and every local number was correct. The bug's entire visible surface was
+on the embedder nobody could run.
+
+The cause was shape, not carelessness. `NamedEmbedder.build()` returned **one** callable, so
+"embed this" had a single spelling and the document/query distinction had nowhere to live.
+The fix is a two-field `Embedders` record, which makes the wrong call impossible to write
+rather than merely wrong when written.
+
+**The general lesson, which is the same one D-045 taught from another direction:** a
+component that only ever runs against a stub has been tested against a thing that cannot
+exhibit the behaviour under test. D-045 was a pin never resolved; this was an asymmetry
+never exercised. Both were green suites describing a system nobody had run.
+
+---
+
+## D-057 — The budget guard, exercised against a live provider
+
+**Status:** Measured · **Phase:** 2D.2b
+
+Two separate failures, because the guard has two and only one had ever been shown:
+
+1. **Refusal before spending.** Cap $0.04, below `CassetteProvider`'s flat $0.05 preflight
+   estimate, real provider wired in. `BudgetExceeded` raised, `llm_calls` empty, **zero
+   requests left the machine**.
+2. **Refusal on accumulated real spend, mid-run.** Cap $0.000005 with a realistic per-call
+   estimate. Thirty live calls succeeded, the ledger reached $0.00000435, and the next
+   preflight refused.
+
+The second matters because the first only proves the flat estimate blocks a *first* call. A
+guard that never accumulates is a guard against one expensive request, not against a run.
+
+**A finding from doing it:** with the shipped $0.05 flat estimate and real per-call costs
+around $0.000002, accumulation is effectively inert on this workload — the guard is
+whichever of cap-versus-estimate fires first, and real spend never approaches the cap. Fine
+for embeddings; it will not be for generation at scale, where a per-tier estimate closer to
+the truth would be worth having.
+
+Total recording cost: **$0.000506**, all answer-tier, at paid-tier list price (the true
+charge on a free-tier key is $0; the ledger deliberately over-reports, which is the safe
+direction for a guard).

@@ -1,0 +1,10 @@
+API key exposure scan
+=====================
+  scanning for a 53-character value (never printed)
+  1. .env ignored by .gitignore:20:.env
+  2. absent from all 21 commits
+  3. absent from all 44 cassette files
+  4. absent from every working-tree file (.env excepted)
+  5. no key-shaped string anywhere in the working tree
+
+ALL CLEAR

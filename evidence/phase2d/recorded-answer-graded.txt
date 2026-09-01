@@ -1,0 +1,24 @@
+THE ONE REAL ANSWER, GRADED BY THE SAME HARNESS
+===============================================
+citation faithfulness - one live answer
+=======================================
+PROVISIONAL - method closed, number open.
+  embedder: gemini (gemini-embedding-001 @ 768d) + gemini-3.6-flash
+  Golden labels are not human-verified and/or this is not the embedder that
+  ships. These counts prove the harness runs; they do not measure the product.
+
+  claims made                            : 2
+  supported                              : 2
+
+  1. markers naming no retrieved passage : 0
+  2. sentences the cited chunk does not
+     support                             : 0
+  3. uncited claims in no retrieved chunk: 0
+
+  (uncited but present in a chunk)       : 0
+  (lexically ambiguous, needs a human)   : 0
+
+  supported    markers=(1,) cited_overlap=0.92  The space behind the lens is known as the posterior cavity, which extends to t
+  supported    markers=(1,) cited_overlap=1.00  This cavity is filled with a viscous fluid called the vitreous humor.
+
+cited chunk source: ocr | page label: 543

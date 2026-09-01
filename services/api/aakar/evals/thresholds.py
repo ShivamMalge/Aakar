@@ -28,15 +28,17 @@ coverage, and shows what that costs in missed coverage.
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from aakar.rag.benchmark import QuestionPair, ThresholdResult, evaluate, format_table, recommend
 from aakar.rag.retrieval import DEFAULT_FLOOR, part_scope_terms
 
 from .embedders import NamedEmbedder, embedder_from_env
-from .golden import GoldenSet, load_golden_set, rank
+from .golden import GOLDEN_DIR, GoldenSet, load_golden_set, rank
 
 #: The sweep must span both failure modes or it measures nothing: low enough that the hard
 #: negatives get through, high enough that real questions get refused. `DEFAULT_FLOOR` is
@@ -50,6 +52,13 @@ FLOORS: tuple[float, ...] = tuple(sorted({0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.
 #: sit between two rows and never appear. Reported beside the coarse table rather than
 #: replacing it, so the earlier numbers stay checkable.
 FINE_FLOORS: tuple[float, ...] = tuple(round(0.30 + 0.05 * i, 2) for i in range(7))
+
+#: The band the *real* embedder's answer sits in. `gemini-embedding-001` scores a relevant
+#: chunk far higher than the lexical stub does, so a sweep stopping at 0.60 shows a table in
+#: which every row is UNSAFE and hides the number entirely. Reported alongside the 0.30-0.60
+#: band rather than instead of it: the requested sweep stays checkable, and the answer is
+#: visible.
+WIDE_FLOORS: tuple[float, ...] = tuple(round(0.30 + 0.05 * i, 2) for i in range(13))
 
 
 @dataclass(frozen=True)
@@ -81,7 +90,7 @@ def calibrate_cache_threshold(
 ) -> CalibrationResult:
     """Run the D-041 sweep against a named embedder."""
     embedder = embedder or embedder_from_env()
-    embed = embedder.build()
+    embed = embedder.build().query
     results = evaluate(
         conn,
         owner_id=owner_id,
@@ -162,7 +171,9 @@ def calibrate_relevance_floor(
     embedder = embedder or embedder_from_env()
     embed = embedder.build()
 
-    chunk_vectors = [embed(chunk.text) for chunk in golden.chunks]
+    # Chunks are DOCUMENTS. Sending them through the query path is the asymmetry bug
+    # `Embedders` exists to make impossible to write by accident.
+    chunk_vectors = [embed.document(chunk.text) for chunk in golden.chunks]
 
     best_scores: dict[str, float] = {}
     for question in golden.questions:
@@ -171,7 +182,7 @@ def calibrate_relevance_floor(
         # scope terms are what the click already told us, and a floor calibrated on the
         # bare question would be a floor for a query the system never sends.
         scoped = f"{' '.join(terms)} {question.question}"
-        ranked = rank(embed(scoped), golden.chunks, chunk_vectors)[:limit]
+        ranked = rank(embed.query(scoped), golden.chunks, chunk_vectors)[:limit]
         best_scores[question.id] = ranked[0].score if ranked else 0.0
 
     results: list[FloorResult] = []
@@ -245,3 +256,59 @@ __all__ = [
     "format_floor_table",
     "format_table",
 ]
+
+
+def load_cache_pairs(
+    directory: Path | None = None,
+) -> tuple[list[QuestionPair], list[QuestionPair]]:
+    """The committed paraphrase / near-miss set.
+
+    Committed rather than living in a script: the 2C recalibration was run from an ad-hoc
+    one, which is why the number could not simply be re-measured against a different
+    embedder — the pairs had to be reconstructed first.
+    """
+    payload = json.loads(
+        ((directory or GOLDEN_DIR) / "cache-pairs.json").read_text(encoding="utf-8")
+    )
+    return (
+        [
+            QuestionPair(p["seeded"], p["probe"], should_hit=True, note=p.get("note", ""))
+            for p in payload["paraphrases"]
+        ],
+        [
+            QuestionPair(p["seeded"], p["probe"], should_hit=False, note=p.get("note", ""))
+            for p in payload["near_misses"]
+        ],
+    )
+
+
+def sweep_cache_threshold(embedder: NamedEmbedder) -> CalibrationResult:
+    """Run the D-041 sweep on a throwaway in-memory database.
+
+    The cache is bookkeeping, not the artefact; persisting a calibration run into the real
+    database would leave seeded answers that a later question could hit.
+    """
+    from aakar.auth import ensure_owner  # noqa: PLC0415 - avoids a cycle at import time
+    from aakar.db import apply_schema, connect
+
+    paraphrases, near_misses = load_cache_pairs()
+    conn = connect(Path(":memory:"))
+    apply_schema(conn)
+    owner = ensure_owner(conn, "sweep@local", "sweep-only-password-long-enough")
+    conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('golden', 'gh', 'g')")
+    conn.execute(
+        "INSERT INTO topics (id, owner_id, corpus_id, slug, title)"
+        " VALUES ('t1', ?, 'golden', 'eye', 'Eye')",
+        (owner,),
+    )
+    conn.commit()
+    return calibrate_cache_threshold(
+        conn,
+        owner_id=owner,
+        corpus_id="golden",
+        topic_id="t1",
+        scope="eye",
+        paraphrases=paraphrases,
+        near_misses=near_misses,
+        embedder=embedder,
+    )

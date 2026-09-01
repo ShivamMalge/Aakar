@@ -89,13 +89,16 @@ def _scored(
     rules, and re-embedding per method would let embedding noise leak into the difference.
     """
     embed = embedder.build()
-    vectors = [embed(chunk.text) for chunk in golden.chunks]
+    # Chunks are DOCUMENTS; questions below are QUERIES. See `Embedders`.
+    vectors = [embed.document(chunk.text) for chunk in golden.chunks]
 
     by_question: dict[str, list[Hit]] = {}
     for question in golden.questions:
         terms = part_scope_terms(question.part, question.aliases)
         scoped = f"{' '.join(terms)} {question.question}"
-        by_question[question.id] = rank(embed(scoped), golden.chunks, vectors)[:RETRIEVE_LIMIT]
+        by_question[question.id] = rank(embed.query(scoped), golden.chunks, vectors)[
+            :RETRIEVE_LIMIT
+        ]
 
     by_fixture: dict[str, list[Hit]] = {}
     lookup = {q.id: q for q in golden.questions}
@@ -201,10 +204,13 @@ def _grade_under(
 
 def format_comparison(results: Sequence[MethodComparison]) -> str:
     """Both tables, side by side, with no recommendation. The architect rules."""
+    embedder = results[0].embedder if results else None
     lines = [
         "selection method comparison (2D.1f)",
         "=" * 35,
-        "PROVISIONAL - every method below is UNCERTIFIED and the embedder is lexical.",
+        f"embedder: {embedder.label if embedder else 'none'}",
+        "PROVISIONAL - every method below is UNCERTIFIED for the shipped path.",
+        *([f"  {embedder.caveat}"] if embedder and embedder.caveat else []),
         "No preference is computed here. The two tables measure different things and a",
         "method can win one while losing the other.",
         "",

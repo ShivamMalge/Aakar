@@ -21,6 +21,7 @@ from aakar.evals.embedders import EMBEDDERS, embedder_from_env, resolve_embedder
 from aakar.evals.golden import GOLDEN_DIR, load_answers, load_golden_set, rank
 from aakar.evals.run import grade, main
 from aakar.evals.thresholds import calibrate_relevance_floor
+from aakar.providers import ProviderError
 from aakar.rag.answer import build_prompt
 from aakar.rag.ask import Answer, Citation, ask
 from aakar.rag.cache import scope_key, store
@@ -205,8 +206,8 @@ def test_the_ranker_scores_with_the_same_numbering_the_prompt_uses() -> None:
     graded against a scheme the model was never given."""
     golden = load_golden_set()
     embed = resolve_embedder("local").build()
-    vectors = [embed(c.text) for c in golden.chunks]
-    ranked = rank(embed("what is the pupil"), golden.chunks, vectors)
+    vectors = [embed.document(c.text) for c in golden.chunks]
+    ranked = rank(embed.query("what is the pupil"), golden.chunks, vectors)
     prompt = build_prompt("what is the pupil", ranked[:3])
     assert prompt.numbering[1] is ranked[0]
     assert set(prompt.numbering) == {1, 2, 3}
@@ -252,10 +253,24 @@ def test_the_local_embedder_refuses_to_certify_a_threshold() -> None:
     assert local.caveat
 
 
-def test_the_shipping_embedder_raises_rather_than_falling_back() -> None:
-    """A silent fallback to ``local`` would let every harness keep printing numbers while
-    measuring the stub — exactly the confusion the 2D.1/2D.2 split exists to prevent."""
-    with pytest.raises(NotImplementedError, match="2D.2"):
+def test_the_shipping_embedder_needs_no_key_in_replay(monkeypatch: pytest.MonkeyPatch) -> None:
+    """2D.2e, as a test rather than an assertion in a report: the real embedder is reachable
+    through the cassette with no key at all, which is what lets CI re-run every 2D.2
+    measurement for free."""
+    monkeypatch.delenv("AAKAR_API_KEY", raising=False)
+    monkeypatch.setenv("AAKAR_PROVIDER_MODE", "replay")
+    assert EMBEDDERS["gemini"].build() is not None
+
+
+def test_the_shipping_embedder_refuses_to_record_without_a_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """And it still refuses rather than falling back to `local`. A silent fallback would let
+    every harness keep printing numbers while measuring the stub — the exact confusion the
+    2D.1/2D.2 split exists to prevent."""
+    monkeypatch.delenv("AAKAR_API_KEY", raising=False)
+    monkeypatch.setenv("AAKAR_PROVIDER_MODE", "record")
+    with pytest.raises(ProviderError, match="AAKAR_API_KEY"):
         EMBEDDERS["gemini"].build()
 
 
