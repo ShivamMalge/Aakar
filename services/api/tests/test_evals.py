@@ -18,8 +18,8 @@ from qdrant_client import QdrantClient
 
 from aakar.evals import faithfulness as f
 from aakar.evals.embedders import EMBEDDERS, embedder_from_env, resolve_embedder
-from aakar.evals.golden import GOLDEN_DIR, load_golden_set, rank
-from aakar.evals.run import grade, load_answers, main
+from aakar.evals.golden import GOLDEN_DIR, load_answers, load_golden_set, rank
+from aakar.evals.run import grade, main
 from aakar.evals.thresholds import calibrate_relevance_floor
 from aakar.rag.answer import build_prompt
 from aakar.rag.ask import Answer, Citation, ask

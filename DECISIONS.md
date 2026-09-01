@@ -1566,3 +1566,66 @@ cost being accepted, and it is written down rather than absorbed.
 then `test_the_shipped_default_floor_both_admits_and_refuses` holds it to both halves of its
 job on a real chapter — a floor at 1.0 refuses everything and would otherwise pass every
 safety test written about it.
+
+---
+
+## D-051 — Selection methods are registered and certified, like embedders
+
+**Status:** Built, **all methods uncertified** · **Phase:** 2D.1f · **No mechanism change**
+
+The relevance floor was never a mechanism anyone chose; it was the first thing that worked,
+and D-050 found its value had never been measured. 2D.1f makes the *mechanism* a choice
+with the same shape as the embedder choice, so the next one is picked on evidence.
+
+**Three methods, all `certified=False`:**
+
+| method | rule | pool |
+| --- | --- | --- |
+| `absolute` | top-1 ≥ `DEFAULT_FLOOR` | **every** retrieved hit (production, unchanged) |
+| `margin_top2` | top-1 − top-2 ≥ 0.10 | hits within 0.10 of the top |
+| `margin_distribution` | top-1 ≥ 1.5 sd above the corpus mean | hits ≥ 1.5 sd |
+
+**The guard.** `shipped_method()` raises `UncertifiedMethod` for anything not measured
+against a real embedder; `resolve_method()` deliberately does not check, because a harness
+that could only run trusted methods could never produce the evidence that makes one
+trusted. Today `shipped_method()` refuses everything, which is correct — the production
+path does not call it, and wiring one in is a ruling that follows 2D.2's measurement rather
+than something an environment variable can do first.
+
+**A method decides two things and both are reported.** `covered` (Rule 6) and the *pool* —
+which chunks reach the prompt. They are not separable: a rule confident enough to answer is
+asserting which evidence is good. Reporting only coverage would hide that
+`margin_distribution` reaches 80% coverage on a mean pool of **1.1 chunks**, which is not
+better retrieval, only quieter.
+
+**`absolute`'s pool is every hit, and that is a finding in itself.** Production passes all
+eight retrieved chunks to the prompt regardless of score, so a chunk at 0.02 is handed to
+the model alongside one at 0.9. The floor gates *whether to answer* and does nothing about
+*what the answer is built from* — a gap neither D-050 nor the 2C design noticed, because
+nothing had ever reported pool composition.
+
+**Faithfulness is measured under each rule** by rewriting each fixture's markers from its
+own passage list into the method's pool. A fixture's `[2]` names a chunk, not a slot; if a
+method drops that chunk the marker resolves to nothing, which is count 1 arriving from
+*selection* rather than from the model. That coupling is the only reason the second table
+says anything the first does not.
+
+Nothing in the module computes a preference. The comparison is reported; the architect
+rules.
+
+---
+
+## D-052 — The 0.10 sweep was not hiding a viable floor
+
+**Status:** Measured (PROVISIONAL) · **Phase:** 2D.1f
+
+Re-swept at 0.05 between 0.30 and 0.60 on the local embedder, as instructed, to check
+whether the coarse grid's jump from "admits two hard negatives" at 0.35 to "refuses two
+covered questions" at 0.45 was a resolution artefact.
+
+It was not. 0.40 still admits one false coverage; 0.45 is the first safe point and the
+lowest safe point, unchanged. 0.50 costs nothing extra over 0.45 (identical counts), so
+there is slack above the chosen value but none below it.
+
+Recorded because a negative result that is not written down gets re-investigated. The
+finer grid is now part of the standing harness rather than a one-off check.

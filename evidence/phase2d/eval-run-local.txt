@@ -30,6 +30,52 @@ PROVISIONAL - method closed, number open.
 
   lowest safe floor: 0.45 (coverage 80%, missed ['q04', 'q08'])
 
+absolute floor, 0.05 steps
+PROVISIONAL - method closed, number open.
+  embedder: local (hashed bag-of-words + character trigrams @ 768d)
+  golden set human-verified: False
+  lexical, not semantic. Similarity here measures word overlap, so a threshold measured on it describes string matching and not meaning (D-041).
+
+ floor  false cover  coverage  covered  missed  refused  verdict
+----------------------------------------------------------------------------
+  0.30            3     100%       10       0        2  UNSAFE - answers uncovered questions
+  0.35            2     100%       10       0        3  UNSAFE - answers uncovered questions
+  0.40            1     100%       10       0        4  UNSAFE - answers uncovered questions
+  0.45            0      80%        8       2        5  usable
+  0.50            0      80%        8       2        5  usable
+  0.55            0      70%        7       3        5  usable
+  0.60            0      50%        5       5        5  usable
+
+  lowest safe floor: 0.45 (coverage 80%, missed ['q04', 'q08'])
+
+selection method comparison (2D.1f)
+===================================
+PROVISIONAL - every method below is UNCERTIFIED and the embedder is lexical.
+No preference is computed here. The two tables measure different things and a
+method can win one while losing the other.
+
+1. selection - does the rule answer the right questions
+               method  false cover  coverage  missed  refused  mean pool
+----------------------------------------------------------------------------------
+             absolute            0      80%       2        5       10.0
+          margin_top2            0      70%       3        5        3.1
+  margin_distribution            4      80%       2        1        1.1
+
+2. citation faithfulness under that rule - same three counts as 2D.1c
+               method  1 unresolvable  2 unsupported  3 uncited  (missing mk)  claims
+------------------------------------------------------------------------------------------
+             absolute               1              2          1             1      10
+          margin_top2               2              2          1             1      10
+  margin_distribution               3              3          2             0      10
+
+  method notes:
+    absolute: top-1 >= 0.45 (production)
+      certified: False - not measured against a real embedder. Every number for this method comes from the local lexical stub, where similarity is word overlap (D-041). D-050 raised the floor to 0.45 on this same evidence and recorded it as interim and uncertified for the same reason.
+    margin_top2: top-1 minus top-2 >= 0.10
+      certified: False - not measured against a real embedder. Every number for this method comes from the local lexical stub, where similarity is word overlap (D-041).
+    margin_distribution: top-1 at least 1.5 sd above the corpus mean
+      certified: False - not measured against a real embedder. Every number for this method comes from the local lexical stub, where similarity is word overlap (D-041). Additionally measured here over the whole corpus, while production fetches only the top 8 — see the docstring; that gap is unclosed.
+
 per-fixture verdicts
 --------------------
   ok  a01  expected clean                  fired clean

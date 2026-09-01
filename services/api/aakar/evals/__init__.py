@@ -13,6 +13,7 @@ Two rules hold across everything in this package:
   facts attached gets repeated later without them (D-041).
 """
 
+from .compare import compare, format_comparison
 from .embedders import EMBEDDERS, NamedEmbedder, embedder_from_env, resolve_embedder
 from .faithfulness import (
     FaithfulnessReport,
@@ -21,16 +22,26 @@ from .faithfulness import (
     format_report,
     supports,
 )
-from .golden import GoldenQuestion, GoldenSet, load_golden_set
+from .golden import AnswerFixture, GoldenQuestion, GoldenSet, load_answers, load_golden_set
+from .selection import METHODS, SelectionMethod, UncertifiedMethod, resolve_method, shipped_method
 from .thresholds import calibrate_relevance_floor, format_floor_table
 
 __all__ = [
     "EMBEDDERS",
+    "METHODS",
+    "AnswerFixture",
     "FaithfulnessReport",
     "GoldenQuestion",
     "GoldenSet",
     "NamedEmbedder",
+    "SelectionMethod",
     "SentenceVerdict",
+    "UncertifiedMethod",
+    "compare",
+    "format_comparison",
+    "load_answers",
+    "resolve_method",
+    "shipped_method",
     "calibrate_relevance_floor",
     "embedder_from_env",
     "evaluate_answer",

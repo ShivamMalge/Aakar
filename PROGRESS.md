@@ -1024,3 +1024,67 @@ present in the file and reach the report.
 
 2D.2 is not started, per instruction: the golden labels are still unverified, and no pin has
 been resolved against a live provider.
+
+---
+
+## 2D.1f · 2026-09-01 — selection methods, built and measured PROVISIONAL
+
+Method closed, numbers open. Every method is `certified=False`; the embedder is the local
+lexical stub; the golden labels are still unverified. Nothing below can ship.
+
+### Registered and guarded (D-051)
+
+Three methods in `aakar/evals/selection.py`, registered exactly as the embedders are.
+`shipped_method()` raises `UncertifiedMethod` for anything not measured against a real
+embedder — today, all of them. `resolve_method()` does not check, because a harness that
+could only run trusted methods could never certify one.
+
+### Table 1 — selection (local embedder, PROVISIONAL)
+
+| method | false coverage | coverage | missed | refused | mean pool |
+| --- | --- | --- | --- | --- | --- |
+| `absolute` (top-1 ≥ 0.45) | 0 | 80% | 2 | 5 | 10.0 |
+| `margin_top2` (Δ ≥ 0.10) | 0 | 70% | 3 | 5 | 3.1 |
+| `margin_distribution` (z ≥ 1.5) | **4** | 80% | 2 | 1 | 1.1 |
+
+### Table 2 — the three faithfulness counts under each rule
+
+| method | 1 unresolvable | 2 unsupported | 3 uncited | (missing marker) | claims |
+| --- | --- | --- | --- | --- | --- |
+| `absolute` | 1 | 2 | 1 | 1 | 10 |
+| `margin_top2` | 2 | 2 | 1 | 1 | 10 |
+| `margin_distribution` | 3 | 3 | 2 | 0 | 10 |
+
+Reported without a preference, as instructed. Two observations that are facts rather than
+recommendations:
+
+- **`margin_distribution` and `absolute` have identical coverage (80%) and very different
+  faithfulness.** That difference is invisible in Table 1 and is the entire reason Table 2
+  exists.
+- **Mean pool size is the confound and is printed beside every count.** A method can look
+  faithful by showing the model almost nothing; `margin_distribution` reaches its numbers
+  on a 1.1-chunk pool.
+
+### A finding neither table was looking for
+
+`absolute` reproduces production, and **production's pool is every retrieved hit.** A chunk
+scoring 0.02 goes into the prompt beside one scoring 0.9. The floor decides *whether to
+answer* and nothing about *what the answer is built from*. Nothing had reported pool
+composition before, so this had never surfaced.
+
+### The 0.05 sweep (D-052)
+
+The coarse grid was **not** hiding a viable point. 0.40 still admits one false coverage;
+0.45 remains the first and lowest safe value. 0.50 is identical to 0.45, so there is slack
+above the chosen floor and none below it. Recorded so it is not re-investigated.
+
+### Verification
+
+809 pytest (0 skipped; 21 new), 439 vitest, ruff + mypy-strict + tsc clean. Evidence
+regenerated in `evidence/phase2d/`.
+
+### Re-scanned at the architect's request, both still pending
+
+- **Key:** no `.env` at the repo root; nothing matching `GOOGLE|GEMINI|AAKAR|API|KEY` in the
+  process, user, or machine environment. 2D.2 remains blocked.
+- **Golden labels:** `verified: false`, `verified_by: null`, unchanged.

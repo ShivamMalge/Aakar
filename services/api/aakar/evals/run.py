@@ -15,46 +15,20 @@ lexical. The method is what is closed here. The numbers are open until 2D.2.
 
 from __future__ import annotations
 
-import json
 import sys
-from dataclasses import dataclass
-from pathlib import Path
 from typing import TextIO
 
 from aakar.rag.answer import build_prompt
 
+from .compare import compare, format_comparison
 from .embedders import NamedEmbedder, embedder_from_env
 from .faithfulness import FaithfulnessReport, evaluate_answer, format_report
-from .golden import GOLDEN_DIR, GoldenSet, load_golden_set
-from .thresholds import calibrate_relevance_floor, format_floor_table
-
-
-@dataclass(frozen=True)
-class AnswerFixture:
-    id: str
-    question_id: str
-    #: Chunk ids behind markers [1], [2], ... — fixed by the fixture, not by ranking.
-    passages: tuple[str, ...]
-    #: The count this fixture exists to trigger: a harness that stops seeing it is broken.
-    expect: str
-    text: str
-    why: str = ""
-
-
-def load_answers(directory: Path | None = None) -> tuple[AnswerFixture, ...]:
-    directory = directory or GOLDEN_DIR
-    payload = json.loads((directory / "answers.json").read_text(encoding="utf-8"))
-    return tuple(
-        AnswerFixture(
-            id=str(a["id"]),
-            question_id=str(a["question_id"]),
-            passages=tuple(a["passages"]),
-            expect=str(a["expect"]),
-            text=str(a["text"]),
-            why=str(a.get("why", "")),
-        )
-        for a in payload["answers"]
-    )
+from .golden import AnswerFixture, GoldenSet, load_answers, load_golden_set
+from .thresholds import (
+    FINE_FLOORS,
+    calibrate_relevance_floor,
+    format_floor_table,
+)
 
 
 def grade(
@@ -105,6 +79,16 @@ def main(out: TextIO = sys.stdout) -> int:
     print(file=out)
 
     print(format_floor_table(calibrate_relevance_floor(golden, embedder=embedder)), file=out)
+    print(file=out)
+
+    # 0.05 steps across 0.30-0.60. The coarse sweep's 0.10 rows could hide a viable point
+    # between "admits hard negatives" and "refuses real questions" (2D.1f).
+    fine = calibrate_relevance_floor(golden, embedder=embedder, floors=FINE_FLOORS)
+    print("absolute floor, 0.05 steps", file=out)
+    print(format_floor_table(fine), file=out)
+    print(file=out)
+
+    print(format_comparison(compare(golden, embedder=embedder)), file=out)
     print(file=out)
 
     combined = FaithfulnessReport(provisional=golden.provisional, embedder=embedder.label)

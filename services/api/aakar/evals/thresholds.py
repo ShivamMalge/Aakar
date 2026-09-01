@@ -44,6 +44,13 @@ from .golden import GoldenSet, load_golden_set, rank
 #: 2D.2 moves it.
 FLOORS: tuple[float, ...] = tuple(sorted({0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, DEFAULT_FLOOR}))
 
+#: 0.05 steps across the interesting band (2D.1f). The coarse sweep jumps straight from
+#: "admits two hard negatives" at 0.35 to "refuses two real questions" at 0.45, which is
+#: the shape of a resolution problem as much as a separability one — a viable point could
+#: sit between two rows and never appear. Reported beside the coarse table rather than
+#: replacing it, so the earlier numbers stay checkable.
+FINE_FLOORS: tuple[float, ...] = tuple(round(0.30 + 0.05 * i, 2) for i in range(7))
+
 
 @dataclass(frozen=True)
 class CalibrationResult:

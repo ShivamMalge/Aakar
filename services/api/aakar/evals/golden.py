@@ -139,6 +139,34 @@ def load_golden_set(directory: Path | None = None, *, corpus_id: str = "golden")
     )
 
 
+@dataclass(frozen=True)
+class AnswerFixture:
+    id: str
+    question_id: str
+    #: Chunk ids behind markers [1], [2], ... — fixed by the fixture, not by ranking.
+    passages: tuple[str, ...]
+    #: The count this fixture exists to trigger: a harness that stops seeing it is broken.
+    expect: str
+    text: str
+    why: str = ""
+
+
+def load_answers(directory: Path | None = None) -> tuple[AnswerFixture, ...]:
+    directory = directory or GOLDEN_DIR
+    payload = json.loads((directory / "answers.json").read_text(encoding="utf-8"))
+    return tuple(
+        AnswerFixture(
+            id=str(a["id"]),
+            question_id=str(a["question_id"]),
+            passages=tuple(a["passages"]),
+            expect=str(a["expect"]),
+            text=str(a["text"]),
+            why=str(a.get("why", "")),
+        )
+        for a in payload["answers"]
+    )
+
+
 def cosine(a: Sequence[float], b: Sequence[float]) -> float:
     """Dot product. Both sides are already L2-normalized (D-043's MRL rule), so this *is*
     cosine — and if that ever stops being true the eval numbers move, which is the loudest
