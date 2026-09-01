@@ -11,6 +11,10 @@ dependencies = [
     "pyjwt>=2.9",
     "passlib[argon2]>=1.7.4",
     "python-multipart>=0.0.12",
+    # D-060. `.env.example` said "copy to .env and fill" while nothing read the file, so a
+    # key placed where the template said was invisible to the app. Fifteen hand-rolled
+    # lines of quoting and escaping is a worse trade than a small, standard dependency.
+    "python-dotenv>=1.0",
     # Ingest boundary only: page count, encryption detection and page LABELS (2A.3/4/6).
     # Deliberately NOT the parser — LightningParse owns chunking and page-numbered text.
     "pypdf>=5.1",

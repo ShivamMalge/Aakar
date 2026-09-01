@@ -23,7 +23,7 @@ from aakar.evals.selection import (
     resolve_method,
     shipped_method,
 )
-from aakar.evals.thresholds import FINE_FLOORS
+from aakar.evals.thresholds import FINE_FLOORS, WIDE_FLOORS
 from aakar.rag.index import Hit
 from aakar.rag.retrieval import DEFAULT_FLOOR
 
@@ -183,16 +183,22 @@ def test_the_comparison_reports_every_method_and_prefers_none() -> None:
 
 
 def test_the_comparison_reports_both_tables_because_a_method_can_split_them() -> None:
-    """The reason two tables exist: selection counts and faithfulness counts do not move
-    together, so reporting either alone would hide half the trade."""
+    """The reason two tables exist: Table 1 does not determine Table 2.
+
+    `margin_distribution` answers the MOST questions here and is the worst on all three
+    faithfulness counts. More coverage is not better retrieval — it answers more by cutting
+    the pool to about one chunk, which the selection table alone would show as a win.
+    """
     results = {r.method.name: r for r in compare(embedder=resolve_embedder("local"))}
-    absolute_result = results["absolute"]
-    distribution = results["margin_distribution"]
-    # Same coverage rate, very different faithfulness — visible only because both are shown.
-    assert distribution.selection.coverage_rate == absolute_result.selection.coverage_rate
-    assert (
-        distribution.faithfulness.unresolvable_markers
-        > absolute_result.faithfulness.unresolvable_markers
+    widest = results["margin_distribution"]
+    careful = results["margin_top2"]
+
+    assert widest.selection.coverage_rate > careful.selection.coverage_rate
+    assert widest.selection.false_coverage > careful.selection.false_coverage
+    for counts in ("unresolvable_markers", "unsupported_sentences", "uncited_claims"):
+        assert getattr(widest.faithfulness, counts) >= getattr(careful.faithfulness, counts)
+    assert widest.faithfulness.unresolvable_markers > careful.faithfulness.unresolvable_markers, (
+        "the tables would be redundant if they always agreed"
     )
 
 
@@ -223,5 +229,8 @@ def test_the_printed_comparison_refuses_to_recommend() -> None:
 
 
 def test_the_fine_sweep_covers_the_band_at_0_05_steps() -> None:
+    """The architect's requested band, kept exactly. It contains no safe row on the real
+    embedder — the finding — so the shipped value lives in the wider sweep instead."""
     assert FINE_FLOORS == (0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60)
-    assert DEFAULT_FLOOR in FINE_FLOORS, "the shipped value must be one of the rows"
+    assert DEFAULT_FLOOR not in FINE_FLOORS
+    assert DEFAULT_FLOOR in WIDE_FLOORS, "the shipped value must be one of the swept rows"

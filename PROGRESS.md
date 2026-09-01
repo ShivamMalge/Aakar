@@ -1230,3 +1230,82 @@ result distinguishes its two independent reasons for being provisional. That dis
 exactly what D-054 turned on.
 
 828 pytest, 439 vitest, ruff + mypy-strict + tsc clean.
+
+---
+
+## PHASE 2 CLOSED · 2026-09-01
+
+Golden labels confirmed committed at `ecf6954`: `verified: true`, `verified_by: "Shivam
+Malge"`, `verified_on: "2026-09-01"`. No measurement needed re-running for that reason.
+
+### Rulings applied
+
+**D-058 — relevance floor 0.75, CERTIFIED.** Against `gemini-embedding-001` @ 768d, golden
+set `ecf6954`, measured 2026-09-01: zero false coverage at 90% coverage. The entry names
+embedder, set and date because certification is against that embedder and nothing else — a
+statement the history of this constant makes literal rather than ceremonial. Absolute
+selection retained, with the reason recorded: all three methods were scored at the shipped
+0.45, which the same run proved was the worst available floor, so the comparison was **not
+like-for-like**. At its own best floor absolute gets 0 false coverage at 90% against
+`margin_top2`'s 0 at 50%. The margin methods' own parameters were **not** swept; the bar for
+switching (beat 90% at zero false coverage) and the decision not to pay for it today are
+both recorded.
+
+**D-059 — cache threshold stays 0.92, hit rate UNMEASURED.** The honest description is
+written into the entry: on this golden set the cache never fires, and the set is adversarial
+— antonym-separated near-misses, lexically disjoint paraphrases. The claim "hit rate is X"
+is unsupported for every X, stated explicitly because the eventual cost model's
+marginal-cost argument rests on it. A realistic repeat-question corpus is recorded as future
+work needing real student questions.
+
+**One correction inside that entry.** The ruling cites "roughly $0.000017 per call"; that is
+the session total divided by ~30 calls, mixing one generation with thirty embeddings. The
+number a cache hit actually avoids is **$0.000506 per answer** — 445 prompt + 46 completion
+tokens — about thirty times higher. The conclusion may still hold (100 questions/day bounds
+one student at $0.05/day, so latency is plausibly worth more than the twentieth of a cent),
+but that is now a call to make on the right number rather than one inherited from the wrong
+one.
+
+**D-060 — python-dotenv adopted.** `.env` loaded once at startup, environment variables
+taking precedence, so a deployment that exports a value keeps it. `.env.example` now states
+what is read and in what order; a test asserts the template says what the code does, closing
+the same class of trap as the stale floor it used to ship. `evals/record.py` had grown a
+private parser as a symptom of the gap and now shares the loader.
+
+**D-061 — keyscan wired into CI.** Runs on every build. CI has no key, so the literal-value
+checks skip and say so; the shape scan runs, and it is the only check that can catch a
+credential the scanner was never told about — which is exactly the case of one committed
+later.
+
+### Housekeeping
+
+- Orphaned chat cassette pruned; one remains and it is the recorded answer.
+- Pushed, `5c0d42d` included.
+
+### What the floor change moved
+
+Three tests had encoded the old floor or the old label state as facts. Each was rewritten to
+test the mechanism instead, not deleted: the shipped value is pinned at 0.75 with a comment
+saying why a change must carry a measurement, the fine sweep now asserts the shipped value
+lives in the *wide* band (the architect's 0.30–0.60 contains no safe row on the real
+embedder — that is the finding, so the band is kept exactly and the runner widens), and the
+comparison test now asserts the durable property: `margin_distribution` answers the most
+questions and is worst on all three faithfulness counts, so Table 1 does not determine
+Table 2.
+
+### Phase 2 final state
+
+| | |
+| --- | --- |
+| tests | **833 pytest** (0 skipped), **439 vitest** |
+| static | ruff, mypy --strict, tsc, eslint — all clean |
+| drift | codegen-check clean |
+| decisions | D-001 … D-061 |
+| spend to date | $0.000506, one recording session |
+| CI | never needs a key; every 2D measurement replays for free |
+
+2A ingest · 2B spend controls · 2C retrieval and `/ask` · 2D evaluation and live
+measurement — closed.
+
+Phase 3 (spec generation and the VLM critic) is deliberately **not** started; the architect
+is scoping it separately.

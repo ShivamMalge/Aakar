@@ -54,6 +54,12 @@ jobs:
       # a real one. A fake index would prove the harness works, not the collection shape.
       - name: retrieval and /ask
         run: uv run pytest tests/test_retrieval.py -q
+      # A committed credential is not caught by any other check here: it is valid code,
+      # valid JSON and a passing test. The shape scan runs with no key of its own, which is
+      # the only reason it can run in CI at all — and it is tested against a PLANTED key, so
+      # a green result means something (R2).
+      - name: no API key committed
+        run: uv run python -m aakar.evals.keyscan
       - run: uv run pytest -q
 
   web:

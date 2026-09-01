@@ -55,11 +55,22 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[4]
 
 
-def read_key(root: Path) -> str:
-    for line in (root / ".env").read_text(encoding="utf-8").splitlines():
+def read_key(root: Path) -> str | None:
+    """The key, or `None` when there is no `.env` — the normal case in CI.
+
+    Returning `None` rather than exiting is what lets this run on every build: checks 2-4
+    need the literal value, but **check 5 does not**, and check 5 is the one that catches a
+    key someone commits later. A scanner that refused to run without a key would be absent
+    from exactly the environment it is meant to protect.
+    """
+    env = root / ".env"
+    if not env.is_file():
+        return None
+    for line in env.read_text(encoding="utf-8").splitlines():
         if line.strip().startswith("AAKAR_API_KEY"):
-            return line.split("=", 1)[1].split("  #")[0].strip().strip('"').strip("'")
-    raise SystemExit("no AAKAR_API_KEY in .env; nothing to scan for")
+            value = line.split("=", 1)[1].split("  #")[0].strip().strip(chr(34)).strip("'")
+            return value or None
+    return None
 
 
 def walk(root: Path) -> Iterator[Path]:
@@ -164,14 +175,18 @@ def main(out: TextIO = sys.stdout) -> int:
     key = read_key(root)
     print("API key exposure scan", file=out)
     print("=" * 21, file=out)
-    print(f"  scanning for a {len(key)}-character value (never printed)", file=out)
-    results = [
-        check_gitignored(root, out),
-        check_history(root, key, out),
-        check_cassettes(root, key, out),
-        check_working_tree(root, key, out),
-        check_key_shapes(root, out),
-    ]
+    results = [check_gitignored(root, out)]
+    if key is None:
+        print("  2-4. skipped: no .env, so there is no literal value to search for", file=out)
+        print("       (this is the normal case in CI; check 5 below is what runs there)", file=out)
+    else:
+        print(f"  scanning for a {len(key)}-character value (never printed)", file=out)
+        results += [
+            check_history(root, key, out),
+            check_cassettes(root, key, out),
+            check_working_tree(root, key, out),
+        ]
+    results.append(check_key_shapes(root, out))
     print(file=out)
     print("ALL CLEAR" if all(results) else "EXPOSURE FOUND - do not push", file=out)
     return 0 if all(results) else 1

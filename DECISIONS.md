@@ -1780,3 +1780,153 @@ the truth would be worth having.
 Total recording cost: **$0.000506**, all answer-tier, at paid-tier list price (the true
 charge on a free-tier key is $0; the ledger deliberately over-reports, which is the safe
 direction for a guard).
+
+---
+
+## D-058 — Relevance floor 0.75, CERTIFIED (supersedes D-050, and D-050 superseded 2C.3)
+
+**Status:** **Certified** · **Phase:** 2D.2 · **Architect ruling 2026-09-01**
+
+`DEFAULT_FLOOR = 0.75`.
+
+**Certification is against a specific embedder and nothing else:**
+
+| | |
+| --- | --- |
+| embedder | `gemini-embedding-001`, 768 dimensions, MRL-truncated and L2-normalised (D-043) |
+| golden set | `evals/golden-provenance/`, `verified: true`, verified by Shivam Malge, commit `ecf6954` |
+| measured | 2026-09-01, replayed from `services/api/tests/cassettes/` |
+| result | **zero false coverage at 90% coverage** (misses `q01`) |
+
+**A model change invalidates this number.** That sentence is not boilerplate here: it is the
+literal history of this constant. 0.35 was picked by judgement and never measured. 0.45 was
+measured — carefully, with a two-sided method and a hard-negative set — on a *lexical stub*,
+and turned out to be the **most unsafe** value in the real range, admitting all five hard
+negatives. Three values, and only the third is attached to the embedder that ships.
+
+### Absolute selection retained, and why the comparison understated it
+
+All three methods in the 2D.1f comparison were scored **at the shipped 0.45**, which the
+same run proved was the worst available floor. The comparison was therefore **not
+like-for-like**: `absolute` was measured at a value the measurement itself condemned, while
+the margin rules used their own parameters.
+
+At its own best floor, `absolute` achieves **0 false coverage at 90% coverage**, against
+`margin_top2`'s 0 at 50%. That is a 40-point coverage difference in favour of the mechanism
+already shipped.
+
+**The margin methods' own parameters were deliberately not swept.** A margin rule would have
+to beat 90% coverage at zero false coverage to justify switching a working mechanism, and
+that is a high bar. Buying the evidence to clear it costs a sweep, a re-recording and a
+second certification, and it is not worth paying for today. Recorded so that a future
+"nobody ever tried tuning it" is answered: it was considered, priced, and declined.
+
+The methods stay registered and `certified=False`, so the harness keeps working and
+`shipped_method()` keeps refusing them.
+
+---
+
+## D-059 — Cache threshold stays 0.92, and the hit rate is UNMEASURED
+
+**Status:** Ruled · **Phase:** 2D.2 · **Amends D-041**
+
+`AAKAR_CACHE_THRESHOLD` stays `0.92`. Under D-041's asymmetry rule it is the correct pick
+among the measured values: 0.90 caches one question in five and gets one of them wrong,
+0.92 makes zero false hits.
+
+### The honest description, which is the point of this entry
+
+**On the golden set the cache never fires.** Zero false hits and zero hits.
+
+**And that number does not generalise in either direction.** The pair set was built
+adversarially, for faithfulness: near-misses one antonym apart (`anterior`/`posterior`,
+`greatest`/`worst`), paraphrases sharing almost no content words. It is a **worst case**,
+not a sample of how students actually repeat questions — two students asking the same thing
+a day apart will phrase it far more similarly than `p02` does.
+
+So: **the claim "the cache hit rate is X" is unsupported for every X.** It is not 0%. It is
+not the 60–80% a cache is usually assumed to reach. It is unmeasured.
+
+This is written down because **the marginal-cost argument in the eventual cost model rests
+on it**, and a cost model that quietly assumes a cache hit rate nobody measured is a cost
+model that is wrong by an unknown factor in a known direction.
+
+### What a cached answer actually saves
+
+Measured this session, `gemini-3.6-flash` at paid-tier list price:
+
+| | |
+| --- | --- |
+| one answer-tier generation | 445 prompt + 46 completion tokens = **$0.000506** |
+| one embedding call | ≈ $0.0000005 |
+
+**A correction to the architect's figure.** The ruling cites "roughly $0.000017 per call";
+that is the session total ($0.000506) divided by the ~30 calls made, which mixes one
+generation with thirty embeddings. **The number that matters — the cost a cache hit avoids —
+is $0.0005 per answer, about thirty times higher.**
+
+The conclusion may well survive the correction: at $0.0005 an answer, the per-owner cap of
+100 questions/day bounds one student at **$0.05/day**, and a cache is still worth far more
+for the second-long wait it removes than for the twentieth of a cent. But that is now the
+architect's call on the right number rather than a conclusion inherited from the wrong one.
+Recorded here rather than silently adopted.
+
+### Future work, not now
+
+A **realistic repeat-question corpus** — the thing that would actually measure hit rate. It
+needs real student questions, which do not exist yet. A synthetic one would be a second set
+built to produce whatever its author expected, which is the same defect the golden set's
+`PROPOSED` labels were designed to avoid, arriving by a different route.
+
+---
+
+## D-060 — `.env` is loaded at startup; the environment wins
+
+**Status:** Built · **Phase:** 2D.2 · **Architect ruling**
+
+`python-dotenv` is now a dependency. `Settings.from_env()` loads `.env` from the repository
+root once per process, **without overriding anything already in the environment**.
+
+Precedence, highest first: process environment → `.env` → compiled defaults.
+
+Environment-wins is what makes reading a file safe to ship. A container, CI runner or
+systemd unit that exports `AAKAR_MODEL` keeps its value even if a stray `.env` is baked into
+the image; the reverse would let an accidentally committed file silently override a
+deployment — a worse failure than the one being fixed.
+
+**The failure being closed:** `.env.example` opened with "copy to .env and fill" while
+nothing read the file. The documented way to configure this project did not work, and it was
+found only because a key placed exactly where the template said to put it was invisible to
+the application — the recording harness had to parse the file itself. **A document that lies
+about the code**, which is the same defect as `.env.example` shipping a relevance floor the
+code had already moved away from (D-050). Both are now covered by a test that reads the
+template and asserts it says what the code does.
+
+Fifteen hand-rolled lines of quoting, comment-stripping and escape handling was the
+alternative. Every one of those lines is a place a parser goes subtly wrong on a value
+containing `#` or a quote — which is exactly what an API key might contain.
+
+`evals/record.py` had grown its own private parser as a symptom of the gap. It now shares
+the loader, so a recording runs against the same configuration a deployment would see.
+
+---
+
+## D-061 — `keyscan` runs in CI, on the shape scan
+
+**Status:** Built · **Phase:** 2D.2 · **Architect ruling**
+
+A committed credential passes every other check in this repository: it is valid code, valid
+JSON and a passing test. Nothing would catch it.
+
+`python -m aakar.evals.keyscan` now runs on every build. CI has no key, so checks 2–4 (which
+search for the literal value) skip and say so; **check 5, the shape scan, is the one that
+runs there** — and it is the only check that can catch a credential the scanner was never
+told about, which is precisely the case of someone committing one later.
+
+Returning `None` for a missing `.env` rather than exiting is what makes this possible. A
+scanner that refused to run without a key would be absent from exactly the environment it
+exists to protect.
+
+It is tested against a **planted** key, so a green result means something (R2), and it never
+prints the value it finds — matches are reported by file and byte offset. A leak-detector
+that prints the leak turns its own report into the thing that must not be shared.

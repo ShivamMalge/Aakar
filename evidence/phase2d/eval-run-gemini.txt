@@ -74,7 +74,7 @@ method can win one while losing the other.
 1. selection - does the rule answer the right questions
                method  false cover  coverage  missed  refused  mean pool
 ----------------------------------------------------------------------------------
-             absolute            5     100%       0        0       10.0
+             absolute            0      90%       1        5       10.0
           margin_top2            0      50%       5        5        3.9
   margin_distribution            4     100%       0        1        1.1
 
@@ -86,7 +86,7 @@ method can win one while losing the other.
   margin_distribution               2              2          1             1      10
 
   method notes:
-    absolute: top-1 >= 0.45 (production)
+    absolute: top-1 >= 0.75 (production)
       certified: False - no architect ruling has certified this method for the shipped path (2D.1f). Its floor is DEFAULT_FLOOR, itself interim and uncertified (D-050).
     margin_top2: top-1 minus top-2 >= 0.10
       certified: False - no architect ruling has certified this method for the shipped path (2D.1f).

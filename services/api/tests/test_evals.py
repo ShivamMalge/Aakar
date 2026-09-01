@@ -378,7 +378,9 @@ def test_raising_the_floor_is_what_closed_the_false_coverage() -> None:
     calibration = calibrate_relevance_floor(embedder=resolve_embedder("local"))
     previous = next(r for r in calibration.results if r.floor == 0.35)
     assert previous.false_coverage > 0, "0.35 was picked without measurement; this is why"
-    assert DEFAULT_FLOOR == 0.45
+    # 0.75, certified against gemini-embedding-001 (D-058). Pinned so a future edit to the
+    # shipped value is a deliberate act with a measurement behind it, not a tweak.
+    assert DEFAULT_FLOOR == 0.75
 
 
 def test_the_floor_result_carries_its_embedder_and_verification_state() -> None:

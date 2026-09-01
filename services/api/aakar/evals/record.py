@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import TextIO
 
 from aakar.auth import ensure_owner
+from aakar.config import load_env_file
 from aakar.db import apply_schema, connect, migrate
 from aakar.providers import (
     BudgetExceeded,
@@ -69,23 +70,14 @@ RECORDING_TIER = Tier.ANSWER
 RECORDING_CAP_USD = 0.50
 
 
-def load_env(root: Path) -> dict[str, str]:
-    """Read `.env` into the process environment.
+def load_env(root: Path) -> None:
+    """Load `.env` through the same loader the application uses (D-060).
 
-    **Nothing in the application does this.** `.env.example` says "copy to .env and fill",
-    and `Settings.from_env` reads `os.environ`, so a key placed in `.env` is invisible to
-    the app itself. That gap is real and is reported rather than papered over; this loader
-    exists so the recording harness can run, not to fix it.
+    This module used to parse `.env` itself, because nothing else did. That private parser
+    was a symptom: the harness could reach the key and the app could not. Sharing the loader
+    means the recording runs against the same configuration a deployment would see.
     """
-    values: dict[str, str] = {}
-    for line in (root / ".env").read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        name, raw = line.split("=", 1)
-        values[name.strip()] = raw.split("  #")[0].strip().strip('"').strip("'")
-    os.environ.update(values)
-    return values
+    load_env_file(root / ".env", force=True)
 
 
 @dataclass

@@ -28,15 +28,12 @@ from .index import Hit, search
 
 #: Below this best-score, the chapter does not cover the question.
 #:
-#: **INTERIM AND UNCERTIFIED (D-050).** 0.35 was picked by judgement and never measured;
-#: the 2D.1 sweep found it admits false coverage even on a lexical embedder. 0.45 is the
-#: lowest value that admitted none there. That number does not transfer between embedders —
-#: but the *asymmetry* does, and it is what sets the direction: false coverage reaches a
-#: student as a confident answer assembled from irrelevant text, while a false
-#: "not in your chapter" costs only usefulness. Same reasoning as the 0.92 cache threshold.
-#:
-#: To be replaced by 2D.2's measurement against the real embedder. Config, so it can be.
-DEFAULT_FLOOR = 0.45
+#: **CERTIFIED (D-058)** against `gemini-embedding-001` @ 768d, golden set `ecf6954`,
+#: measured 2026-09-01: zero false coverage at 90% coverage. Certification is against *that
+#: embedder* and nothing else — a model change invalidates this number, and the two previous
+#: values are why that sentence is not boilerplate. 0.35 was never measured; 0.45 was
+#: measured on a lexical stub and turned out to be the most unsafe value in the real range.
+DEFAULT_FLOOR = 0.75
 
 
 def relevance_floor() -> float:

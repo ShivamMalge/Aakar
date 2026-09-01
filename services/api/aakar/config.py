@@ -1,4 +1,20 @@
-"""Environment configuration. Values come from env only — see .env.example."""
+"""Environment configuration (D-060).
+
+## Three layers, and the order matters
+
+1. **The process environment** — highest. Never overwritten.
+2. **`.env` at the repository root** — loaded once, at first `Settings.from_env()`.
+3. **The defaults in this module** — lowest.
+
+Environment-wins is what makes this safe to ship. A container, a CI runner or a systemd unit
+that exports `AAKAR_MODEL` keeps its value even if a stray `.env` is sitting in the image;
+the reverse would let a file committed by accident silently override a deployment.
+
+`.env` was not read at all until D-060, while `.env.example` opened with "copy to .env and
+fill" — so the documented way to configure this project did not work, and a key placed
+exactly where the template said to put it was invisible. That is the same class of trap as
+`.env.example` shipping a stale relevance floor: a document that lies about the code.
+"""
 
 from __future__ import annotations
 
@@ -6,9 +22,37 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 from aakar.providers.models import check_configured_models
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+ENV_FILE = REPO_ROOT / ".env"
+
+_loaded = False
+
+
+def load_env_file(path: Path | None = None, *, force: bool = False) -> bool:
+    """Load `.env` into the process environment, without overriding what is already set.
+
+    Idempotent by design: `Settings.from_env()` is called on several startup paths and from
+    tests, and re-reading the file each time would let an edit take effect halfway through a
+    running process — a source of the exact "it worked a minute ago" confusion that a config
+    layer must not produce. `force` exists so a test can reload deliberately.
+
+    Returns whether a file was read. A missing `.env` is the normal case in production and
+    in CI, so it is not an error.
+    """
+    global _loaded  # noqa: PLW0603 - one process-wide load, deliberately
+    if _loaded and not force:
+        return False
+    _loaded = True
+    target = path or ENV_FILE
+    if not target.is_file():
+        return False
+    # override=False is the whole ruling: the environment wins.
+    load_dotenv(target, override=False)
+    return True
 
 
 # RFC 7518 §3.2: an HS256 key below 32 bytes weakens the MAC. PyJWT warns; we refuse.
@@ -40,6 +84,7 @@ class Settings:
 
     @staticmethod
     def from_env() -> Settings:
+        load_env_file()
         mode = os.environ.get("AAKAR_PROVIDER_MODE", "replay")
         if mode not in {"live", "record", "replay"}:
             raise ValueError(f"AAKAR_PROVIDER_MODE must be live|record|replay, got {mode!r}")
