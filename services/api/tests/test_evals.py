@@ -164,13 +164,33 @@ def test_supports_is_a_lower_bound_not_a_judgement() -> None:
 # ------------------------------------------------------------------ the golden set
 
 
-def test_the_golden_set_is_marked_unverified_and_says_so() -> None:
-    """It ships PROPOSED. Anything derived from it is provisional until a human signs it."""
+def test_the_golden_set_is_verified_by_a_named_person_on_a_date() -> None:
+    """The set shipped PROPOSED and was hand-verified on 2026-09-01. What this pins is not
+    the name but the *shape*: a verified set has someone accountable for its labels and a
+    date, because "verified" with neither is a claim nobody can check."""
     golden = load_golden_set()
-    assert golden.verified is False
-    assert golden.provisional is True
+    assert golden.verified is True
+    assert golden.verified_by
+    assert golden.provisional is False
     assert len(golden.questions) == 15
     assert len(golden.chunks) == 10
+
+
+def test_provisional_tracks_the_flag_in_both_directions(tmp_path: Path) -> None:
+    """R2 on the flag itself. Now that the real set reads `verified: true`, the false case
+    is unreachable from it — and a mechanism only ever seen in one state has not been shown
+    to have two."""
+    for name in ("chapter.json", "questions.json"):
+        (tmp_path / name).write_text(
+            (GOLDEN_DIR / name).read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    questions = json.loads((tmp_path / "questions.json").read_text(encoding="utf-8"))
+    questions["verified"] = False
+    questions["verified_by"] = None
+    (tmp_path / "questions.json").write_text(json.dumps(questions), encoding="utf-8")
+
+    assert load_golden_set(tmp_path).provisional is True
+    assert load_golden_set().provisional is False
 
 
 def test_the_golden_set_exercises_the_ocr_path() -> None:
@@ -193,6 +213,7 @@ def test_a_set_claiming_verification_with_nobody_behind_it_is_refused(tmp_path: 
     """Worse than unverified: it looks like evidence and cannot be chased down."""
     questions = json.loads((GOLDEN_DIR / "questions.json").read_text(encoding="utf-8"))
     questions["verified"] = True
+    questions["verified_by"] = None
     (tmp_path / "questions.json").write_text(json.dumps(questions), encoding="utf-8")
     (tmp_path / "chapter.json").write_text(
         (GOLDEN_DIR / "chapter.json").read_text(encoding="utf-8"), encoding="utf-8"
@@ -361,9 +382,14 @@ def test_raising_the_floor_is_what_closed_the_false_coverage() -> None:
 
 
 def test_the_floor_result_carries_its_embedder_and_verification_state() -> None:
+    """Two independent reasons a number can be provisional, and the result has to say which.
+
+    The labels are verified now, so on the local embedder the *only* remaining reason is the
+    embedder itself — which is exactly the distinction D-054 turned out to depend on.
+    """
     calibration = calibrate_relevance_floor(embedder=resolve_embedder("local"))
-    assert calibration.provisional
-    assert calibration.golden_verified is False
+    assert calibration.golden_verified is True
+    assert calibration.provisional, "a lexical embedder cannot certify a threshold (D-041)"
     assert "local" in calibration.embedder.label
 
 

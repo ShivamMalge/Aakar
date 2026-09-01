@@ -1,9 +1,9 @@
 {
   "PROPOSED": "Every `supported_by` list below is PROPOSED BY THE SYSTEM and does not count until a human verifies it against chapter.json. A golden set labelled by the thing it evaluates is not golden — it measures self-consistency and calls it accuracy. Nothing in the faithfulness eval treats these as authoritative while `verified` is false.",
   "how_to_verify": "For each question, read chapter.json and decide: which chunks, if any, actually contain the information needed to answer it? Correct `supported_by`, then set `verified: true` on that entry. Entries still marked false are reported separately by the harness rather than silently averaged in.",
-  "verified": false,
-  "verified_by": null,
-  "verified_on": null,
+  "verified": true,
+  "verified_by": "Shivam Malge",
+  "verified_on": "2026-09-01",
   "scope_note": "Scoped deliberately small — 15 questions over 10 chunks from one section. This is manual work with no substitute, and a set too large to hand-check is a set that will not be hand-checked.",
 
   "questions": [

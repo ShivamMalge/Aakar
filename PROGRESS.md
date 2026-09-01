@@ -1192,3 +1192,41 @@ merely wrong.
 - Golden labels unverified — the one thing blocking these numbers from being final.
 - Both thresholds and the selection mechanism await an architect ruling. Nothing switched.
 - One orphaned chat cassette from a superseded recording; harmless, prunable on request.
+
+---
+
+## 2D gate · labels verified · 2026-09-01
+
+`questions.json` now reads `verified: true`, `verified_by: "Shivam Malge"`,
+`verified_on: "2026-09-01"`. Re-ran every measurement in replay — free, no key, no spend.
+
+**The numbers did not move.** Only three lines of the file changed: the flags. No
+`supported_by` list and no `kind` was corrected, so the PROPOSED labels survived a hand
+check against the chapter unchanged, including minimality on the multi-chunk questions and
+a full read for each negative.
+
+That is worth stating precisely, because it is the one thing a self-labelled golden set can
+never tell you: the labels were *right*, and now that is a fact with a person's name on it
+rather than a claim the system made about itself.
+
+**What dropped:** every measurement on the real embedder is now certified. The gemini run
+prints exactly one PROVISIONAL line, and it is the correct one — the three *selection
+methods* remain uncertified pending an architect ruling (D-051). The local run stays
+provisional on the embedder, which is D-041 and permanent.
+
+| | before labels | after |
+| --- | --- | --- |
+| gemini floor sweep | PROVISIONAL | **certified**, lowest safe floor 0.75 |
+| gemini cache sweep | PROVISIONAL | **certified**, lowest safe 0.92 at 0% hit rate |
+| one live answer, 3 counts | PROVISIONAL | **certified**, 0 / 0 / 0 over 2 claims |
+| selection comparison | PROVISIONAL | still uncertified — methods, not labels |
+| local everything | PROVISIONAL | still provisional — lexical embedder |
+
+**Three tests were rewritten, not deleted.** They had encoded "this set is unverified" as a
+fact, which stopped being true. Each now tests the *mechanism* instead: that a verified set
+carries a name and a date, that `provisional` tracks the flag **in both directions** against
+a temporary copy (R2 — the false case is otherwise unreachable now), and that a floor
+result distinguishes its two independent reasons for being provisional. That distinction is
+exactly what D-054 turned on.
+
+828 pytest, 439 vitest, ruff + mypy-strict + tsc clean.

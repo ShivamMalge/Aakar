@@ -5,17 +5,9 @@ Aakar 2D.1 evaluation harness
   questions      : 15
   answer fixtures: 8 (hand-written, not model output)
   embedder       : gemini (gemini-embedding-001 @ 768d)
-  labels verified: False
+  labels verified: True
   scope limit    : One OpenStax chapter: clean, digital-native, professionally edited, English.
   scope limit    : c06 carries `source: "ocr"` and is otherwise clean, verbatim text.
-
-  PROVISIONAL. Method closed, numbers open.
-   - golden labels are PROPOSED and not human-verified
-
-PROVISIONAL - method closed, number open.
-  embedder: gemini (gemini-embedding-001 @ 768d)
-  golden set human-verified: False
-  golden labels are not human-verified
 
  floor  false cover  coverage  covered  missed  refused  verdict
 ----------------------------------------------------------------------------
@@ -30,11 +22,6 @@ PROVISIONAL - method closed, number open.
   lowest safe floor: 0.75 (coverage 90%, missed ['q01'])
 
 absolute floor, 0.05 steps, 0.30-0.60 (as specified)
-PROVISIONAL - method closed, number open.
-  embedder: gemini (gemini-embedding-001 @ 768d)
-  golden set human-verified: False
-  golden labels are not human-verified
-
  floor  false cover  coverage  covered  missed  refused  verdict
 ----------------------------------------------------------------------------
   0.30            5     100%       10       0        0  UNSAFE - answers uncovered questions
@@ -48,11 +35,6 @@ PROVISIONAL - method closed, number open.
   No floor in this sweep refuses every uncovered question.
 
 no safe floor in 0.30-0.60; widening to 0.30-0.90
-PROVISIONAL - method closed, number open.
-  embedder: gemini (gemini-embedding-001 @ 768d)
-  golden set human-verified: False
-  golden labels are not human-verified
-
  floor  false cover  coverage  covered  missed  refused  verdict
 ----------------------------------------------------------------------------
   0.30            5     100%       10       0        0  UNSAFE - answers uncovered questions
@@ -124,11 +106,6 @@ per-fixture verdicts
 
 citation faithfulness - all fixtures
 ====================================
-PROVISIONAL - method closed, number open.
-  embedder: gemini (gemini-embedding-001 @ 768d)
-  Golden labels are not human-verified and/or this is not the embedder that
-  ships. These counts prove the harness runs; they do not measure the product.
-
   claims made                            : 10
   supported                              : 6
 

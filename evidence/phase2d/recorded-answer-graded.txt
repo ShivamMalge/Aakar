@@ -1,12 +1,9 @@
 THE ONE REAL ANSWER, GRADED BY THE SAME HARNESS
 ===============================================
+golden labels verified by: Shivam Malge
+
 citation faithfulness - one live answer
 =======================================
-PROVISIONAL - method closed, number open.
-  embedder: gemini (gemini-embedding-001 @ 768d) + gemini-3.6-flash
-  Golden labels are not human-verified and/or this is not the embedder that
-  ships. These counts prove the harness runs; they do not measure the product.
-
   claims made                            : 2
   supported                              : 2
 
