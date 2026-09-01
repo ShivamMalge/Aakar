@@ -1930,3 +1930,61 @@ exists to protect.
 It is tested against a **planted** key, so a green result means something (R2), and it never
 prints the value it finds — matches are reported by file and byte offset. A leak-detector
 that prints the leak turns its own report into the thing that must not be shared.
+
+---
+
+## D-062 — CI was red for three phases, and I never looked
+
+**Status:** Fixed · **Phase:** 2 (post-close correction)
+
+`test_a_document_with_no_extractable_text_fails_rather_than_creating_an_empty_corpus` has
+been failing on GitHub Actions since **Phase 2C** (`c60b12b`). Every gate report in this
+project since then — including "PHASE 2 CLOSED, 833 pytest, 0 skipped" — described a suite
+that was green **on one developer machine**. Nobody, me included, opened a CI run.
+
+### The immediate cause
+
+The test writes a blank PDF and asserts the failure reason is `no_extractable_text`. That
+outcome requires OCR to run, find nothing, and hand back an empty parse. The GitHub runner
+has neither Tesseract nor poppler, so `lightningparse` raises `OcrMissingDependencyError`
+first and the job fails as `unparseable: this document needs OCR, which is not available on
+this server: pdftoppm`.
+
+**Both outcomes are correct.** A blank page reaches two different right answers depending on
+the deployment. The test encoded one machine's setup as an invariant and called it a
+property of the system.
+
+### Two fixes, because there are two defects
+
+1. **The test asserted the wrong thing.** Split into three:
+   - `test_a_document_with_nothing_in_it_never_creates_a_corpus` — the invariant that
+     actually matters, on every machine: the job **failed**, it has a reason, and
+     `load_chunks` is empty. It says nothing about *why*, because why is deployment-specific.
+   - `test_a_blank_page_is_ocred_and_then_reported_as_empty` — the OCR-installed branch,
+     skipped where OCR is missing, **with the missing binary named**. A skip that says which
+     dependency is absent is a to-do; a failure asserting a string is a mystery.
+   - `test_without_ocr_a_blank_page_is_rejected_and_the_remedy_names_the_operator` — the
+     other branch, which had never been tested at all.
+
+2. **CI never installed the dependency D-038 declares.** `tesseract-ocr` and
+   `poppler-utils` are now installed in the api job, so CI exercises the path that ships
+   rather than the degraded one. Verified both ways locally: the suite is green with the
+   binaries present and with them hidden from `PATH`, and the skip flips between the two.
+
+`ocr_available()` now lives in `ingest/parser.py`. Production deliberately does **not**
+branch on it — a document needing OCR on a server without it is rejected with a remedy
+addressed to the operator, which is already the right behaviour. It exists so a test can say
+which of two correct outcomes it is asserting.
+
+### The pattern, and it is the third time
+
+D-045: a model pin that was never resolved. D-056: a task-type asymmetry that only the real
+embedder could exhibit. Now: a test suite that was only ever run where it passed.
+
+Each is the same shape — **a check that exists, looks authoritative, and has never been
+executed in the environment that matters.** The suite was not lying; it was answering a
+question about my laptop while being read as an answer about the project.
+
+The correction to how this gets reported: **"833 tests pass" is a claim about wherever they
+were run.** Gate reports from here on say where, and a red CI is a failed gate regardless of
+what a local run says.

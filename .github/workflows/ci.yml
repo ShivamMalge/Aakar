@@ -19,6 +19,12 @@ jobs:
         working-directory: services/api
     steps:
       - uses: actions/checkout@v4
+      # D-038 declares Tesseract a DEPLOYMENT requirement, and poppler's pdftoppm is what
+      # rasterises a page for it — a machine with one and not the other fails at pdftoppm.
+      # Without these, CI runs the degraded no-OCR path and never exercises the one that
+      # ships, which is how a red build went unnoticed for three phases (D-062).
+      - name: OCR system dependencies (D-038)
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr poppler-utils
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true

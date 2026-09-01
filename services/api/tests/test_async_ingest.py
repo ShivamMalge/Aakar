@@ -23,6 +23,7 @@ from aakar.config import Settings
 from aakar.db import init_db, new_id
 from aakar.ingest import GlobalBounds, IngestRejected, RejectionCode, enqueue, get_job_for_owner
 from aakar.ingest.jobs import claim_next, finish, queue_depth, record_progress
+from aakar.ingest.parser import ocr_available
 from aakar.ingest.worker import process_one
 
 SECRET = "async-ingest-secret-at-least-32-bytes"
@@ -436,17 +437,10 @@ def test_repeated_requests_each_get_a_working_connection(client: TestClient) -> 
 # --------------------------------------------------- a corpus is never empty
 
 
-def test_a_document_with_no_extractable_text_fails_rather_than_creating_an_empty_corpus(
-    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
-) -> None:
-    """An empty corpus looks ingested, retrieves nothing, and answers every question with
-    "your chapter does not cover this" — indistinguishable, to the student, from a chapter
-    that genuinely says nothing."""
-    from aakar.ingest.chunks import load_chunks
-
+def _blank_document(conn: sqlite3.Connection, owner_id: str, tmp_path: Path) -> str:
+    """A genuinely blank two-page PDF, enqueued. Returns the job id."""
     blank = tmp_path / "blank.pdf"
-    blank.write_bytes(make_pdf(2))  # genuinely blank pages: nothing to extract, nothing to OCR
-
+    blank.write_bytes(make_pdf(2))
     conn.execute("INSERT INTO corpora (id, content_hash, name) VALUES ('c1', 'h1', 'x')")
     conn.execute(
         "INSERT INTO documents (id, owner_id, corpus_id, filename, content_hash,"
@@ -454,14 +448,72 @@ def test_a_document_with_no_extractable_text_fails_rather_than_creating_an_empty
         (owner_id, str(blank)),
     )
     conn.commit()
-    job_id = enqueue(conn, "d1", owner_id, 2)
+    return enqueue(conn, "d1", owner_id, 2)
 
+
+def test_a_document_with_nothing_in_it_never_creates_a_corpus(
+    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
+) -> None:
+    """**The invariant, on every machine.** An empty corpus looks ingested, retrieves
+    nothing, and answers every question with "your chapter does not cover this" —
+    indistinguishable, to the student, from a chapter that genuinely says nothing.
+
+    Deliberately says nothing about *why* it failed. A blank page reaches two different
+    correct outcomes depending on the deployment: where OCR is installed it is scanned,
+    finds nothing, and fails as `no_extractable_text`; where it is not, it is rejected as
+    unparseable with a remedy addressed to the operator. Both are right, and asserting one
+    of them here is what made CI red for three phases (D-062).
+    """
+    from aakar.ingest.chunks import load_chunks
+
+    job_id = _blank_document(conn, owner_id, tmp_path)
     process_one(conn, tmp_path)
     job = get_job_for_owner(conn, job_id, owner_id)
 
     assert job is not None
     assert job.status == "failed", "an empty parse must not be reported as success"
-    assert "no_extractable_text" in (job.failure_reason or "")
+    assert job.failure_reason, "a failure with no reason cannot be acted on"
+    assert load_chunks(conn, "d1") == []
+
+
+@pytest.mark.skipif(not ocr_available(), reason="needs Tesseract and poppler (D-038)")
+def test_a_blank_page_is_ocred_and_then_reported_as_empty(
+    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
+) -> None:
+    """The OCR-installed branch specifically: the page IS scanned, and finding nothing is
+    reported as `no_extractable_text` rather than as a parse failure.
+
+    Skipped where OCR is unavailable, with the dependency named — a skip that says which
+    binary is missing is a to-do; a failure asserting a string is a mystery.
+    """
+    from aakar.ingest.chunks import load_chunks
+
+    job_id = _blank_document(conn, owner_id, tmp_path)
+    process_one(conn, tmp_path)
+    job = get_job_for_owner(conn, job_id, owner_id)
+
+    assert job is not None
+    assert job.status == "failed"
+    assert "no_extractable_text" in (job.failure_reason or ""), job.failure_reason
+    assert load_chunks(conn, "d1") == []
+
+
+@pytest.mark.skipif(ocr_available(), reason="asserts the NO-OCR deployment's behaviour")
+def test_without_ocr_a_blank_page_is_rejected_and_the_remedy_names_the_operator(
+    conn: sqlite3.Connection, owner_id: str, tmp_path: Path
+) -> None:
+    """The other branch, which is what CI actually runs unless the workflow installs the
+    dependency. A server that cannot OCR must say so — the uploader did nothing wrong, so
+    "this document is bad" would be a false statement to show them (D-038)."""
+    from aakar.ingest.chunks import load_chunks
+
+    job_id = _blank_document(conn, owner_id, tmp_path)
+    process_one(conn, tmp_path)
+    job = get_job_for_owner(conn, job_id, owner_id)
+
+    assert job is not None
+    assert job.status == "failed"
+    assert "needs OCR" in (job.failure_reason or ""), job.failure_reason
     assert load_chunks(conn, "d1") == []
 
 

@@ -43,6 +43,7 @@ This module does not modify LightningParse, and nothing here reimplements it.
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -102,6 +103,25 @@ _EXIT_REASONS = {
         "Upload a clearer scan, or a version with selectable text.",
     ),
 }
+
+
+#: The binaries LightningParse's OCR tier shells out to. Tesseract does the recognition;
+#: poppler's `pdftoppm` rasterises the page for it, and a machine with one and not the
+#: other fails at `pdftoppm` — which is what CI did, with an error naming a binary nobody
+#: had heard of (D-062).
+OCR_BINARIES = ("tesseract", "pdftoppm")
+
+
+def ocr_available() -> bool:
+    """Whether this machine can OCR at all (D-038).
+
+    Production does **not** branch on this: a document that needs OCR on a server without
+    it is rejected with a remedy addressed to the operator, which is the honest outcome and
+    is already covered by `_EXIT_REASONS[12]`. This exists so a *test* can say which of two
+    correct behaviours it is asserting, instead of encoding one machine's setup as an
+    invariant.
+    """
+    return all(shutil.which(binary) for binary in OCR_BINARIES)
 
 
 def parse_isolated(path: Path, timeout_seconds: int) -> ParsedDocument:
