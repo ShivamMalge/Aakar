@@ -1,0 +1,73 @@
+{
+  "what_this_is": "Hand-written answer fixtures for the citation faithfulness harness (2D.1c). There is no model in 2D.1 — no API key — so these stand in for what one would emit. They are NOT a sample of real model output and must never be quoted as a measurement of the model.",
+  "why_broken_ones": "R2: a guard that never refused is untested. A fixture of only well-formed answers would exercise the happy path and prove nothing about whether the harness can SEE a bad citation. Each entry names the count it is built to trigger, so a harness change that stops detecting one fails loudly instead of quietly reporting zeros.",
+  "the_important_case": "`a04` is the one that matters. It is fluent, it is factually true, its marker is a real passage number, and the passage it names does not state the claim. Nothing about it looks wrong to a reader who does not open the citation.",
+  "why_passages_are_explicit": "Each entry lists the chunk ids behind markers [1], [2], ... instead of taking whatever retrieval ranked first. Ranking is embedder-dependent, so a fixture that relied on it would silently stop testing what it claims to test the moment the embedder changed — a04 would start citing the right chunk and count 2 would quietly go to zero. Retrieval quality is measured separately, by the floor sweep.",
+
+  "answers": [
+    {
+      "id": "a01",
+      "question_id": "q01",
+      "passages": ["c04"],
+      "expect": "clean",
+      "why": "Faithful baseline. Every claim ends in a marker and the marker names the passage that states it.",
+      "text": "The pupil is the hole at the center of the eye that allows light to enter [1]. The iris is a smooth muscle that opens or closes it [1]."
+    },
+    {
+      "id": "a02",
+      "question_id": "q04",
+      "passages": ["c09"],
+      "expect": "clean",
+      "why": "Faithful baseline over a longer, more technical passage.",
+      "text": "The rod-shaped outer segments of the rod photoreceptor contain a stack of membrane-bound discs holding the photosensitive pigment rhodopsin [1]. Cones hold their photosensitive pigments in infoldings of the cell membrane instead [1]."
+    },
+    {
+      "id": "a03",
+      "question_id": "q02",
+      "passages": ["c08"],
+      "expect": "unresolvable_markers",
+      "why": "Count 1. Marker [9] names a passage that was never in the prompt. Pure invention, and the cheapest failure to detect. It also registers in count 2, because the sentence ends up resting on nothing — the two counts measure markers wrong and sentences wrong, and one bad marker can be both.",
+      "text": "Visual acuity is greatest at the fovea, where the retina lacks supporting cells and blood vessels [9]."
+    },
+    {
+      "id": "a04",
+      "question_id": "q06",
+      "passages": ["c07", "c03"],
+      "expect": "unsupported_sentences",
+      "why": "Count 2, THE case. Every word of this is true and the chapter does say it — in passage [2]. The marker points at [1], which is about photoreceptors. Fluent, correct, wrongly cited, and invisible to anyone who does not open the citation.",
+      "text": "The choroid is a layer of highly vascularized connective tissue that provides the blood supply to the eyeball [1]."
+    },
+    {
+      "id": "a05",
+      "question_id": "q15",
+      "passages": ["c01", "c03"],
+      "expect": "uncited_claims",
+      "why": "Count 3. The sclera is named in passage [1]; its thickness is not stated there or anywhere else. A confident number with no chunk behind it is fabrication, not a missing marker.",
+      "text": "The sclera is roughly 0.5 millimetres thick at the equator of the eye and thickens to about 1 millimetre near the optic nerve."
+    },
+    {
+      "id": "a06",
+      "question_id": "q12",
+      "passages": ["c05", "c10"],
+      "expect": "clean",
+      "why": "The Rule 6 refusal. It must score zero on all three counts: refusing is the designed behaviour, and a harness that counted it as an uncited claim would punish the one thing this system exists to do. The second sentence is a claim about the passages rather than about the world, which is the case the refusal detector has to get right.",
+      "text": "Your chapter does not cover retinal detachment. The passages describe the structure of the retina but say nothing about its causes or treatment."
+    },
+    {
+      "id": "a07",
+      "question_id": "q07",
+      "passages": ["c01"],
+      "expect": "missing_markers",
+      "why": "Not count 3. The first sentence is true and sits in passage [1]; it simply carries no marker. A formatting failure, and folding it into count 3 would make a prompt fix look like a grounding fix.",
+      "text": "The eye has three layers of tissue. The outermost is the fibrous tunic, which includes the sclera and the cornea [1]."
+    },
+    {
+      "id": "a08",
+      "question_id": "q03",
+      "passages": ["c06"],
+      "expect": "clean",
+      "why": "Faithful, and cites an OCR chunk. Used to check that the citation the student is shown is not presented identically to a digital one, and that the answer's confidence says so too (2D.1e, D-044).",
+      "text": "The posterior cavity is the space behind the lens, and it is filled with a more viscous fluid called the vitreous humor [1]."
+    }
+  ]
+}

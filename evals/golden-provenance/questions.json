@@ -1,0 +1,148 @@
+{
+  "PROPOSED": "Every `supported_by` list below is PROPOSED BY THE SYSTEM and does not count until a human verifies it against chapter.json. A golden set labelled by the thing it evaluates is not golden — it measures self-consistency and calls it accuracy. Nothing in the faithfulness eval treats these as authoritative while `verified` is false.",
+  "how_to_verify": "For each question, read chapter.json and decide: which chunks, if any, actually contain the information needed to answer it? Correct `supported_by`, then set `verified: true` on that entry. Entries still marked false are reported separately by the harness rather than silently averaged in.",
+  "verified": false,
+  "verified_by": null,
+  "verified_on": null,
+  "scope_note": "Scoped deliberately small — 15 questions over 10 chunks from one section. This is manual work with no substitute, and a set too large to hand-check is a set that will not be hand-checked.",
+
+  "questions": [
+    {
+      "id": "q01",
+      "kind": "single_chunk",
+      "part": "Pupil",
+      "aliases": ["pupils"],
+      "question": "What is the hole at the centre of the eye that lets light in?",
+      "supported_by": ["c04"],
+      "note": "PROPOSED. c04 names the pupil and says exactly this."
+    },
+    {
+      "id": "q02",
+      "kind": "single_chunk",
+      "part": "Fovea",
+      "aliases": ["foveal"],
+      "question": "Where in the retina is visual acuity greatest?",
+      "supported_by": ["c08"],
+      "note": "PROPOSED."
+    },
+    {
+      "id": "q03",
+      "kind": "single_chunk",
+      "part": "Vitreous humour",
+      "aliases": ["vitreous humor", "vitreous"],
+      "question": "What fluid fills the space behind the lens?",
+      "supported_by": ["c06"],
+      "note": "PROPOSED. c06 is the only chunk naming the posterior cavity. NOTE: c06 is an OCR chunk, so this question also exercises D-044's display_confidence."
+    },
+    {
+      "id": "q04",
+      "kind": "single_chunk",
+      "part": "Rod",
+      "aliases": ["rods", "rod photoreceptor"],
+      "question": "What photosensitive pigment do rod outer segments contain?",
+      "supported_by": ["c09"],
+      "note": "PROPOSED. Rhodopsin is named only in c09."
+    },
+    {
+      "id": "q05",
+      "kind": "single_chunk",
+      "part": "Optic nerve",
+      "aliases": ["optic disc"],
+      "question": "Where do the axons of retinal ganglion cells leave the eye?",
+      "supported_by": ["c10"],
+      "note": "PROPOSED."
+    },
+    {
+      "id": "q06",
+      "kind": "single_chunk",
+      "part": "Choroid",
+      "aliases": ["choroidal"],
+      "question": "What provides the blood supply to the eyeball?",
+      "supported_by": ["c03"],
+      "note": "PROPOSED."
+    },
+
+    {
+      "id": "q07",
+      "kind": "multi_chunk",
+      "part": "Eye",
+      "aliases": ["eyeball"],
+      "question": "What are the three layers of the eye?",
+      "supported_by": ["c01", "c03", "c05"],
+      "note": "PROPOSED. Fibrous tunic in c01, vascular tunic in c03, neural tunic in c05. No single chunk lists all three."
+    },
+    {
+      "id": "q08",
+      "kind": "multi_chunk",
+      "part": "Photoreceptor",
+      "aliases": ["photoreceptors", "rods", "cones"],
+      "question": "How do rods and cones differ, and what do they do?",
+      "supported_by": ["c07", "c09"],
+      "note": "PROPOSED. c07 gives the function, c09 the structural difference."
+    },
+    {
+      "id": "q09",
+      "kind": "multi_chunk",
+      "part": "Cornea",
+      "aliases": ["corneal"],
+      "question": "Which structures focus light onto the retina, and which layer is the cornea part of?",
+      "supported_by": ["c01", "c02"],
+      "note": "PROPOSED. c02 gives cornea+lens focusing; c01 places the cornea in the fibrous tunic."
+    },
+    {
+      "id": "q10",
+      "kind": "multi_chunk",
+      "part": "Anterior cavity",
+      "aliases": ["anterior chamber", "aqueous humor", "aqueous humour"],
+      "question": "What is in the anterior cavity of the eye and what fills it?",
+      "supported_by": ["c04", "c06"],
+      "note": "PROPOSED. c06 names the contents and fluid; c04 describes the iris and ciliary body that sit in it."
+    },
+
+    {
+      "id": "q11",
+      "kind": "not_in_chapter",
+      "part": "Lens",
+      "aliases": ["crystalline lens"],
+      "question": "How does the lens change shape to focus on nearby objects?",
+      "supported_by": [],
+      "note": "PROPOSED. Accommodation is not described in these passages. The lens is MENTIONED (c02, c06), which is what makes this a hard negative: retrieval will find something."
+    },
+    {
+      "id": "q12",
+      "kind": "not_in_chapter",
+      "part": "Retina",
+      "aliases": ["retinal"],
+      "question": "What causes retinal detachment and how is it treated?",
+      "supported_by": [],
+      "note": "PROPOSED. Pathology is absent; the retina is named repeatedly, so the scope terms will match."
+    },
+    {
+      "id": "q13",
+      "kind": "not_in_chapter",
+      "part": "Cone",
+      "aliases": ["cones"],
+      "question": "How many distinct colours can the human eye distinguish?",
+      "supported_by": [],
+      "note": "PROPOSED. Colour vision counts are not in the passages."
+    },
+    {
+      "id": "q14",
+      "kind": "not_in_chapter",
+      "part": "Iris",
+      "aliases": ["irises"],
+      "question": "What determines a person's eye colour genetically?",
+      "supported_by": [],
+      "note": "PROPOSED. c04 says the iris is 'the colored part of the eye' — adjacent enough to tempt a fabricated answer, which is the point."
+    },
+    {
+      "id": "q15",
+      "kind": "not_in_chapter",
+      "part": "Sclera",
+      "aliases": ["scleral"],
+      "question": "How thick is the sclera in millimetres?",
+      "supported_by": [],
+      "note": "PROPOSED. The sclera is named in c01 but never measured. A number here would be pure fabrication."
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "source": {
+    "work": "OpenStax, Anatomy and Physiology 2e",
+    "section": "14.1 Sensory Perception",
+    "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/14-1-sensory-perception",
+    "licence": "CC BY 4.0",
+    "retrieved": "2026-08-30",
+    "why_this_one": "D-005: everything committed under evidence/ must come from the open corpus. This is openly licensed and quotable in full.",
+    "PAGE_LABELS_ARE_PROPOSED": "The passages were retrieved as HTML, which has no PDF pagination. The page_label values below are ASSIGNED BY SECTION ORDER, not read from a PDF. They exercise the label/index split correctly, but they are NOT verifiable against a printed page. The label-vs-index mechanism itself was already proven in 2C against a real PDF with a real /PageLabels tree; what this fixture is for is faithfulness, not pagination. A genuine end-to-end page check needs the OpenStax PDF."
+  },
+  "chunks": [
+    {
+      "id": "c01",
+      "page_label": "541",
+      "source": "digital",
+      "section": "Anatomy of the Eye",
+      "text": "The eye itself is a hollow sphere composed of three layers of tissue. The outermost layer is the fibrous tunic, which includes the white sclera and clear cornea."
+    },
+    {
+      "id": "c02",
+      "page_label": "541",
+      "source": "digital",
+      "section": "Anatomy of the Eye",
+      "text": "The transparent cornea covers the anterior part of the eye. It allows light to enter, and along with the lens, focuses light onto the retina."
+    },
+    {
+      "id": "c03",
+      "page_label": "542",
+      "source": "digital",
+      "section": "Anatomy of the Eye",
+      "text": "The middle layer of the eye is the vascular tunic, which is mostly composed of the choroid, ciliary body, and iris. The choroid is a layer of highly vascularized connective tissue that provides a blood supply to the eyeball."
+    },
+    {
+      "id": "c04",
+      "page_label": "542",
+      "source": "digital",
+      "section": "Anatomy of the Eye",
+      "text": "Overlaying the ciliary body, and visible in the anterior eye, is the iris—the colored part of the eye. The iris is a smooth muscle that opens or closes the pupil, which is the hole at the center of the eye that allows light to enter."
+    },
+    {
+      "id": "c05",
+      "page_label": "543",
+      "source": "digital",
+      "section": "Anatomy of the Eye",
+      "text": "The innermost layer of the eye is the neural tunic, or retina, which contains the nervous tissue responsible for photoreception."
+    },
+    {
+      "id": "c06",
+      "page_label": "543",
+      "source": "ocr",
+      "section": "Anatomy of the Eye",
+      "text": "The anterior cavity is the space between the cornea and lens, including the iris and ciliary body. It is filled with a watery fluid called the aqueous humor. The posterior cavity is the space behind the lens that extends to the posterior side of the interior eyeball, where the retina is located. The posterior cavity is filled with a more viscous fluid called the vitreous humor."
+    },
+    {
+      "id": "c07",
+      "page_label": "544",
+      "source": "digital",
+      "section": "Photoreceptors",
+      "text": "The photoreceptors (rods and cones) change their membrane potential when stimulated by light energy."
+    },
+    {
+      "id": "c08",
+      "page_label": "544",
+      "source": "digital",
+      "section": "Photoreceptors",
+      "text": "At the fovea, the retina lacks the supporting cells and blood vessels, and only contains photoreceptors. Therefore, visual acuity, or the sharpness of vision, is greatest at the fovea."
+    },
+    {
+      "id": "c09",
+      "page_label": "545",
+      "source": "digital",
+      "section": "Photoreceptors",
+      "text": "There are two types of photoreceptors—rods and cones—which differ in the shape of their outer segment. The rod-shaped outer segments of the rod photoreceptor contain a stack of membrane-bound discs that contain the photosensitive pigment rhodopsin. The cone-shaped outer segments of the cone photoreceptor contain their photosensitive pigments in infoldings of the cell membrane."
+    },
+    {
+      "id": "c10",
+      "page_label": "546",
+      "source": "digital",
+      "section": "Photoreceptors",
+      "text": "The axons of RGCs, which lie at the innermost layer of the retina, collect at the optic disc and leave the eye as the optic nerve."
+    }
+  ]
+}

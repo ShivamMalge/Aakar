@@ -22,8 +22,8 @@ from __future__ import annotations
 
 import sqlite3
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
-from typing import Literal
+from dataclasses import dataclass, field, replace
+from typing import Literal, cast, get_args
 
 from qdrant_client import QdrantClient
 
@@ -32,7 +32,12 @@ from aakar.providers import BudgetExceeded, CostLedger
 
 from . import cache
 from .embedding import Embedder
-from .provenance_resolve import ResolvedProvenance, resolve
+from .provenance_resolve import (
+    ResolvedProvenance,
+    ResolvedStrength,
+    combine_sources,
+    resolve,
+)
 from .quota import OwnerQuota, QuotaExceeded, check_owner_quota
 from .retrieval import Retrieval, retrieve
 from .tiers import Tier
@@ -54,13 +59,24 @@ class Citation:
     source: str
 
     def render(self) -> str:
-        """``[p. vii]`` — the LABEL (2A.6, D6).
+        """``[p. vii]``, or ``[p. vii, scanned]`` for OCR — the LABEL (2A.6, D6, D-044).
 
         The index is carried for addressing and deliberately never rendered: a citation to
         "page 3" that means the third PDF page is wrong when the book calls it "vii", and
         wrong in a way the reader cannot detect.
+
+        **OCR is marked here, per citation, not only on the answer.** An answer-level
+        confidence covers the answer; a student checking one page needs to know whether
+        *that* page was read by a machine. When four citations are digital and one is
+        scanned, an answer-level qualifier tells them something is uncertain but not which
+        page to distrust — and OCR misreads are silent and produce plausible wrong words,
+        so "which one" is the entire question.
         """
-        return f"[p. {self.page_label}]"
+        return (
+            f"[p. {self.page_label}, scanned]"
+            if self.source == "ocr"
+            else (f"[p. {self.page_label}]")
+        )
 
 
 @dataclass(frozen=True)
@@ -78,6 +94,34 @@ class Answer:
     @property
     def cited_pages(self) -> tuple[str, ...]:
         return tuple(c.page_label for c in self.citations)
+
+    @property
+    def display_confidence(self) -> str:
+        """What the panel shows (D-044). Never plain ``strong`` over a scanned page.
+
+        `ResolvedProvenance.display_confidence` reads its source axis from the chunks that
+        *name the part* — the evidence the strength rests on. What the student is shown is
+        every retrieved citation, which is a superset. So an answer can rest on digital
+        evidence and still put a scanned page in front of someone, and reading the
+        evidence-axis value straight out would describe that answer as ``strong`` with no
+        hint that one of its pages came out of an OCR engine.
+
+        Evidence that is wholly OCR keeps ``(OCR)`` rather than being softened to
+        ``(partly OCR)`` by digital pages that happen to be alongside it: the claim still
+        rests entirely on machine-read text. Otherwise the shown citations decide. So this
+        can only ever make a confidence more cautious, never less.
+        """
+        if self.provenance is None:
+            return "unknown"
+        if not self.citations or self.provenance.source == "ocr":
+            return self.provenance.display_confidence
+        shown = combine_sources([c.source for c in self.citations])
+        return replace(self.provenance, source=shown).display_confidence
+
+    @property
+    def scanned_pages(self) -> tuple[str, ...]:
+        """Page labels the student is being shown that were read by OCR."""
+        return tuple(c.page_label for c in self.citations if c.source == "ocr")
 
 
 def _citations(retrieval: Retrieval) -> tuple[Citation, ...]:
@@ -137,10 +181,23 @@ def ask(
             )
             for c in (stored if isinstance(stored, list) else [])
         )
+        # Strength is stored with the answer so a cached one keeps its confidence. Without
+        # it the same answer reads as `strong (OCR)` when generated and `unknown` when
+        # served from cache — the OCR warning would survive exactly until the answer became
+        # popular enough for a second student to ask. Source is re-derived from the stored
+        # citations rather than persisted, so it cannot drift out of step with them.
+        cached_provenance: ResolvedProvenance | None = None
+        stored_strength = str(hit.answer.get("strength", ""))
+        if stored_strength in get_args(ResolvedStrength):
+            cached_provenance = ResolvedProvenance(
+                strength=cast(ResolvedStrength, stored_strength),
+                source=combine_sources([c.source for c in citations]),
+            )
         return Answer(
             kind="cached",
             text=str(hit.answer.get("text", "")),
             citations=citations,
+            provenance=cached_provenance,
             from_cache=True,
             similar_question=hit.question if hit.is_paraphrase else None,
         )
@@ -214,6 +271,9 @@ def ask(
         answer={
             "text": answer.text,
             "citations": [c.__dict__ for c in citations],
+            # See the cache-hit branch: without this a popular answer silently loses its
+            # provenance the moment it starts being served from cache.
+            "strength": provenance.strength,
         },
     )
     return answer

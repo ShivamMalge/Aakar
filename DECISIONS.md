@@ -1412,3 +1412,69 @@ The VLM critic — or a separate deterministic check, which is likely the better
 this is a text question and not a visual one — must verify **alias coverage against the
 chapter's actual inflections** before completeness is judged. Recorded now so it is designed
 in rather than discovered when the pilot batch's completeness numbers look inexplicably low.
+
+---
+
+## D-047 — Provenance must survive the citation line and the cache
+
+**Status:** Built · **Phase:** 2D.1e
+
+D-044 put `source` beside `strength` as a second axis and combined them in one place,
+`ResolvedProvenance.display_confidence`. Building 2D.1e found two paths where that value
+was correct and the student still could not see it.
+
+**1. The citation line said nothing.** `Citation.render()` produced `[p. 543]` whether the
+page had been extracted from a digital PDF or read by an OCR engine. An answer-level
+qualifier tells a reader that *something* here is uncertain; it does not tell them *which
+page to distrust*. With four digital citations and one scanned, that is the entire
+question. OCR renders as `[p. 543, scanned]`. Still the label, never the index (D6).
+
+**2. `display_confidence` read the wrong set of chunks.** `resolve()` reads its source axis
+from the chunks that **name the part**, because that is the evidence the strength rests on.
+What the student is *shown* is every retrieved citation — a superset. So an answer could
+rest on digital evidence, put a scanned page in front of someone, and describe itself as
+`strong`. `Answer.display_confidence` widens the source axis over the citations actually
+shown. Wholly-OCR evidence keeps `(OCR)` rather than decaying to `(partly OCR)` because an
+unrelated digital chunk was also retrieved: the claim still rests entirely on machine-read
+text. The widening can only ever make a confidence more cautious.
+
+**3. The cache dropped it entirely.** A cache hit rebuilds an `Answer` from stored JSON and
+never re-resolves provenance, so the same answer read `strong (OCR)` when generated and
+`unknown` once cached. **The OCR warning survived exactly until the question became popular
+enough for a second student to ask it** — the worst possible schedule, since it disappeared
+precisely as the number of people relying on it grew. `strength` is now stored with the
+answer; `source` is re-derived from the stored citations rather than persisted, so it
+cannot drift out of step with them. Rows written before this change restore no provenance
+and report `unknown`, which is the honest reading — inventing `strong` for a row that never
+recorded one would fabricate the confidence this axis exists to qualify.
+
+**The shape, because it will recur.** A value can be computed correctly and still never
+reach a reader. Each of these three was a *display* bug in a system whose entire product
+claim is that the student can check the source. The general form: **a correctness property
+that is only enforced at the point of computation is not enforced** — it has to be carried
+through every path the value takes, and the cache is always one of those paths.
+
+---
+
+## D-048 — The golden set is PROPOSED until a human signs it, and the code enforces that
+
+**Status:** Built · **Phase:** 2D.1a
+
+`evals/golden-provenance/` ships `verified: false`. Every `supported_by` list in it was
+proposed by the system it is meant to evaluate, and a golden set labelled by the thing it
+evaluates measures self-consistency and calls it accuracy.
+
+Three mechanisms keep that from being a comment nobody reads:
+
+* `load_golden_set` marks everything `provisional` while the flag is false, and that flag
+  rides through `FaithfulnessReport.provisional` into the printed report — so a number
+  cannot escape its caveat by being copied out of a terminal.
+* A set claiming `verified: true` with no `verified_by` is **refused**. That is worse than
+  an unverified one: it looks like evidence and cannot be chased down.
+* Page labels carry their own disclaimer. The chapter was retrieved as HTML, so its
+  `page_label` values are assigned by section order rather than read from a PDF. The
+  label-vs-index mechanism was proven in 2C against a real `/PageLabels` tree; this fixture
+  is for faithfulness, not pagination, and says so in the file.
+
+Scoped to 15 questions over 10 chunks on purpose. Verification is manual work with no
+substitute, and **a set too large to hand-check is a set that will not be hand-checked.**

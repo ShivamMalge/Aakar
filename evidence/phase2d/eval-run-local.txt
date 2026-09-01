@@ -1,0 +1,64 @@
+Aakar 2D.1 evaluation harness
+=============================
+  chapter        : OpenStax, Anatomy and Physiology 2e
+  chunks         : 10 (1 OCR)
+  questions      : 15
+  answer fixtures: 8 (hand-written, not model output)
+  embedder       : local (hashed bag-of-words + character trigrams @ 768d)
+  labels verified: False
+
+  PROVISIONAL. Method closed, numbers open.
+   - golden labels are PROPOSED and not human-verified
+   - lexical, not semantic. Similarity here measures word overlap, so a threshold measured on it describes string matching and not meaning (D-041).
+
+PROVISIONAL - method closed, number open.
+  embedder: local (hashed bag-of-words + character trigrams @ 768d)
+  golden set human-verified: False
+  lexical, not semantic. Similarity here measures word overlap, so a threshold measured on it describes string matching and not meaning (D-041).
+
+ floor  false cover  coverage  covered  missed  refused  verdict
+----------------------------------------------------------------------------
+  0.15            5     100%       10       0        0  UNSAFE - answers uncovered questions
+  0.25            3     100%       10       0        2  UNSAFE - answers uncovered questions
+  0.35            2     100%       10       0        3  UNSAFE - answers uncovered questions
+  0.45            0      80%        8       2        5  usable
+  0.55            0      70%        7       3        5  usable
+  0.65            0      20%        2       8        5  usable
+  0.75            0      10%        1       9        5  usable
+
+  lowest safe floor: 0.45 (coverage 80%, missed ['q04', 'q08'])
+
+per-fixture verdicts
+--------------------
+  ok  a01  expected clean                  fired clean
+  ok  a02  expected clean                  fired clean
+  ok  a03  expected unresolvable_markers   fired unresolvable_markers, unsupported_sentences
+  ok  a04  expected unsupported_sentences  fired unsupported_sentences
+  ok  a05  expected uncited_claims         fired uncited_claims
+  ok  a06  expected clean                  fired clean
+  ok  a07  expected missing_markers        fired missing_markers
+  ok  a08  expected clean                  fired clean
+
+citation faithfulness - all fixtures
+====================================
+PROVISIONAL - method closed, number open.
+  embedder: local (hashed bag-of-words + character trigrams @ 768d)
+  Golden labels are not human-verified and/or this is not the embedder that
+  ships. These counts prove the harness runs; they do not measure the product.
+
+  claims made                            : 10
+  supported                              : 6
+
+  1. markers naming no retrieved passage : 1
+  2. sentences the cited chunk does not
+     support                             : 2
+  3. uncited claims in no retrieved chunk: 1
+
+  (uncited but present in a chunk)       : 1
+  (lexically ambiguous, needs a human)   : 0
+
+  examples:
+    [9] unsupported    cited=0.00 best=1.00(c08)  Visual acuity is greatest at the fovea, where the retina lacks support
+    [1] unsupported    cited=0.00 best=1.00(c03)  The choroid is a layer of highly vascularized connective tissue that p
+    [-] uncited        cited=0.00 best=0.18(c01)  The sclera is roughly 0.5 millimetres thick at the equator of the eye 
+    [-] missing_marker cited=0.00 best=1.00(c01)  The eye has three layers of tissue.

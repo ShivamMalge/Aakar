@@ -844,3 +844,108 @@ door without ever checking the door led anywhere.
 
 Also recorded, not built: **D-046**, alias coverage is load-bearing for provenance, and
 Phase 3 must verify it against the chapter's actual inflections.
+
+---
+
+## Phase 2D.1 · 2026-09-01 — evals with no key
+
+Everything below ran on the **local lexical embedder** against a **PROPOSED, unverified**
+golden set. The method is closed. **Every number is PROVISIONAL.** No API key was obtained
+and none was needed; 2D.2 is where the numbers become real.
+
+### a. Golden provenance set — `evals/golden-provenance/`
+
+One real chapter: OpenStax *Anatomy and Physiology 2e* §14.1, CC BY, quotable in full
+(D-005). 10 verbatim chunks, one (`c06`) marked `source: "ocr"` so D-044's display path is
+exercised by a real question rather than only by a hand-built fixture. 15 questions — 6
+single-chunk, 4 multi-chunk, 5 `not_in_chapter`.
+
+The negatives are deliberately hard: each names a part the chapter really discusses and
+asks something it never says. `q15` asks the sclera's thickness in millimetres, and the
+chapter names the sclera without ever measuring it. A negative that names something absent
+is easy and proves nothing.
+
+**Labels are PROPOSED and the code says so** — see D-048. `verified: false`,
+`verified_by: null`. Verifying them is a manual pass over `questions.json`.
+
+### b. Answer prompt with inline markers — `aakar/rag/answer.py`
+
+The model emits `[1]`, `[2,3]` — indices into the passage list it was given, never page
+numbers. The marker-to-page-label mapping happens in code afterwards. **This is what makes
+the eval possible:** a hallucinated page number is indistinguishable from a real one, so an
+eval could only ask "is this a plausible page", which is not a question with an answer. A
+marker points at a specific retrieved chunk, so "does chunk 2 support this sentence" is
+decidable by reading chunk 2. Every rule in the prompt has a corresponding count in the
+eval; a rule the eval cannot measure is a wish.
+
+### c. Citation faithfulness — `aakar/evals/faithfulness.py`
+
+Three counts, never a score. Run over 8 hand-written answer fixtures:
+
+| | count |
+| --- | --- |
+| claims made | 10 |
+| supported | 6 |
+| **1. markers naming no retrieved passage** | **1** |
+| **2. sentences the cited chunk does not support** | **2** |
+| **3. uncited claims in no retrieved chunk** | **1** |
+| (uncited but present in a chunk) | 1 |
+| (lexically ambiguous, needs a human) | 0 |
+
+Those counts are the harness catching fixtures **built to be caught** (R2) — not a
+measurement of any model. `missing_markers` is reported beside count 3 and deliberately not
+inside it: a true claim with no marker is a prompt problem, a claim from nowhere is a
+grounding problem, and one number for both hides which you have.
+
+`supports()` is lexical and reported as a **lower bound**. It over-reports support for a
+paraphrase and under-reports nothing, so a non-zero count 2 is a real finding and a zero one
+is a floor, not a proof. An LLM judge would be more sensitive and would also be the thing
+under test judging itself. Where the lexical check is ambiguous the harness escalates
+(`needs_human`) rather than guessing in the direction that flatters the run.
+
+### d. Threshold harness parameterised by embedder — `aakar/evals/{embedders,thresholds}.py`
+
+`AAKAR_EVAL_EMBEDDER` selects a named embedder; each carries whether it may certify a
+threshold at all. `local` is `calibrating=False` with its caveat printed alongside every
+number it produces. `gemini` is registered and **raises `NotImplementedError` naming 2D.2**
+rather than falling back to `local` — a silent fallback would let every harness keep
+printing numbers while measuring the stub, which is the exact confusion the 2D.1/2D.2 split
+exists to prevent.
+
+Relevance floor sweep over the golden set, on the local embedder — **PROVISIONAL**:
+
+| floor | false coverage | coverage | verdict |
+| --- | --- | --- | --- |
+| 0.15 | 5 | 100% | UNSAFE |
+| 0.25 | 3 | 100% | UNSAFE |
+| **0.35 (shipped default)** | **2** | 100% | **UNSAFE on this embedder** |
+| 0.45 | 0 | 80% | usable |
+| 0.55 | 0 | 70% | usable |
+| 0.65 | 0 | 20% | usable |
+
+False coverage is binding and absolute, not a rate — the same rule as the cache threshold.
+An uncovered question that clears the floor produces a fluent, cited, wrong answer; one that
+should clear and does not produces a true statement the student can act on. Those are not
+symmetric, so nothing is optimised across them.
+
+**The shipped `DEFAULT_FLOOR` of 0.35 admits 2 false coverages here.** That is a fact about
+word overlap, not about the product — it is exactly the number D-041 says cannot be
+transferred from a lexical embedder — but it is the first evidence that the default was
+picked without measurement, and 2D.2 must re-measure it.
+
+### e. OCR citations surface their confidence — D-047
+
+Two paths where `display_confidence` was computed correctly and the student still could not
+see it, plus one where it vanished entirely on a cache hit. All three fixed; see D-047.
+
+### Not done, deliberately
+
+- **No API key, no live call, no spend.** Every pin is still unverified against the
+  provider — the D-045 registry catches known retirements, and nothing has resolved a model
+  name against a real endpoint. That is 2D.2.
+- **Ten Qdrant-backed tests stayed skipped.** The Docker daemon was not reachable this
+  session. The `ask()` changes are covered without it — the cache branch returns before
+  retrieval, so the two new cached-answer tests exercise the real code path — but the
+  indexed end-to-end `/ask` tests were not re-run.
+- **The golden labels have not been verified by a human.** That is the next manual step and
+  no number above counts until it happens.
