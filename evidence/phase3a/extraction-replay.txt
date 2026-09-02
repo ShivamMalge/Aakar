@@ -3,20 +3,25 @@
 certified against
   model             : gemini-3.6-flash
   chapter           : golden-provenance/chapter.json @ 3694009
-  label set         : structures.json @ 56827bb
+  label set         : structures.json @ 96504c0
   labels verified by: Shivam Malge on 2026-09-02
   measured on       : 2026-09-02
   provider mode     : replay
   scope limit       : One OpenStax section: clean, digital-native, professionally edited, English, with consistent terminology and no OCR noise.
   scope limit       : Every surface form here is spelled the way the model expects.
+  method caveat     : [singular_recovery_is_fit_to_this_chapter] Architect ruling 2026-09-02: singular recovery (a plural the model copied from the text also emits its singular when the chapter contains it whole-word) is SWITCHED ON.
+  method caveat     : [synonym_guard_is_name_choice_sensitive_OPEN] The precision guard's outcome depends on which canonical names the model picks: 'photoreceptor' falls to the own-name rule when the entity is named 'Photoreceptor cell' and to the head-noun rule when rods are named 'Rod photoreceptor'.
+
+R4 re-applied to the 28 verified labels: 0 moved
 
 extraction
   proposed by model : 31
-  kept              : 28
-  dropped           : 3
+  kept              : 27
+  dropped           : 4
     - 'Supporting cell'            R1         generic mention: forms ['supporting cells']
     - 'Blood vessel'               R1         generic mention: forms ['blood vessels']
     - 'Cell membrane'              R1         generic mention: forms ['Cell membrane']
+    - 'Anterior segment of eye'    R4         locative: 'anterior eye'
   synonyms rejected : 3
     - 'Photoreceptor cell': 'photoreceptor' is a token inside its own name 'Photoreceptor cell'
     - 'Fovea centralis': 'fovea' is a token inside its own name 'Fovea centralis'
@@ -26,22 +31,18 @@ extraction
 precision and recall - counts, never a score (D-065: reported twice)
   all named entities
     true positives  : 27
-    false positives : 1   (precision denominator 28)
+    false positives : 0   (precision denominator 27)
     false negatives : 1   (recall denominator 28)
   modellable: true only
     true positives  : 18
-    false positives : 1   (precision denominator 19)
+    false positives : 0   (precision denominator 18)
     false negatives : 0   (recall denominator 18)
   unmatched labels (false negatives):
     - 'infolding' modellable=False forms=['infoldings']
   unmatched extractions (false positives):
-    - 'Anterior segment of eye' modellable=True: no label shares a surface form
 
 alias coverage - do the emitted aliases cover the forms the chapter uses (D-046)
-  matched entities fully covered : 24 / 27
-    - 'photoreceptor': uncovered ['photoreceptor']
-    - 'rod': uncovered ['rod']
-    - 'cone': uncovered ['cone']
+  matched entities fully covered : 27 / 27
 
 modellable - model's guess vs the verified label, on matched entities
   agree: 25 / 27
@@ -49,40 +50,31 @@ modellable - model's guess vs the verified label, on matched entities
     - 'vitreous humor': model=False label=True
 
 model chunk claims - diagnostic; the output uses the matcher's chunks, not these
-  confirmed: 50   invented: 0   missed: 0
+  confirmed: 48   invented: 0   missed: 0
 
 cost per chapter - measured, paid-tier list price (PRICING)
   tokens : 903 in / 2026 out
   usd    : $0.000000   ledger total $0.000000
 
-ALTERNATIVE, measured not switched - refined synonym guard (D-067)
-  own-name token rejected only when it is a category noun
-  synonyms rejected : 2
-    - 'Photoreceptor cell': 'photoreceptor' is the head noun of another entity, 'Rod photoreceptor'
+ALTERNATIVE, measured not switched - WITHOUT singular recovery (the pre-D-068 method) (D-067)
+  shown so the switch stays visible as a switch
+  synonyms rejected : 3
+    - 'Photoreceptor cell': 'photoreceptor' is a token inside its own name 'Photoreceptor cell'
+    - 'Fovea centralis': 'fovea' is a token inside its own name 'Fovea centralis'
     - 'Retinal ganglion cell': identical to the name
-  all entities      : TP 27  FP 1  FN 1
-  modellable only   : TP 18  FP 1  FN 0
+  all entities      : TP 27  FP 0  FN 1
+  modellable only   : TP 18  FP 0  FN 0
   alias coverage    : 24 / 27 fully covered
     - 'photoreceptor': uncovered ['photoreceptor']
     - 'rod': uncovered ['rod']
     - 'cone': uncovered ['cone']
 
-ALTERNATIVE, measured not switched - singular recovery (D-067)
-  a plural copied from the text also emits its singular when the chapter contains it
-  synonyms rejected : 3
-    - 'Photoreceptor cell': 'photoreceptor' is a token inside its own name 'Photoreceptor cell'
-    - 'Fovea centralis': 'fovea' is a token inside its own name 'Fovea centralis'
-    - 'Retinal ganglion cell': identical to the name
-  all entities      : TP 27  FP 1  FN 1
-  modellable only   : TP 18  FP 1  FN 0
-  alias coverage    : 27 / 27 fully covered
-
-ALTERNATIVE, measured not switched - both (D-067)
-  refined guard + singular recovery
+ALTERNATIVE, measured not switched - refined synonym guard (OPEN finding, D-068) (D-067)
+  own-name token rejected only when it is a category noun
   synonyms rejected : 2
     - 'Photoreceptor cell': 'photoreceptor' is the head noun of another entity, 'Rod photoreceptor'
     - 'Retinal ganglion cell': identical to the name
-  all entities      : TP 27  FP 1  FN 1
-  modellable only   : TP 18  FP 1  FN 0
+  all entities      : TP 27  FP 0  FN 1
+  modellable only   : TP 18  FP 0  FN 0
   alias coverage    : 27 / 27 fully covered
 

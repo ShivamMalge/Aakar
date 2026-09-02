@@ -38,6 +38,11 @@
 
     "R2_one_entity_many_forms": "Two names for one structure are ONE entity with several surface forms (architect ruling 3: retina / neural tunic). The curation gate counts structures; counting one twice inflates the denominator.",
 
+    "R4_locative": "Architect ruling 2026-09-02, after the first live run extracted 'Anterior segment of eye' from 'the anterior eye' (c04). A candidate is EXCLUDED as a location if any of its in-chapter surface forms is a purely POSITIONAL modifier applied to a string that is ITSELF a listed entity. Keyed on the modifier, not the head: anterior + eye -> 'eye' is an entity -> EXCLUDE; outer + segment -> 'segment' is not -> KEEP. Without that second clause R4 eats 'outer segment', which is real. Evaluated over surface forms like R1, because the model's canonical name was not positional + entity while its chapter form was.",
+    "R4_POSITIONAL_MODIFIERS": ["anterior", "posterior", "superior", "inferior", "medial", "lateral", "proximal", "distal", "outer", "inner", "upper", "lower"],
+    "R4_KNOWN_LIMITATION_recorded_not_fixed": "A genuinely named structure of the same shape - 'inner ear' where 'ear' is an entity, 'lateral ventricle', 'distal tubule' - would be excluded by R4. No such case exists in this chapter. A future verifier who meets one should read it as designed; amending R4 (an occurrence or naming-construction prong, as in R1) is the architect's ruling to make.",
+    "R4_REAPPLIED": "Re-applied mechanically to every entity in this set and every candidate the extractor proposed: exactly one candidate moved (the extractor's 'Anterior segment of eye'); none of the 28 verified entities moved, including 'outer segment', 'anterior cavity' and 'posterior cavity', whose remainders are not entities. Reported because a rule that only ever fires once is indistinguishable from a hand-flip - the runner re-checks and prints this on every run.",
+
     "R3_no_shared_surface_form": "No surface form may be claimed by two entities, by any route — rule-generated inflection, model synonym, or one of each. A collision is a DEFECT, not a warning: it fails extraction rather than picking a winner, because silent resolution surfaces later as provenance behaviour nobody can explain (architect ruling). This label set is checked against R3 before it is used."
   },
 
@@ -46,8 +51,14 @@
     "why_it_exists": "Coverage has two distinct failure modes. The chapter names it and the spec omitted it: a defect the curator must act on. The chapter names it and it is outside the model's scope: correct, and not the curator's problem. Collapsing them makes the coverage panel unreadable. 3B's coverage metric reports them separately, and its denominator for 'omitted' is the modellable: true entities only."
   },
 
+  "method_caveats": {
+    "singular_recovery_is_fit_to_this_chapter": "Architect ruling 2026-09-02: singular recovery (a plural the model copied from the text also emits its singular when the chapter contains it whole-word) is SWITCHED ON. It took alias coverage from 24/27 to 27/27 - measured on the chapter the rule was designed against. That is fitting to the test set, so 27/27 is optimistic and is printed as such on every run. A second chapter is what would make it a measurement.",
+    "synonym_guard_is_name_choice_sensitive_OPEN": "The precision guard's outcome depends on which canonical names the model picks: 'photoreceptor' falls to the own-name rule when the entity is named 'Photoreceptor cell' and to the head-noun rule when rods are named 'Rod photoreceptor'. The refined guard was a null result on this chapter. Kept OPEN by ruling - a real property of the method that a second chapter may make non-null."
+  },
+
   "gate_reporting": {
     "ruling": "Architect 2026-09-02. Precision and recall are each reported TWICE: over all named entities, and over modellable: true only. The second is the product-relevant number and the one 3B's coverage denominator matches; the first tells you what the extractor misses. Both as counts, never a score.",
+    "modellable_proposed_is_not_fed_to_3B": "Architect ruling 2026-09-02. The model's modellable guess agreed with the verified labels 25/27, but both disagreements were the humours - the exact class where the judgement was hardest and ruling 1 had to decide. A signal systematically wrong on the difficult class is worse than no signal in a coverage denominator. It is emitted as `modellable_proposed`, recorded, and not read by 3B; a second chapter may measure it later.",
     "matching": "An extracted entity matches a labelled one when their normalised surface-form sets intersect (name + aliases on the extracted side, name + surface_forms here), after the deterministic inflector is applied to both sides so that humor/humour and RGC/RGCs link. Unmatched entities on either side are listed by name, so a near-miss is visible rather than counted silently."
   },
 
@@ -97,6 +108,7 @@
     {"candidate": "membrane potential", "surface_forms": ["membrane potential"], "in": "c07", "rule": "R0 (also R1)", "note": "a property"},
     {"candidate": "light energy", "surface_forms": ["light energy"], "in": "c07", "rule": "R0 (also R1)", "note": "external stimulus"},
     {"candidate": "photoreception", "surface_forms": ["photoreception"], "in": "c05", "rule": "R0", "note": "a process"},
-    {"candidate": "visual acuity", "surface_forms": ["visual acuity"], "in": "c08", "rule": "R0", "note": "a property"}
+    {"candidate": "visual acuity", "surface_forms": ["visual acuity"], "in": "c08", "rule": "R0", "note": "a property"},
+    {"candidate": "anterior segment of eye", "surface_forms": ["anterior eye", "anterior part of the eye"], "in": "c02, c04", "rule": "R4", "note": "Proposed by the extractor on the first live run, not by the human candidate list. 'anterior eye' is positional + 'eye', a listed entity: a location, not a structure. Added here by rule, never by hand - hand-adding 'anterior segment' to the entities would have been the label-flipping label_rules forbids."}
   ]
 }

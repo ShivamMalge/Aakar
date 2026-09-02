@@ -2209,3 +2209,52 @@ diff has to be run to be found.
 `infolding` was the only false negative — the weakest rule-produced inclusion in the label
 set (D-065), which the model also declined to name. The rule and the model disagree on the
 same entry a human found marginal. Recorded; the rule stands.
+
+---
+
+## D-068 — 3A closed: singular recovery switched, R4 added, the model's `modellable` not fed forward
+
+**Status:** Applied · **Phase:** 3A close · **Architect rulings 2026-09-02**
+
+Three rulings on D-067's findings, applied and re-measured in replay.
+
+**1. Singular recovery — switched on.** Generate-then-check, corpus-verified, the same shape
+as the approved inflector: a plural the model copied from the text also emits its singular
+*when the chapter contains it whole-word*. "lens" → "len" is proposed and rejected, which is
+the guard working as designed. Alias coverage 24/27 → **27/27**. **Recorded as
+fit-to-test:** that number was measured on the chapter the rule was designed against, so it
+is optimistic. It travels the same way the scope limits do — in the label file's
+`method_caveats`, loaded by the runner, printed on every report. A second chapter is what
+would make it a measurement.
+
+**2. R4, the locative rule — added; the label was not patched.** Hand-adding "anterior
+segment" to the entities would have been exactly the label-flipping `label_rules` forbids.
+R4 keys on the **modifier, not the head**: a candidate is excluded if any in-chapter surface
+form is a purely positional modifier (anterior, posterior, superior, inferior, medial,
+lateral, proximal, distal, outer, inner, upper, lower) applied to a string that is *itself
+a listed entity*. `anterior + eye` → *eye* is an entity → exclude. `outer + segment` →
+*segment* is not → keep. Without the second clause R4 eats *outer segment*, which is real.
+
+Evaluated over surface forms, like R1, because the model's canonical name ("Anterior
+segment of eye") is not positional + entity while its chapter form ("anterior eye") is.
+
+**Re-applied to every candidate, as required:** 0 of the 28 verified labels moved —
+including *outer segment*, *anterior cavity* and *posterior cavity*, whose remainders are
+not entities — and exactly one extractor candidate did. The runner re-checks the labels and
+prints the count on every run, because a rule that only ever fires once is indistinguishable
+from a hand-flip. **Known limitation, recorded like R1's asymmetry:** a genuinely named
+structure of the same shape (*inner ear* where *ear* is an entity, *lateral ventricle*,
+*distal tubule*) would fall to R4. None exists in this chapter; the amendment is a ruling.
+
+After R4: **TP 27 · FP 0 · FN 1** over all 28; **18 · 0 · 0** over modellable.
+
+**3. The model's `modellable` guess is not fed to 3B.** 25/27 agreement was misleading: both
+disagreements were the humours, the exact class where the judgement was hardest and ruling 1
+had to decide. A signal systematically wrong on the difficult class is worse than no signal
+in a coverage denominator. It is emitted as `modellable_proposed`, so it cannot be read as
+the label by accident, and stays recorded for a second chapter to measure.
+
+**Kept open by ruling:** the synonym guard's name-choice sensitivity (D-067 finding 2). A
+real property of the method; the refined guard was a null result here, and a second chapter
+may make it non-null. Also in `method_caveats`, printed every run.
+

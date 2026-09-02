@@ -54,6 +54,8 @@ class StructureLabels:
     verified_by: str | None
     verified_on: str | None
     scope_limits: dict[str, str]
+    #: Method caveats the runner prints on every run (D-068): fit-to-test, open findings.
+    method_caveats: dict[str, str]
     certification: dict[str, str | None]
     path: Path
 
@@ -137,6 +139,7 @@ def load_labels(path: Path | None = None) -> StructureLabels:
         verified_by=verified_by,
         verified_on=raw.get("verified_on"),
         scope_limits={str(k): str(v) for k, v in raw.get("SCOPE_LIMITS", {}).items()},
+        method_caveats={str(k): str(v) for k, v in raw.get("method_caveats", {}).items()},
         certification={str(k): v for k, v in raw.get("certification", {}).items()},
         path=path,
     )

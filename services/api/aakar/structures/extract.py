@@ -37,6 +37,7 @@ from .verify import (
     confirm_naming_chunks,
     find_collisions,
     is_generic_mention,
+    is_locative_candidate,
     mentions,
     naming_chunks_for,
     singular_candidates,
@@ -187,7 +188,7 @@ def decide(
     *,
     category_nouns: frozenset[str],
     guard: str = "approved",
-    recover_singulars: bool = False,
+    recover_singulars: bool = True,
 ) -> Extraction:
     """The deterministic half, separated from the model call so it is testable in replay
     against hand-written proposals — including ones built to be refused (R2).
@@ -196,10 +197,12 @@ def decide(
     is the alternative measured after the first live run showed the approved guard rejecting
     *photoreceptor* for "Photoreceptor cell" (D-067). Measured side by side; not switched.
 
-    `recover_singulars`: the second alternative. For a plural the model copied from the
-    text, also emit its singular when the chapter contains that singular whole-word — so
-    "rods" recovers "rod" from "the rod photoreceptor". Corpus-checked, so it cannot invent
-    a form; still a change to the approved method, so measured and not switched.
+    `recover_singulars` — SWITCHED ON by ruling (D-068). For a plural the model copied from
+    the text, also emit its singular when the chapter contains that singular whole-word, so
+    "rods" recovers "rod" from "the rod photoreceptor". Corpus-checked: "lens" -> "len" is
+    proposed and rejected, which is the guard working as designed. The 27/27 coverage it
+    gave was measured on the chapter the rule was designed against — fitting to the test
+    set, so that number is optimistic and is printed as such on every run.
     """
     texts = {cid: text for cid, (_page, text) in chunks.items()}
     chapter_text = " ".join(texts.values())
@@ -279,6 +282,19 @@ def decide(
                 claims_missed=missed,
             )
         )
+
+    # R4 (D-068): a candidate whose chapter form is a positional modifier applied to a
+    # string that is itself another kept entity is a location, not a structure. Applied
+    # after the loop because "listed entity" means the other survivors.
+    survivors = list(result.entities)
+    result.entities = []
+    for ent in survivors:
+        others = [f for o in survivors if o is not ent for f in o.all_forms]
+        fired = is_locative_candidate(ent.forms_in_chapter, others)
+        if fired:
+            result.dropped.append(Dropped(ent.name, "R4", f"locative: {fired!r}"))
+        else:
+            result.entities.append(ent)
 
     collisions = find_collisions({e.name: e.all_forms for e in result.entities})
     if collisions:

@@ -38,6 +38,7 @@ from aakar.structures import StructureLabels, inflections, load_labels, normalis
 from aakar.structures.coverage import baseline, dumps
 from aakar.structures.extract import CollisionError, ExtractedEntity, Extraction, extract
 from aakar.structures.labels import LabelledEntity
+from aakar.structures.verify import is_locative_candidate
 
 from .golden import GOLDEN_DIR, load_golden_set
 
@@ -167,8 +168,26 @@ def run(out: TextIO = sys.stdout) -> int:
     for key, note in labels.scope_limits.items():
         if key[:1].isdigit():
             print(f"  scope limit       : {note.split('.')[0]}.", file=out)
+    for key, note in labels.method_caveats.items():
+        print(f"  method caveat     : [{key}] {note.split('. ')[0]}.", file=out)
     if labels.provisional:
         print("  PROVISIONAL: labels not human-verified", file=out)
+    print(file=out)
+
+    # R4 re-applied to the verified labels themselves (D-068). A rule that only ever fires
+    # once is indistinguishable from a hand-flip, so the count of labels it would move is
+    # printed every run - it must stay at zero for this set.
+    moved = []
+    for lab in labels.entities:
+        others = [f for o in labels.entities if o is not lab for f in o.all_forms]
+        fired = is_locative_candidate(lab.all_forms, others)
+        if fired:
+            moved.append((lab.name, fired))
+    print(
+        f"R4 re-applied to the {len(labels.entities)} verified labels: {len(moved)} moved", file=out
+    )
+    for name, fired in moved:
+        print(f"  - {name!r} via {fired!r}", file=out)
     print(file=out)
 
     provider, ledger = _provider(model, CAP_USD)
@@ -281,19 +300,14 @@ def run(out: TextIO = sys.stdout) -> int:
     proposed = parse_response(replayed.text)
     alternatives = (
         (
-            "refined synonym guard",
+            "WITHOUT singular recovery (the pre-D-068 method)",
+            "shown so the switch stays visible as a switch",
+            {"recover_singulars": False},
+        ),
+        (
+            "refined synonym guard (OPEN finding, D-068)",
             "own-name token rejected only when it is a category noun",
             {"guard": "refined"},
-        ),
-        (
-            "singular recovery",
-            "a plural copied from the text also emits its singular when the chapter contains it",
-            {"recover_singulars": True},
-        ),
-        (
-            "both",
-            "refined guard + singular recovery",
-            {"guard": "refined", "recover_singulars": True},
         ),
     )
     for title, what, kwargs in alternatives:

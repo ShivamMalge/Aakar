@@ -23,6 +23,8 @@ from aakar.structures import (
 from aakar.structures.extract import CollisionError, decide
 from aakar.structures.verify import (
     confirm_naming_chunks,
+    is_locative,
+    is_locative_candidate,
     is_named_by_construction,
     singular_candidates,
 )
@@ -345,7 +347,7 @@ def test_singular_recovery_is_corpus_checked() -> None:
         surface_forms_in_text=["rods"],
         modellable=False,
     )
-    without = decide([proposal], CHAPTER, category_nouns=CATEGORY)
+    without = decide([proposal], CHAPTER, category_nouns=CATEGORY, recover_singulars=False)
     with_ = decide([proposal], CHAPTER, category_nouns=CATEGORY, recover_singulars=True)
     assert "rod" not in {normalise(f) for f in without.entities[0].all_forms}
     assert "rod" in {normalise(f) for f in with_.entities[0].all_forms}
@@ -356,3 +358,65 @@ def test_singular_recovery_is_corpus_checked() -> None:
     chapter = {**CHAPTER, "c02": ("541", "the lens focuses light")}
     got = decide([lens], chapter, category_nouns=CATEGORY, recover_singulars=True)
     assert "len" not in {normalise(f) for f in got.entities[0].all_forms}
+
+
+# ------------------------------------------------------------- R4 (D-068)
+
+
+def test_r4_keys_on_the_modifier_not_the_head() -> None:
+    """anterior + eye -> "eye" is an entity -> location. outer + segment -> "segment" is not
+    -> a real structure survives. Without the second clause R4 eats "outer segment"."""
+    entities = ["eye", "retina", "outer segment", "anterior cavity"]
+    assert is_locative("anterior eye", entities)
+    assert not is_locative("outer segment", entities), "segment is not an entity"
+    assert not is_locative("anterior cavity", entities), "cavity is not an entity"
+    assert not is_locative("eye", entities), "no modifier, nothing to key on"
+
+
+def test_r4_is_evaluated_over_chapter_forms_because_the_name_was_not_locative() -> None:
+    """The live FP: canonical name 'Anterior segment of eye' is not positional + entity;
+    its chapter form 'anterior eye' is. Any such form excludes the candidate."""
+    fired = is_locative_candidate(["anterior eye", "anterior part of the eye"], ["eye"])
+    assert fired == "anterior eye"
+    assert is_locative_candidate(["anterior part of the eye"], ["eye"]) is None
+
+
+def test_r4_known_limitation_is_pinned_not_hidden() -> None:
+    """Recorded like R1's asymmetry: a genuinely named 'inner ear' falls to R4 when 'ear' is
+    an entity. This test exists so a future change to that behaviour is a ruling."""
+    assert is_locative("inner ear", ["ear", "cochlea"])
+
+
+def test_decide_applies_r4_against_the_other_survivors() -> None:
+    proposals = [
+        _proposal(name="Eye", naming_chunk_ids=["c04"], surface_forms_in_text=["eye"]),
+        _proposal(
+            name="Anterior segment of eye",
+            kind="region",
+            naming_chunk_ids=["c04"],
+            surface_forms_in_text=[],
+            synonyms=["anterior eye"],
+        ),
+    ]
+    chapter = {**CHAPTER, "c04": ("542", "visible in the anterior eye is the iris of the eye")}
+    result = decide(proposals, chapter, category_nouns=CATEGORY)
+    assert [e.name for e in result.entities] == ["Eye"]
+    assert result.dropped[0].rule == "R4"
+
+
+def test_singular_recovery_is_the_default_after_the_ruling() -> None:
+    proposal = _proposal(
+        name="Rod photoreceptor",
+        kind="cell_type",
+        naming_chunk_ids=["c07", "c09"],
+        surface_forms_in_text=["rods"],
+        modellable=False,
+    )
+    [ent] = decide([proposal], CHAPTER, category_nouns=CATEGORY).entities
+    assert "rod" in {normalise(f) for f in ent.all_forms}
+
+
+def test_the_label_set_carries_its_method_caveats() -> None:
+    labels = load_labels()
+    assert any("fit" in k for k in labels.method_caveats), "the 27/27 caveat must travel"
+    assert any("OPEN" in k for k in labels.method_caveats), "the guard finding stays open"

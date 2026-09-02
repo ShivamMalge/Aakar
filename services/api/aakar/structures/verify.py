@@ -138,6 +138,62 @@ def singular_candidates(form: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(c for c in out if len(c) > 2))
 
 
+#: R4 (architect ruling 2026-09-02). Purely positional modifiers. Keyed on the MODIFIER,
+#: not the head: "anterior eye" is a location because "eye" is itself an entity; "outer
+#: segment" is a structure because "segment" is not.
+POSITIONAL_MODIFIERS: frozenset[str] = frozenset(
+    {
+        "anterior",
+        "posterior",
+        "superior",
+        "inferior",
+        "medial",
+        "lateral",
+        "proximal",
+        "distal",
+        "outer",
+        "inner",
+        "upper",
+        "lower",
+    }
+)
+
+
+def is_locative(form: str, entity_forms: Iterable[str]) -> bool:
+    """R4 on one surface form: positional modifier(s) applied to a listed entity."""
+    tokens = normalise(form).split()
+    if len(tokens) < 2:
+        return False
+    i = 0
+    while i < len(tokens) and tokens[i] in POSITIONAL_MODIFIERS:
+        i += 1
+    if i == 0 or i == len(tokens):
+        return False
+    remainder = " ".join(tokens[i:])
+    return remainder in {normalise(e) for e in entity_forms}
+
+
+def is_locative_candidate(forms: Iterable[str], entity_forms: Iterable[str]) -> str | None:
+    """R4 over a candidate's in-chapter surface forms; returns the form that fired.
+
+    ANY in-chapter form that is positional + listed entity excludes the candidate. Evaluated
+    over surface forms like R1, because the model's canonical name for the one live false
+    positive was "Anterior segment of eye" — not positional + entity — while its chapter
+    form "anterior eye" is.
+
+    **Known limitation, recorded like R1's asymmetry:** a genuinely named structure of the
+    same shape — *inner ear* where *ear* is an entity, *lateral ventricle*, *distal tubule*
+    — would be excluded by this rule. No such case exists in the golden chapter. A future
+    verifier who meets one should read it as designed, and the ruling that amends R4 (an
+    occurrence or naming-construction prong, as in R1) is the architect's to make.
+    """
+    entity_forms = tuple(entity_forms)
+    for form in forms:
+        if is_locative(form, entity_forms):
+            return form
+    return None
+
+
 # ------------------------------------------------------------------ R3 and the guard
 
 

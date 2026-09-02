@@ -1359,3 +1359,12 @@ and the extractor was nondeterministic in a way only the record/replay diff coul
 1. Singular recovery — switch, or keep the approved method at 24/27.
 2. The locative false positive — add "anterior segment" to the labels, or add R4.
 3. Whether the model's `modellable` guess should feed 3B at all, given the humors.
+
+### 3A closed · 2026-09-02 (D-068)
+
+Rulings applied and re-measured in replay. Singular recovery switched on (27/27 alias
+coverage, recorded as fit-to-test and printed every run). R4 added rather than the label
+patched: keyed on the modifier, re-applied to all 28 labels — 0 moved, exactly one extractor
+candidate did, and the runner prints that count every run. The model's `modellable` guess is
+emitted as `modellable_proposed` and not read by 3B. After R4: **TP 27 · FP 0 · FN 1** over
+all 28; **18 · 0 · 0** over modellable. The synonym-guard finding stays open by ruling.

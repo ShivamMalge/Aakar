@@ -8,6 +8,12 @@ source), the chunks and page labels that name it.
 `modellable` is what lets the gate split "named and omitted" (a defect the curator acts on)
 from "named and out of scope" (correct, not the curator's problem) — D-064. The
 `omitted` denominator downstream is `modellable: true` entities only.
+
+**The model's guess is `modellable_proposed`, and 3B does not read it** (ruling, D-068).
+25/27 agreement with the verified labels was misleading: both disagreements were the
+humours, the exact class where the judgement was hardest. A signal systematically wrong on
+the difficult class is worse than no signal in a coverage denominator. It stays recorded as
+a proposal a second chapter may later measure it against.
 """
 
 from __future__ import annotations
@@ -28,12 +34,12 @@ def baseline(extraction: Extraction, *, chapter_id: str, topic_scale: str) -> di
         "model": extraction.model,
         "usd": extraction.usd,
         "named": len(extraction.entities),
-        "named_modellable": sum(e.modellable for e in extraction.entities),
+        "named_modellable_proposed": sum(e.modellable for e in extraction.entities),
         "entities": [
             {
                 "name": e.name,
                 "kind": e.kind,
-                "modellable": e.modellable,
+                "modellable_proposed": e.modellable,
                 "aliases": [asdict(a) for a in e.aliases],
                 "forms_in_chapter": list(e.forms_in_chapter),
                 "naming_chunks": list(e.naming_chunks),
