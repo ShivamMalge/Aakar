@@ -1309,3 +1309,53 @@ measurement — closed.
 
 Phase 3 (spec generation and the VLM critic) is deliberately **not** started; the architect
 is scoping it separately.
+
+---
+
+## Phase 3A · 2026-09-02 — chapter structure extraction, at the gate
+
+Built after the label set read `verified: true` (Shivam Malge, 2026-09-02). Every number is
+certified against `gemini-3.6-flash`, chapter `3694009`, label set `56827bb`; the runner
+derives both commits from git and prints them with the scope limits on every run.
+
+### What was built — `aakar/structures/`, `aakar/evals/structures_eval.py`
+
+- **`inflect.py`** — deterministic, broad, never harvests: English and Latin/Greek plurals,
+  `-or/-our`, abbreviation plurals, hyphen/space variants. `irides`, `retinae`, `corteces`
+  all emitted; none can match an unrelated word.
+- **`verify.py`** — one matcher (whole-word, the same as provenance), R1 over surface forms,
+  the verifier that confirms or drops the model's chunk claims, R3 collisions, the synonym
+  guard.
+- **`extract.py`** — model proposes; code decides. Naming chunks come from the matcher, not
+  the model. A collision refuses the whole extraction.
+- **`labels.py`** — loads the verified set, refuses one that violates its own R3, derives
+  the label-set commit from git.
+- **`coverage.py`** — the baseline the curation gate reads, with `modellable` per entity.
+
+### Gate
+
+| item | result |
+| --- | --- |
+| hand-labelled set, architect-verified | 28 entities, `verified: true` |
+| precision / recall, all named | TP 27 · FP 1 · FN 1 |
+| precision / recall, modellable only | TP 18 · FP 1 · FN 0 |
+| alias coverage (approved method) | 24 / 27 matched entities fully covered |
+| alias coverage (singular recovery, measured) | 27 / 27 |
+| cost per chapter | $0.008275 (903 in / 2026 out) |
+| scope limits printed on every report | yes |
+| record/replay | byte-identical after the determinism fix |
+
+Findings in D-067: one false positive is a descriptive locative no rule excludes (proposed
+R4, not applied); the synonym guard's outcome depends on which canonical names the model
+picks; the three uncovered singulars have one cause and one corpus-checked fix, measured at
+27/27 and **not switched**; the model disagrees with ruling 1 on the humors' modellability;
+and the extractor was nondeterministic in a way only the record/replay diff could show.
+
+**Tests ran here, with Docker up:** 864 pytest, 1 skipped (the no-OCR branch, by design),
+439 vitest, ruff + mypy-strict + tsc clean. CI will run the same suite minus Qdrant.
+
+### Awaiting rulings
+
+1. Singular recovery — switch, or keep the approved method at 24/27.
+2. The locative false positive — add "anterior segment" to the labels, or add R4.
+3. Whether the model's `modellable` guess should feed 3B at all, given the humors.

@@ -1,16 +1,17 @@
 {
   "PROPOSED": "Every entity, surface-form list, kind tag and modellable flag below is PROPOSED BY THE SYSTEM and counts for nothing until a human verifies it against the chapter (D-048). This is the hand-label set the 3A gate measures precision and recall against.",
   "how_to_verify": "Read chapter.json. For each entity: is it genuinely named (not merely implied)? Are surface_forms and naming_chunks right and complete? Is anything named in the chapter missing? Check the excluded_candidates table: does the rule that excluded each one give the answer you would give? If you disagree with an inclusion or exclusion, the RULE changes, not the label — see label_rules. Then set verified: true with your name and date.",
-  "verified": false,
-  "verified_by": null,
-  "verified_on": null,
+  "verified": true,
+  "verified_by": "Shivam Malge",
+  "verified_on": "2026-09-02",
 
   "certification": {
+
     "note": "Every 3A number measured against this set is certified against the model and chapter named here and nothing else (same treatment as D-058). A model change or a chapter change invalidates it.",
     "model": "gemini-3.6-flash",
     "chapter": "evals/golden-provenance/chapter.json",
     "chapter_commit": "ecf6954",
-    "label_set_commit": null,
+    "label_set_commit": "DERIVED BY THE RUNNER at measurement time: git log -1 --format=%h -- this file. Hand-typing it is impossible (a commit cannot contain its own hash) and a stale value would certify against the wrong labels.",
     "measured_on": null
   },
 
@@ -33,6 +34,8 @@
 
     "NAMING_CONSTRUCTIONS": ["called (the|a|an)? X", "known as (the|a|an)? X", "termed (the|a|an)? X", "referred to as (the|a|an)? X", "or (the|a|an)? X,  (appositive: 'the neural tunic, or retina,')"],
 
+    "R1_ASYMMETRY_recorded_not_fixed": "Architect ruling 2026-09-02. Exclusion requires a category-noun head, so a candidate with a NON-category head is included at ANY occurrence count: 'infolding' and 'axon' are included at one mention while 'cell membrane' is excluded at one mention. This is a known property of the rule, kept deliberately. Adding an occurrence threshold for non-category heads would be taste wearing a rule's clothes. The three weak inclusions (photosensitive pigment, axon, infolding) stand; a future verifier should read this as designed, not as an oversight.",
+
     "R2_one_entity_many_forms": "Two names for one structure are ONE entity with several surface forms (architect ruling 3: retina / neural tunic). The curation gate counts structures; counting one twice inflates the denominator.",
 
     "R3_no_shared_surface_form": "No surface form may be claimed by two entities, by any route — rule-generated inflection, model synonym, or one of each. A collision is a DEFECT, not a warning: it fails extraction rather than picking a winner, because silent resolution surfaces later as provenance behaviour nobody can explain (architect ruling). This label set is checked against R3 before it is used."
@@ -41,6 +44,11 @@
   "modellable": {
     "definition": "Whether a spec at THIS TOPIC'S SCALE — the whole eye, as in specs/golden/human_eye — could reasonably include the entity as a distinct clickable geometry. Topic-relative by construction: a 'photoreceptor' topic would model rods and cones; a whole-eye topic would not.",
     "why_it_exists": "Coverage has two distinct failure modes. The chapter names it and the spec omitted it: a defect the curator must act on. The chapter names it and it is outside the model's scope: correct, and not the curator's problem. Collapsing them makes the coverage panel unreadable. 3B's coverage metric reports them separately, and its denominator for 'omitted' is the modellable: true entities only."
+  },
+
+  "gate_reporting": {
+    "ruling": "Architect 2026-09-02. Precision and recall are each reported TWICE: over all named entities, and over modellable: true only. The second is the product-relevant number and the one 3B's coverage denominator matches; the first tells you what the extractor misses. Both as counts, never a score.",
+    "matching": "An extracted entity matches a labelled one when their normalised surface-form sets intersect (name + aliases on the extracted side, name + surface_forms here), after the deterministic inflector is applied to both sides so that humor/humour and RGC/RGCs link. Unmatched entities on either side are listed by name, so a near-miss is visible rather than counted silently."
   },
 
   "kind_vocabulary": ["structure", "region", "cell_type", "substance", "molecule"],
@@ -71,10 +79,10 @@
     {"name": "outer segment", "kind": "structure", "modellable": false, "surface_forms": ["outer segment", "outer segments"], "naming_chunks": ["c09"], "pages": ["545"]},
     {"name": "membrane-bound disc", "kind": "structure", "modellable": false, "surface_forms": ["membrane-bound discs"], "naming_chunks": ["c09"], "pages": ["545"], "note": "No bare 'disc' claimed, so no collision with optic disc."},
     {"name": "rhodopsin", "kind": "molecule", "modellable": false, "surface_forms": ["rhodopsin"], "naming_chunks": ["c09"], "pages": ["545"]},
-    {"name": "photosensitive pigment", "kind": "molecule", "modellable": false, "surface_forms": ["photosensitive pigment", "photosensitive pigments"], "naming_chunks": ["c09"], "pages": ["545"], "note": "INCLUDED BY RULE, not by taste. Head 'pigment' is a category noun, but it occurs twice, so R1(b) fails and it stays. Rhodopsin is its named instance; distinct surface forms, so no R3 collision. If you would exclude it, R1 needs a different occurrence threshold — say so and I re-apply."},
+    {"name": "photosensitive pigment", "kind": "molecule", "modellable": false, "surface_forms": ["photosensitive pigment", "photosensitive pigments"], "naming_chunks": ["c09"], "pages": ["545"], "note": "INCLUDED BY RULE, not by taste. Head 'pigment' is a category noun, but it occurs twice, so R1(b) fails and it stays. Rhodopsin is its named instance; distinct surface forms, so no R3 collision. RULED 2026-09-02: stands (see R1_ASYMMETRY)."},
     {"name": "retinal ganglion cell", "kind": "cell_type", "modellable": false, "surface_forms": ["RGCs"], "naming_chunks": ["c10"], "pages": ["546"], "note": "THE HARD CASE. The full name appears nowhere; the chapter writes only 'RGCs'. Included by R1 evaluated over surface forms (head 'RGCs' is not a category noun). An extractor emitting the full name without the abbreviation alias scores zero provenance on the only chunk naming it."},
-    {"name": "axon", "kind": "structure", "modellable": false, "surface_forms": ["axons"], "naming_chunks": ["c10"], "pages": ["546"], "note": "INCLUDED BY RULE. 'The axons of RGCs' are the subject of c10's sentence and the head is not a category noun. At whole-eye scale the optic nerve is modelled and its axons are not. If you would exclude this, the rule needs an occurrence threshold above 1 for non-category heads — say so."},
-    {"name": "infolding", "kind": "structure", "modellable": false, "surface_forms": ["infoldings"], "naming_chunks": ["c09"], "pages": ["545"], "note": "INCLUDED BY RULE — 'infoldings of the cell membrane' in cone outer segments. The weakest inclusion on the list, kept precisely because the rule says so and the rule, not the label, is what a verifier corrects."}
+    {"name": "axon", "kind": "structure", "modellable": false, "surface_forms": ["axons"], "naming_chunks": ["c10"], "pages": ["546"], "note": "INCLUDED BY RULE. 'The axons of RGCs' are the subject of c10's sentence and the head is not a category noun. At whole-eye scale the optic nerve is modelled and its axons are not. RULED 2026-09-02: stands (see R1_ASYMMETRY)."},
+    {"name": "infolding", "kind": "structure", "modellable": false, "surface_forms": ["infoldings"], "naming_chunks": ["c09"], "pages": ["545"], "note": "INCLUDED BY RULE — 'infoldings of the cell membrane' in cone outer segments. The weakest inclusion on the list, kept precisely because the rule says so and the rule, not the label, is what a verifier corrects. RULED 2026-09-02: stands (see R1_ASYMMETRY)."}
   ],
 
   "excluded_candidates": [

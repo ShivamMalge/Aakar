@@ -1,0 +1,1019 @@
+{
+  "chapter_id": "golden-chapter",
+  "topic_scale": "the whole human eye, as in specs/golden/human_eye.json",
+  "model": "gemini-3.6-flash",
+  "usd": 0.0,
+  "named": 28,
+  "named_modellable": 17,
+  "entities": [
+    {
+      "name": "Eye",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "eyes",
+          "source": "rule"
+        },
+        {
+          "form": "globe",
+          "source": "model"
+        },
+        {
+          "form": "globes",
+          "source": "rule"
+        },
+        {
+          "form": "ocular globe",
+          "source": "model"
+        },
+        {
+          "form": "ocular globes",
+          "source": "rule"
+        },
+        {
+          "form": "eyeball",
+          "source": "text"
+        },
+        {
+          "form": "interior eyeball",
+          "source": "text"
+        }
+      ],
+      "forms_in_chapter": [
+        "Eye",
+        "eyeball",
+        "interior eyeball"
+      ],
+      "naming_chunks": [
+        "c01",
+        "c02",
+        "c03",
+        "c04",
+        "c05",
+        "c06",
+        "c10"
+      ],
+      "pages": [
+        "541",
+        "542",
+        "543",
+        "546"
+      ]
+    },
+    {
+      "name": "Fibrous tunic",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "fibrous tunics",
+          "source": "rule"
+        },
+        {
+          "form": "tunica fibrosa bulbi",
+          "source": "model"
+        },
+        {
+          "form": "tunica fibrosa bulbis",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Fibrous tunic"
+      ],
+      "naming_chunks": [
+        "c01"
+      ],
+      "pages": [
+        "541"
+      ]
+    },
+    {
+      "name": "Sclera",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "sclerae",
+          "source": "rule"
+        },
+        {
+          "form": "scleras",
+          "source": "rule"
+        },
+        {
+          "form": "white of the eye",
+          "source": "model"
+        },
+        {
+          "form": "white of the eyes",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Sclera"
+      ],
+      "naming_chunks": [
+        "c01"
+      ],
+      "pages": [
+        "541"
+      ]
+    },
+    {
+      "name": "Cornea",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "corneae",
+          "source": "rule"
+        },
+        {
+          "form": "corneas",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Cornea"
+      ],
+      "naming_chunks": [
+        "c01",
+        "c02",
+        "c06"
+      ],
+      "pages": [
+        "541",
+        "543"
+      ]
+    },
+    {
+      "name": "Anterior segment of eye",
+      "kind": "region",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "anterior segment of eyes",
+          "source": "rule"
+        },
+        {
+          "form": "anterior eye",
+          "source": "model"
+        },
+        {
+          "form": "anterior eyes",
+          "source": "rule"
+        },
+        {
+          "form": "anterior part of the eye",
+          "source": "text"
+        }
+      ],
+      "forms_in_chapter": [
+        "anterior eye",
+        "anterior part of the eye"
+      ],
+      "naming_chunks": [
+        "c02",
+        "c04"
+      ],
+      "pages": [
+        "541",
+        "542"
+      ]
+    },
+    {
+      "name": "Lens",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "lenses",
+          "source": "rule"
+        },
+        {
+          "form": "lenss",
+          "source": "rule"
+        },
+        {
+          "form": "crystalline lens",
+          "source": "model"
+        },
+        {
+          "form": "crystalline lenses",
+          "source": "rule"
+        },
+        {
+          "form": "crystalline lenss",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Lens"
+      ],
+      "naming_chunks": [
+        "c02",
+        "c06"
+      ],
+      "pages": [
+        "541",
+        "543"
+      ]
+    },
+    {
+      "name": "Retina",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "retinae",
+          "source": "rule"
+        },
+        {
+          "form": "retinas",
+          "source": "rule"
+        },
+        {
+          "form": "neural tunic",
+          "source": "model"
+        },
+        {
+          "form": "neural tunics",
+          "source": "rule"
+        },
+        {
+          "form": "tunica nervosa bulbi",
+          "source": "model"
+        },
+        {
+          "form": "tunica nervosa bulbis",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Retina",
+        "neural tunic"
+      ],
+      "naming_chunks": [
+        "c02",
+        "c05",
+        "c06",
+        "c08",
+        "c10"
+      ],
+      "pages": [
+        "541",
+        "543",
+        "544",
+        "546"
+      ]
+    },
+    {
+      "name": "Vascular tunic",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "vascular tunics",
+          "source": "rule"
+        },
+        {
+          "form": "uvea",
+          "source": "model"
+        },
+        {
+          "form": "uveae",
+          "source": "rule"
+        },
+        {
+          "form": "uveas",
+          "source": "rule"
+        },
+        {
+          "form": "uveal tract",
+          "source": "model"
+        },
+        {
+          "form": "uveal tracts",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Vascular tunic"
+      ],
+      "naming_chunks": [
+        "c03"
+      ],
+      "pages": [
+        "542"
+      ]
+    },
+    {
+      "name": "Choroid",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "choroids",
+          "source": "rule"
+        },
+        {
+          "form": "choroid coat",
+          "source": "model"
+        },
+        {
+          "form": "choroid coats",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Choroid"
+      ],
+      "naming_chunks": [
+        "c03"
+      ],
+      "pages": [
+        "542"
+      ]
+    },
+    {
+      "name": "Ciliary body",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "ciliary bodies",
+          "source": "rule"
+        },
+        {
+          "form": "ciliary bodys",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Ciliary body"
+      ],
+      "naming_chunks": [
+        "c03",
+        "c04",
+        "c06"
+      ],
+      "pages": [
+        "542",
+        "543"
+      ]
+    },
+    {
+      "name": "Iris",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "ires",
+          "source": "rule"
+        },
+        {
+          "form": "irides",
+          "source": "rule"
+        },
+        {
+          "form": "irises",
+          "source": "rule"
+        },
+        {
+          "form": "iriss",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Iris"
+      ],
+      "naming_chunks": [
+        "c03",
+        "c04",
+        "c06"
+      ],
+      "pages": [
+        "542",
+        "543"
+      ]
+    },
+    {
+      "name": "Pupil",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "pupils",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Pupil"
+      ],
+      "naming_chunks": [
+        "c04"
+      ],
+      "pages": [
+        "542"
+      ]
+    },
+    {
+      "name": "Anterior cavity",
+      "kind": "region",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "anterior cavities",
+          "source": "rule"
+        },
+        {
+          "form": "anterior cavitys",
+          "source": "rule"
+        },
+        {
+          "form": "anterior chamber space",
+          "source": "model"
+        },
+        {
+          "form": "anterior chamber spaces",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Anterior cavity"
+      ],
+      "naming_chunks": [
+        "c06"
+      ],
+      "pages": [
+        "543"
+      ]
+    },
+    {
+      "name": "Aqueous humor",
+      "kind": "substance",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "aqueous humors",
+          "source": "rule"
+        },
+        {
+          "form": "aqueous humour",
+          "source": "rule"
+        },
+        {
+          "form": "aqueous humours",
+          "source": "rule"
+        },
+        {
+          "form": "aqueous fluid",
+          "source": "model"
+        },
+        {
+          "form": "aqueous fluids",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Aqueous humor"
+      ],
+      "naming_chunks": [
+        "c06"
+      ],
+      "pages": [
+        "543"
+      ]
+    },
+    {
+      "name": "Posterior cavity",
+      "kind": "region",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "posterior cavities",
+          "source": "rule"
+        },
+        {
+          "form": "posterior cavitys",
+          "source": "rule"
+        },
+        {
+          "form": "vitreous chamber",
+          "source": "model"
+        },
+        {
+          "form": "vitreous chambers",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Posterior cavity"
+      ],
+      "naming_chunks": [
+        "c06"
+      ],
+      "pages": [
+        "543"
+      ]
+    },
+    {
+      "name": "Vitreous humor",
+      "kind": "substance",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "vitreous humors",
+          "source": "rule"
+        },
+        {
+          "form": "vitreous humour",
+          "source": "rule"
+        },
+        {
+          "form": "vitreous humours",
+          "source": "rule"
+        },
+        {
+          "form": "vitreous body",
+          "source": "model"
+        },
+        {
+          "form": "vitreous bodies",
+          "source": "rule"
+        },
+        {
+          "form": "vitreous bodys",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Vitreous humor"
+      ],
+      "naming_chunks": [
+        "c06"
+      ],
+      "pages": [
+        "543"
+      ]
+    },
+    {
+      "name": "Photoreceptor cell",
+      "kind": "cell_type",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "photoreceptor cells",
+          "source": "rule"
+        },
+        {
+          "form": "photoreceptors",
+          "source": "text"
+        }
+      ],
+      "forms_in_chapter": [
+        "photoreceptors"
+      ],
+      "naming_chunks": [
+        "c07",
+        "c08",
+        "c09"
+      ],
+      "pages": [
+        "544",
+        "545"
+      ]
+    },
+    {
+      "name": "Rod photoreceptor",
+      "kind": "cell_type",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "rod photoreceptors",
+          "source": "rule"
+        },
+        {
+          "form": "rod photoreceptour",
+          "source": "rule"
+        },
+        {
+          "form": "rod photoreceptours",
+          "source": "rule"
+        },
+        {
+          "form": "rod cell",
+          "source": "model"
+        },
+        {
+          "form": "rod cells",
+          "source": "rule"
+        },
+        {
+          "form": "rods",
+          "source": "text"
+        }
+      ],
+      "forms_in_chapter": [
+        "Rod photoreceptor",
+        "rods"
+      ],
+      "naming_chunks": [
+        "c07",
+        "c09"
+      ],
+      "pages": [
+        "544",
+        "545"
+      ]
+    },
+    {
+      "name": "Cone photoreceptor",
+      "kind": "cell_type",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "cone photoreceptors",
+          "source": "rule"
+        },
+        {
+          "form": "cone photoreceptour",
+          "source": "rule"
+        },
+        {
+          "form": "cone photoreceptours",
+          "source": "rule"
+        },
+        {
+          "form": "cone cell",
+          "source": "model"
+        },
+        {
+          "form": "cone cells",
+          "source": "rule"
+        },
+        {
+          "form": "cones",
+          "source": "text"
+        }
+      ],
+      "forms_in_chapter": [
+        "Cone photoreceptor",
+        "cones"
+      ],
+      "naming_chunks": [
+        "c07",
+        "c09"
+      ],
+      "pages": [
+        "544",
+        "545"
+      ]
+    },
+    {
+      "name": "Fovea centralis",
+      "kind": "region",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "fovea centrales",
+          "source": "rule"
+        },
+        {
+          "form": "fovea centralides",
+          "source": "rule"
+        },
+        {
+          "form": "fovea centralises",
+          "source": "rule"
+        },
+        {
+          "form": "fovea centraliss",
+          "source": "rule"
+        },
+        {
+          "form": "fovea",
+          "source": "text"
+        }
+      ],
+      "forms_in_chapter": [
+        "fovea"
+      ],
+      "naming_chunks": [
+        "c08"
+      ],
+      "pages": [
+        "544"
+      ]
+    },
+    {
+      "name": "Photoreceptor outer segment",
+      "kind": "structure",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "photoreceptor outer segments",
+          "source": "rule"
+        },
+        {
+          "form": "outer segment",
+          "source": "model"
+        },
+        {
+          "form": "outer segments",
+          "source": "rule"
+        },
+        {
+          "form": "rod-shaped outer segments",
+          "source": "text"
+        },
+        {
+          "form": "cone-shaped outer segments",
+          "source": "text"
+        }
+      ],
+      "forms_in_chapter": [
+        "outer segment",
+        "outer segments",
+        "rod-shaped outer segments",
+        "cone-shaped outer segments"
+      ],
+      "naming_chunks": [
+        "c09"
+      ],
+      "pages": [
+        "545"
+      ]
+    },
+    {
+      "name": "Membrane-bound disc",
+      "kind": "structure",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "Membrane-bound discs",
+          "source": "rule"
+        },
+        {
+          "form": "photoreceptor disc",
+          "source": "model"
+        },
+        {
+          "form": "photoreceptor discs",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Membrane-bound discs"
+      ],
+      "naming_chunks": [
+        "c09"
+      ],
+      "pages": [
+        "545"
+      ]
+    },
+    {
+      "name": "Photopigment",
+      "kind": "molecule",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "photopigments",
+          "source": "rule"
+        },
+        {
+          "form": "photosensitive pigment",
+          "source": "model"
+        },
+        {
+          "form": "photosensitive pigments",
+          "source": "rule"
+        },
+        {
+          "form": "visual pigment",
+          "source": "model"
+        },
+        {
+          "form": "visual pigments",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "photosensitive pigment",
+        "photosensitive pigments"
+      ],
+      "naming_chunks": [
+        "c09"
+      ],
+      "pages": [
+        "545"
+      ]
+    },
+    {
+      "name": "Rhodopsin",
+      "kind": "molecule",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "rhodopsins",
+          "source": "rule"
+        },
+        {
+          "form": "visual purple",
+          "source": "model"
+        },
+        {
+          "form": "visual purples",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Rhodopsin"
+      ],
+      "naming_chunks": [
+        "c09"
+      ],
+      "pages": [
+        "545"
+      ]
+    },
+    {
+      "name": "Axon",
+      "kind": "structure",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "axa",
+          "source": "rule"
+        },
+        {
+          "form": "axons",
+          "source": "rule"
+        },
+        {
+          "form": "nerve fiber",
+          "source": "model"
+        },
+        {
+          "form": "nerve fibers",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "axons"
+      ],
+      "naming_chunks": [
+        "c10"
+      ],
+      "pages": [
+        "546"
+      ]
+    },
+    {
+      "name": "Retinal ganglion cell",
+      "kind": "cell_type",
+      "modellable": false,
+      "aliases": [
+        {
+          "form": "retinal ganglion cells",
+          "source": "rule"
+        },
+        {
+          "form": "RGCs",
+          "source": "model"
+        },
+        {
+          "form": "rgcses",
+          "source": "rule"
+        },
+        {
+          "form": "rgcss",
+          "source": "rule"
+        },
+        {
+          "form": "RGC",
+          "source": "model"
+        }
+      ],
+      "forms_in_chapter": [
+        "RGCs"
+      ],
+      "naming_chunks": [
+        "c10"
+      ],
+      "pages": [
+        "546"
+      ]
+    },
+    {
+      "name": "Optic disc",
+      "kind": "region",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "optic discs",
+          "source": "rule"
+        },
+        {
+          "form": "optic nerve head",
+          "source": "model"
+        },
+        {
+          "form": "optic nerve heads",
+          "source": "rule"
+        },
+        {
+          "form": "blind spot",
+          "source": "model"
+        },
+        {
+          "form": "blind spots",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Optic disc"
+      ],
+      "naming_chunks": [
+        "c10"
+      ],
+      "pages": [
+        "546"
+      ]
+    },
+    {
+      "name": "Optic nerve",
+      "kind": "structure",
+      "modellable": true,
+      "aliases": [
+        {
+          "form": "optic nerves",
+          "source": "rule"
+        },
+        {
+          "form": "cranial nerve II",
+          "source": "model"
+        },
+        {
+          "form": "cranial nerve IIs",
+          "source": "rule"
+        },
+        {
+          "form": "CN II",
+          "source": "model"
+        },
+        {
+          "form": "CN IIs",
+          "source": "rule"
+        }
+      ],
+      "forms_in_chapter": [
+        "Optic nerve"
+      ],
+      "naming_chunks": [
+        "c10"
+      ],
+      "pages": [
+        "546"
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "name": "Supporting cell",
+      "rule": "R1",
+      "detail": "generic mention: forms ['supporting cells']"
+    },
+    {
+      "name": "Blood vessel",
+      "rule": "R1",
+      "detail": "generic mention: forms ['blood vessels']"
+    },
+    {
+      "name": "Cell membrane",
+      "rule": "R1",
+      "detail": "generic mention: forms ['Cell membrane']"
+    }
+  ],
+  "rejected_synonyms": [
+    {
+      "entity": "Photoreceptor cell",
+      "synonym": "photoreceptor",
+      "reason": "'photoreceptor' is a token inside its own name 'Photoreceptor cell'"
+    },
+    {
+      "entity": "Fovea centralis",
+      "synonym": "fovea",
+      "reason": "'fovea' is a token inside its own name 'Fovea centralis'"
+    },
+    {
+      "entity": "Retinal ganglion cell",
+      "synonym": "retinal ganglion cell",
+      "reason": "identical to the name"
+    }
+  ],
+  "unverifiable_forms": []
+}

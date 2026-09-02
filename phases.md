@@ -172,6 +172,7 @@ Prerequisite to everything else, previously invisible in the plan. The curation 
 - **3B.1** Generate a SceneSpec from a chapter plus the 3A structure set. Constrained emission against the schema.
 - **3B.2** Provenance must be honest. `chunk_ids` may be empty (schema 1.2) and the generator must actually use that when the chapter does not assert a part. **Highest-risk item in the phase** — the failure is a model that always finds something to cite because citing is easier than admitting absence.
 - **3B.3** Parent relations per D-031: scene-graph only. The derived containment relation comes from `compile()`. The generator does not assert semantics.
+- **3B.note — coextensive pairs (architect, 2026-09-02; recorded, not acted on).** *anterior cavity / aqueous humor* and *posterior cavity / vitreous humor* are near-coextensive. A spec carrying both members of a pair gives the containment classifier two parts in the same volume — not contained, not surrounding, not surface-attached. Expect it; do not discover it as an unexplained warning.
 - **3B.4** Model selection, measured, not inherited. `gemini-3.6-flash` is the provider's replacement for a retired pin, never a choice for this workload. Measure schema-valid-on-first-attempt rate, referential-valid rate, and cost per topic. If flash cannot hold the schema, report it and propose the escalation rather than silently retrying.
 
 **Gate**

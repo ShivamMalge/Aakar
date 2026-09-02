@@ -2082,3 +2082,130 @@ cannot see here — an extractor that confirms claims by whole-word match will d
 entity whose only naming chunk is garbled. The 3A runner loads and prints both on every
 report, per the standing constraint, alongside the model and chapter commit every number is
 certified against.
+
+---
+
+## D-065 — 3A rulings on the verified label set: count, R1 asymmetry, recall twice, broad generation
+
+**Status:** Applied · **Phase:** 3A · **Architect rulings 2026-09-02**
+
+`evals/golden-structures/structures.json` is verified: Shivam Malge, 2026-09-02. Four
+rulings landed with it.
+
+**1. Count reconciled.** The proposal-turn report said 25 entities; the file has 28. The
+report was the stale one. 25 was the first draft (`84e4057`); the mechanical rules added
+three inclusions taste would have skipped — *photosensitive pigment*, *axon*, *infolding* —
+and the file went to 28 at `56827bb`. The number that was wrong was in prose, not in the
+artefact, which is the right way round and still a reporting defect.
+
+**2. R1 asymmetry — recorded, not fixed.** Exclusion requires a category-noun head, so a
+non-category head is included at *any* occurrence count: *infolding* and *axon* at one
+mention, while *cell membrane* is excluded at one mention. Kept deliberately. An occurrence
+threshold for non-category heads would be taste wearing a rule's clothes. The asymmetry is
+written into `label_rules` so a future verifier reads it as designed rather than as an
+oversight. The three weak inclusions stand.
+
+**3. Recall and precision reported twice** — over all named entities, and over
+`modellable: true` only. The second is the product-relevant number and the one 3B's
+coverage denominator matches; the first tells you what the extractor misses. Counts, never a
+score. Written into the file as `gate_reporting`, next to the labels it scores.
+
+**4. Broad inflection generation affirmed**, so it is not revisited: over-generating Latin
+plurals is safe precisely because generation is followed by a check and R3 forbids
+collisions. An unused candidate costs nothing; a harvested one could be wrong. The one
+boundary that remains: a generated form must not be a real *unrelated* word, because R3
+only catches collisions *between entities* — a generated alias that happens to be an
+ordinary word would match chunks about something else. Latin plurals and `-or/-our` cannot
+do that; prefix variants (oe/e) could, and are excluded on that ground.
+
+**`label_set_commit` is derived, never hand-typed.** A commit cannot contain its own hash,
+and a stale value would certify numbers against the wrong labels. The runner reads it from
+`git log -1 -- <file>` at measurement time and prints it beside every figure.
+
+---
+
+## D-066 — Coextensive part pairs will confuse containment; expected, not yet handled
+
+**Status:** Recorded, not built (architect instruction) · **Phase:** 3B
+
+*anterior cavity / aqueous humor* and *posterior cavity / vitreous humor* are near-coextensive:
+a region and the substance filling it. A spec that models both members of a pair hands the
+containment classifier two parts occupying the same volume — not contained, not surrounding,
+not surface-attached — and the five-way relation (2C) has no name for that.
+
+Recorded now so that when 3B's generated `human_eye` produces exactly this, it is read as
+the known case rather than investigated as an unexplained warning. What to do about it —
+a sixth relation, a rule that a substance inherits its region's relations, or a spec
+convention that only one of the pair is modelled — is a 3B decision to be made on the
+generated spec, not in advance.
+
+---
+
+## D-067 — 3A first live run: what the verified label set found in the extractor
+
+**Status:** Measured; two alternatives reported, neither switched · **Phase:** 3A ·
+**Certified against** `gemini-3.6-flash`, chapter `3694009`, label set `56827bb`, verified
+by Shivam Malge 2026-09-02, measured 2026-09-02.
+
+One live call, $0.008275 (903 in / 2026 out). Recorded once; every number below replays.
+
+### The counts
+
+| | TP | FP | FN |
+| --- | --- | --- | --- |
+| all 28 named entities | 27 | 1 | 1 |
+| `modellable: true` (18) | 18 | 1 | 0 |
+
+Model chunk claims: 50 confirmed, 0 invented, 0 missed — on this chapter the model's
+attribution was perfect, and the verifier never had to override it. R1 dropped exactly the
+three generic mentions the label set excludes (*supporting cells*, *blood vessels*, *cell
+membrane*), so extractor and labels drew the boundary in the same place by construction, as
+D-064 intended.
+
+### Five findings, in order of consequence
+
+**1. A descriptive locative was extracted as a structure (the one FP).** "Anterior segment
+of eye" — confirmed in the chapter via "the anterior part of the eye" (c02) and "the
+anterior eye" (c04). Both phrases are real and both are *locations*, not names. No rule in
+R0–R3 excludes a locative: the head is *eye*, not a category noun, so R1's asymmetry admits
+it. Either the label set is missing an entity the chapter discusses, or a rule is missing.
+**Proposed R4, not applied:** a candidate whose only in-chapter forms are a positional
+adjective plus another entity's form, or contain "part of", is a location, not a name.
+Architect rules.
+
+**2. The synonym guard is name-choice-sensitive.** The approved guard rejected
+*photoreceptor* for "Photoreceptor cell" (a token of its own name). The refined guard —
+reject an own-name token only when it is a category noun — lets it through, whereupon the
+*other* rule rejects it: *photoreceptor* is the head noun of "Rod photoreceptor". Had the
+model named the entity "photoreceptor" and rods "rod", neither rule would fire. **The same
+entity set scores differently depending on the canonical names the model happens to pick.**
+The refinement was measured and is a null result on this chapter: identical counts,
+identical coverage. Reported, not switched.
+
+**3. Three singulars uncovered, one cause.** *rod*, *cone*, *photoreceptor* — the chapter
+uses each singular only as a modifier ("rod-shaped", "rod photoreceptor") and the model
+copied the plurals. A confirmed plural does not yield its singular under the approved
+method. **Singular recovery** — for a plural the model copied from the text, also emit the
+singular *when the chapter contains it whole-word* — takes coverage from **24/27 to 27/27**
+with no change to any other count. Corpus-checked, so it cannot invent a form ("lens" →
+"len" is proposed and never admitted). Still a change to the approved method: **measured,
+not switched. Architect rules.**
+
+**4. `modellable` disagreement on the humors.** The model says *aqueous humor* and
+*vitreous humor* are not modellable at whole-eye scale; the label, per ruling 1, says a
+student will click the vitreous humour. 25/27 agreement otherwise. The model's `modellable`
+is a proposal for 3B, not ground truth; the label wins.
+
+**5. The extractor was nondeterministic, and only the record/replay diff could show it.**
+`inflections()` returns a set; under per-process hash randomisation its iteration order
+varies, and the alias collector keeps the first of two forms sharing a normalised key — so a
+recording said `blood vessels` where its replay said `blood-vessels`. Fixed by iterating in
+sorted order; two fresh replays are now byte-identical. The general point: **a replay that
+differs from its recording is a finding about the code, not about the cassette**, and the
+diff has to be run to be found.
+
+### One finding about the labels, not the extractor
+
+`infolding` was the only false negative — the weakest rule-produced inclusion in the label
+set (D-065), which the model also declined to name. The rule and the model disagree on the
+same entry a human found marginal. Recorded; the rule stands.

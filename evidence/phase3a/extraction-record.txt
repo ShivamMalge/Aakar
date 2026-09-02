@@ -1,0 +1,56 @@
+3A gate - structure extraction against the verified label set
+==============================================================
+certified against
+  model             : gemini-3.6-flash
+  chapter           : golden-provenance/chapter.json @ 3694009
+  label set         : structures.json @ 56827bb
+  labels verified by: Shivam Malge on 2026-09-02
+  measured on       : 2026-09-02
+  provider mode     : record
+  scope limit       : One OpenStax section: clean, digital-native, professionally edited, English, with consistent terminology and no OCR noise.
+  scope limit       : Every surface form here is spelled the way the model expects.
+
+extraction
+  proposed by model : 31
+  kept              : 28
+  dropped           : 3
+    - 'Supporting cell'            R1         generic mention: forms ['supporting-cells']
+    - 'Blood vessel'               R1         generic mention: forms ['blood vessels']
+    - 'Cell membrane'              R1         generic mention: forms ['Cell membrane']
+  synonyms rejected : 3
+    - 'Photoreceptor cell': 'photoreceptor' is a token inside its own name 'Photoreceptor cell'
+    - 'Fovea centralis': 'fovea' is a token inside its own name 'Fovea centralis'
+    - 'Retinal ganglion cell': identical to the name
+  unverifiable forms: 0
+
+precision and recall - counts, never a score (D-065: reported twice)
+  all named entities
+    true positives  : 27
+    false positives : 1   (precision denominator 28)
+    false negatives : 1   (recall denominator 28)
+  modellable: true only
+    true positives  : 18
+    false positives : 1   (precision denominator 19)
+    false negatives : 0   (recall denominator 18)
+  unmatched labels (false negatives):
+    - 'infolding' modellable=False forms=['infoldings']
+  unmatched extractions (false positives):
+    - 'Anterior segment of eye' modellable=True: no label shares a surface form
+
+alias coverage - do the emitted aliases cover the forms the chapter uses (D-046)
+  matched entities fully covered : 24 / 27
+    - 'photoreceptor': uncovered ['photoreceptor']
+    - 'rod': uncovered ['rod']
+    - 'cone': uncovered ['cone']
+
+modellable - model's guess vs the verified label, on matched entities
+  agree: 25 / 27
+    - 'aqueous humor': model=False label=True
+    - 'vitreous humor': model=False label=True
+
+model chunk claims - diagnostic; the output uses the matcher's chunks, not these
+  confirmed: 50   invented: 0   missed: 0
+
+cost per chapter - measured, paid-tier list price (PRICING)
+  tokens : 903 in / 2026 out
+  usd    : $0.008275   ledger total $0.008275
