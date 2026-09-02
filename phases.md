@@ -144,28 +144,75 @@ Consequences to implement rather than discover:
 **No billing, no payment integration, no checkout.** Metering and protection only. The end deliverable is a **cost model in the README** — per-topic and per-question breakdown, measured hit rate, projected monthly cost at a stated MAU — not a paywall.
 
 
-## Phase 3 — Governed generation · ≈ 2–3 sessions
+## Phase 3 — Governed generation · split 3A / 3B / 3C · architect scope 2026-09-01
 
 **Objective:** the pipeline that turns a chapter into an approved SceneSpec — with the model proposing and humans publishing.
 
-### Tasks
-- **3.1 Checklist extractor (D2).** From the topic's chunks → the list of structures the chapter actually teaches; written to a human-reviewable file per topic.
-- **3.2 SceneSpec generation.** Prompt = schema + one golden spec as few-shot + the checklist + retrieved structural passages; strict parse into the pydantic model; parse failure → one repair → park.
-- **3.3 Validator (D2).** Deterministic: schema, refs/cycles, bounds, `chunk_ids` exist; completeness vs checklist; **evidence check (D-008)** — each part's `provenance.evidence` is matched against the text of its cited chunks (normalized substring, falling back to embedding similarity above a calibrated threshold); a mismatch flags the part ungrounded and feeds the repair prompt. Remaining groundedness signal flagged for the critic.
-- **3.4 Critic loop (D3).** Playwright screenshots (2 angles) → VLM critic (checklist + spec + screenshots + optional user figure) → structured critique `{missing_parts, extra_parts, layout_issues, severity}` → repair prompt. Max 2 rounds → `needs_human` with critique attached. **Every attempt's spec + screenshots + critique stored** in `spec_versions`.
-- **3.5 Review UI.** Admin route behind the owner session (D-011): pending topics, spec JSON viewer, screenshots, critique, approve / reject → status flip → approved specs appear in the viewer.
-- **3.6 Pilot batch.** Runner over 5 topics (eye, cell, neuron, Earth layers, simplified heart) against the open corpus; **budget preflight printed before the batch**; results table generator (checklist size, completeness %, repair rounds, final status, cost). **Run the batch twice — once with the critic disabled (G-04)** — and compare completeness % and final status. Cheap in replay. A null result is a real finding and gets reported as one.
-- **3.7 Replay stability.** One full generation recorded, then replayed — identical artifacts.
-- **3.8 Retrieval re-validation on generated vocabulary (G-06).** Re-run the Phase 2B retrieval, alias-matching and widening tests against at least one *generated* topic. Phase 2B proved retrieval against hand-tuned part names; generated aliases are where quality is likely to be worst.
+**Superseded structure.** The original 3.1–3.8 task list is replaced by three sub-phases with separate gates, each blocked on the previous. Phase 2 needed splitting three times; this one is larger. The original items map as follows: 3.1 → 3A; 3.2, 3.3 → 3B; 3.4, 3.7 → 3C; 3.5 (review UI) → **Phase 4**, out of scope here; 3.6 pilot batch and 3.8 retrieval re-validation → folded into the 3B/3C gates.
 
-### Acceptance gate
-- [ ] Pilot results table pasted for all 5 topics
-- [ ] Critic-ablation comparison pasted — with vs without the critic (G-04)
-- [ ] Review UI screenshots; Shivam's approve/reject decision recorded per topic
-- [ ] Retrieval re-validation green on a generated topic (G-06)
-- [ ] Replay-stability check passes
-- [ ] Batch cost report pasted
-**Evidence to paste:** the tables, screenshots list, cost report, `pytest` output.
+**Standing constraint.** Every measured number in this phase is certified against `gemini-3.6-flash` and the golden set at `ecf6954`, the same way D-058 is certified against `gemini-embedding-001`. The model and set commit are recorded alongside each figure. A model change invalidates them.
+
+### 3A — Chapter structure extraction
+
+Prerequisite to everything else, previously invisible in the plan. The curation gate displays "9 structures named in the chapter, 6 present in the spec" — which requires knowing what the chapter names. That is its own extraction task with its own accuracy question, and folding it into generation would leave it unmeasured.
+
+- **3A.1** Extract, from a chapter, the set of named anatomical/structural entities, with the chunk that names each and the page label. Model proposes `(entity, naming_chunk)` pairs; a deterministic verifier confirms each with the same whole-word matcher provenance uses; unconfirmed pairs dropped. Precision by construction, recall measured at the gate.
+- **3A.2** Aliases and inflections per entity (D-046, D-063): deterministic inflector for inflections, model synonyms and abbreviation expansions from the same call, a precision guard on model synonyms, and a **global collision check** across the whole alias set regardless of source — a shared surface form is a defect that fails extraction, never a warning.
+- **3A.3** Output is the coverage baseline the curation gate reads, with `modellable` per entity (D-064) so 3B can separate "named and omitted" from "named and out of scope".
+
+**Gate**
+- [ ] Hand-labelled structure set for the OpenStax chapter in the golden set, verified by the architect (`evals/golden-structures/structures.json`, labels produced by the mechanical rules in D-064)
+- [ ] Precision and recall against that set, as counts, not a score
+- [ ] Alias coverage reported separately: for each entity, do the emitted aliases cover the inflections that actually appear in the chapter text
+- [ ] Cost per chapter, measured
+- [ ] Scope limits loaded into the runner and printed on every report
+
+### 3B — Spec generation
+
+- **3B.1** Generate a SceneSpec from a chapter plus the 3A structure set. Constrained emission against the schema.
+- **3B.2** Provenance must be honest. `chunk_ids` may be empty (schema 1.2) and the generator must actually use that when the chapter does not assert a part. **Highest-risk item in the phase** — the failure is a model that always finds something to cite because citing is easier than admitting absence.
+- **3B.3** Parent relations per D-031: scene-graph only. The derived containment relation comes from `compile()`. The generator does not assert semantics.
+- **3B.4** Model selection, measured, not inherited. `gemini-3.6-flash` is the provider's replacement for a retired pin, never a choice for this workload. Measure schema-valid-on-first-attempt rate, referential-valid rate, and cost per topic. If flash cannot hold the schema, report it and propose the escalation rather than silently retrying.
+
+**Gate**
+- [ ] Generate `human_eye` from the chapter and compare against the hand-written golden spec — not exact match, but: structures present in golden and absent in generated, and vice versa; depth and parent-graph shape; geometry type distribution
+- [ ] **Zero-provenance parts must actually occur.** Construct a case where the chapter is silent about a structure the model would plausibly include, and show the generator emits empty `chunk_ids` rather than citing the nearest chunk. If they never occur across all three topics, that is a finding, not a pass — report it and stop
+- [ ] Schema-valid and referential-valid rates over at least 10 generations
+- [ ] Cost per topic, measured, with the repair budget not yet in play
+
+### 3C — VLM critic and repair loop
+
+- **3C.1** Critic reads the **unlabeled** capture (item 7, D-007 split). Labels are the curator's input, not the critic's, or the loop spends its budget on cosmetics.
+- **3C.2** Critic also reads the derived relation and any compile warnings riding the sentinel (D-040). A render failure yields relation plus error, which is a better input than nothing.
+- **3C.3** Up to 2 repair rounds, budget enforced and recorded per topic in the ledger.
+- **3C.4** Verdict, repair history and coverage gaps assembled into what the curation gate will read. The critic never approves — that stays human.
+
+**Gate — the seeded-defect suite is the item that matters.** Take the hand-written golden specs and break each in a known way, one defect per fixture. At minimum: a detached child; a part with a colour contradicting its structure; a transposed label pair; a missing structure the chapter names; a degenerate zero-volume mesh; a part occluding everything else. Require the critic to catch each, and report which it catches and which it misses. Without this, "the critic said it was fine" is unfalsifiable — R2 applied to the critic, and the only thing standing between a generated library and a plausible wrong one.
+- [ ] Seeded-defect suite: catches and misses, per defect
+- [ ] False positives: the critic run on the three unmodified golden specs — every finding is a false positive. A critic noisy on correct input gets ignored, same argument as the containment warnings
+- [ ] Do repair rounds improve the render, measured against the seeded defects, or do they churn
+- [ ] Cost per topic including repairs
+
+### Not in scope for Phase 3
+The curation gate UI. Phase 3 produces the data it reads; the interface is Phase 4.
+
+---
+
+## Phase 3.5 — Geometry vocabulary and scene presentation · architect scope 2026-09-01
+
+**Rationale.** The nine primitive types produce assemblies that read as nested spheres. This is a product-quality ceiling, not a correctness bug — every render is valid and none of them look like a textbook figure. The fix is a richer **parametric** vocabulary, not imported meshes: imports would return the segment-and-label problem the SceneSpec approach exists to avoid, and would break provenance and coverage entirely (see the DECISIONS entry on rejected asset-library sourcing).
+
+**Ordering constraint.** Must complete **before any topic is approved into the shared library**. Regenerating specs is cheap; re-curating approved topics by hand is not. May run before or after 3B/3C, but never after curation begins.
+
+- **3.5.1 Lathe / surface of revolution.** A 2D profile curve rotated about an axis. Covers eyeball, cornea, lens, soma, tooth, bone shaft, most organs. The single highest-value addition. Schema: profile as a bounded point list, axis, sweep angle, segment count. Deterministic compiler builder, as with existing types. Must participate in cutaway (clip plane) and explode identically to other types. Containment classification must handle it — the analytic inside-test needs a polygon-winding approach, not a primitive formula.
+- **3.5.2 Sweep / tube along curve.** A profile swept along a spline path. Covers axon with bends, blood vessels, nerve tracts, digestive tract, ducts. Schema: path control points, radius (constant or per-point), segments. Same cutaway/explode/containment requirements.
+- **3.5.3 Scene presentation.** Currently default lighting. Establish a deliberate setup — key/fill/rim or equivalent — consistent across all topics so the library reads as one product rather than forty. Verify against both label variants (D-007 capture split): the critic's unlabeled capture must stay legible under the new lighting.
+
+**Gate**
+- [ ] Schema bump, both stacks, conformance fixtures for both new types including the behavioural axis (defaults present and absent)
+- [ ] One existing golden spec rebuilt using the new types, rendered side by side with the primitive version
+- [ ] Cutaway, explode, containment classification and label placement all verified on the new types — the 40-part stress fixture regenerated to include them
+- [ ] Critic false-positive rate re-checked: new geometry must not make correct specs look wrong
 
 ---
 

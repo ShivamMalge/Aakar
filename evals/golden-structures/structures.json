@@ -1,46 +1,94 @@
 {
-  "PROPOSED": "Every entity below, every naming_chunks list, and every kind tag is PROPOSED BY THE SYSTEM and does not count until a human verifies it against the chapter (same rule as the provenance golden set, D-048). This is the hand-label set the 3A gate measures precision and recall against; a label set produced by the thing it evaluates measures self-consistency until someone signs it.",
-  "how_to_verify": "Read chapter.json. For each entry: is this genuinely named in the chapter (not merely implied)? Are the naming chunks right and complete? Is anything named in the chapter missing from this list? Decide the four boundary questions below, correct, then set verified: true with your name and date.",
+  "PROPOSED": "Every entity, surface-form list, kind tag and modellable flag below is PROPOSED BY THE SYSTEM and counts for nothing until a human verifies it against the chapter (D-048). This is the hand-label set the 3A gate measures precision and recall against.",
+  "how_to_verify": "Read chapter.json. For each entity: is it genuinely named (not merely implied)? Are surface_forms and naming_chunks right and complete? Is anything named in the chapter missing? Check the excluded_candidates table: does the rule that excluded each one give the answer you would give? If you disagree with an inclusion or exclusion, the RULE changes, not the label — see label_rules. Then set verified: true with your name and date.",
   "verified": false,
   "verified_by": null,
   "verified_on": null,
 
-  "provenance_of_these_labels": "Candidate entities were listed by reading the chapter; naming_chunks and forms_in_text were then derived MECHANICALLY, by the same whole-word matcher provenance resolution uses (aakar/rag/provenance_resolve.py). So the chunk attributions are reproducible by grep; the judgment calls are only WHICH entities are on the list and their kind tags.",
+  "certification": {
+    "note": "Every 3A number measured against this set is certified against the model and chapter named here and nothing else (same treatment as D-058). A model change or a chapter change invalidates it.",
+    "model": "gemini-3.6-flash",
+    "chapter": "evals/golden-provenance/chapter.json",
+    "chapter_commit": "ecf6954",
+    "label_set_commit": null,
+    "measured_on": null
+  },
 
-  "boundary_questions_for_the_verifier": {
-    "q1_substances": "aqueous humor, vitreous humor, rhodopsin are substances/molecules, not anatomical structures. Proposed: INCLUDE, tagged by kind — in a clickable 3D eye the humors are parts, and rhodopsin is what a rod's discs exist to hold. Excluding them would make the coverage baseline blind to things the chapter plainly names.",
-    "q2_generic_mentions": "c08 mentions 'supporting cells and blood vessels' — named generically, not as specific structures. Proposed: EXCLUDE, on the rule that an entity must be a specific nameable thing a spec part could correspond to. This rule needs your sign-off because it is doing real work.",
-    "q3_synonymous_names": "'neural tunic' and 'retina' are two names for one structure (c05 says so explicitly). Proposed: ONE entity (retina) carrying 'neural tunic' as a synonym, not two entities — the curation gate counts structures, and counting one structure twice inflates the denominator.",
-    "q4_subcellular_depth": "outer segment and membrane-bound disc are subcellular. Proposed: INCLUDE — the chapter names them and a spec of the photoreceptor could model them — but they are the entities most likely to be legitimately absent from a whole-eye spec, which the curation gate should show as 'named but not modelled' rather than as a defect."
+  "SCOPE_LIMITS": {
+    "read_this_before_quoting_any_number": "Same two limits as the provenance golden set, and they bound every 3A number the same way.",
+    "1_this_is_a_ceiling_not_a_typical_case": "One OpenStax section: clean, digital-native, professionally edited, English, with consistent terminology and no OCR noise. Aakar's real input is scanned Indian textbooks. Extraction precision and recall measured here are close to the best this system will do on any chapter; they say nothing about the rate on the actual corpus. What they establish is that failures seen on a clean chapter are real, since the input cannot be blamed for them.",
+    "2_no_ocr_noise_in_the_names": "Every surface form here is spelled the way the model expects. A scanned page produces 'ciliary hody', 'vitre0us humor', split words across a line break — and an extractor that verifies claims by whole-word match against chunk text will DROP a correct entity whose only naming chunk is garbled. That is a recall failure invisible on this chapter. Future work, same as the provenance set: one chapter of real Tesseract output over a real scanned page."
+  },
+
+  "provenance_of_these_labels": "Candidates were listed by reading the chapter — every noun phrase a reader might call a structure, INCLUDING the ones taste would reject, so the exclusion rule gets exercised (R2). surface_forms, naming_chunks and occurrence counts were then derived MECHANICALLY by the same whole-word matcher provenance resolution uses (aakar/rag/provenance_resolve.py), and the label rules below were applied mechanically. The judgment calls that remain are the candidate list itself, each entity's kind, and modellable.",
+
+  "label_rules": {
+    "why_mechanical": "Architect ruling: a boundary decided by taste is not reproducible. A future chapter must be labelled the same way by a different person, or by a script. If a verifier disagrees with an outcome below, the rule is amended and re-applied to every candidate; the label is never hand-flipped.",
+
+    "R0_scope": "A candidate must be a physical constituent of the organism — something that can be assigned a `kind` from kind_vocabulary. Processes (photoreception), properties (visual acuity, membrane potential), quantities, and external stimuli (light, light energy) have no kind and are out of scope. This is the one rule that requires a human to assign a kind; the assignment is recorded per entity so it is auditable.",
+
+    "R1_generic_mention": "A candidate is EXCLUDED as a generic mention if ALL THREE hold: (a) every surface form the chapter uses for it has a head noun in CATEGORY_NOUNS; (b) its total occurrences across all surface forms, whole-word, is at most 1; (c) no occurrence is introduced by a NAMING_CONSTRUCTION. Otherwise it is included. Evaluated over SURFACE FORMS, not the canonical name: the chapter names retinal ganglion cells only as 'RGCs', whose head is not a category noun, so it is included — whereas testing the canonical name would exclude it on the head 'cell'. The rule is about how the chapter names the thing.",
+
+    "CATEGORY_NOUNS": ["cell", "cells", "tissue", "tissues", "vessel", "vessels", "fluid", "fluids", "layer", "layers", "structure", "structures", "muscle", "muscles", "part", "parts", "region", "regions", "surface", "surfaces", "side", "sides", "space", "spaces", "sphere", "spheres", "stack", "stacks", "membrane", "membranes", "body", "bodies", "pigment", "pigments", "supply", "potential", "energy"],
+
+    "NAMING_CONSTRUCTIONS": ["called (the|a|an)? X", "known as (the|a|an)? X", "termed (the|a|an)? X", "referred to as (the|a|an)? X", "or (the|a|an)? X,  (appositive: 'the neural tunic, or retina,')"],
+
+    "R2_one_entity_many_forms": "Two names for one structure are ONE entity with several surface forms (architect ruling 3: retina / neural tunic). The curation gate counts structures; counting one twice inflates the denominator.",
+
+    "R3_no_shared_surface_form": "No surface form may be claimed by two entities, by any route — rule-generated inflection, model synonym, or one of each. A collision is a DEFECT, not a warning: it fails extraction rather than picking a winner, because silent resolution surfaces later as provenance behaviour nobody can explain (architect ruling). This label set is checked against R3 before it is used."
+  },
+
+  "modellable": {
+    "definition": "Whether a spec at THIS TOPIC'S SCALE — the whole eye, as in specs/golden/human_eye — could reasonably include the entity as a distinct clickable geometry. Topic-relative by construction: a 'photoreceptor' topic would model rods and cones; a whole-eye topic would not.",
+    "why_it_exists": "Coverage has two distinct failure modes. The chapter names it and the spec omitted it: a defect the curator must act on. The chapter names it and it is outside the model's scope: correct, and not the curator's problem. Collapsing them makes the coverage panel unreadable. 3B's coverage metric reports them separately, and its denominator for 'omitted' is the modellable: true entities only."
   },
 
   "kind_vocabulary": ["structure", "region", "cell_type", "substance", "molecule"],
 
   "entities": [
-    {"name": "eye", "kind": "structure", "synonyms_in_text": ["eyeball"], "naming_chunks": ["c01", "c02", "c03", "c04", "c05", "c06", "c10"], "pages": ["541", "542", "543", "546"]},
-    {"name": "fibrous tunic", "kind": "structure", "naming_chunks": ["c01"], "pages": ["541"]},
-    {"name": "sclera", "kind": "structure", "naming_chunks": ["c01"], "pages": ["541"]},
-    {"name": "cornea", "kind": "structure", "naming_chunks": ["c01", "c02", "c06"], "pages": ["541", "543"]},
-    {"name": "lens", "kind": "structure", "naming_chunks": ["c02", "c06"], "pages": ["541", "543"]},
-    {"name": "retina", "kind": "structure", "synonyms_in_text": ["neural tunic"], "naming_chunks": ["c02", "c05", "c06", "c08", "c10"], "pages": ["541", "543", "544", "546"]},
-    {"name": "vascular tunic", "kind": "structure", "naming_chunks": ["c03"], "pages": ["542"]},
-    {"name": "choroid", "kind": "structure", "naming_chunks": ["c03"], "pages": ["542"]},
-    {"name": "ciliary body", "kind": "structure", "naming_chunks": ["c03", "c04", "c06"], "pages": ["542", "543"]},
-    {"name": "iris", "kind": "structure", "naming_chunks": ["c03", "c04", "c06"], "pages": ["542", "543"]},
-    {"name": "pupil", "kind": "structure", "naming_chunks": ["c04"], "pages": ["542"]},
-    {"name": "anterior cavity", "kind": "region", "naming_chunks": ["c06"], "pages": ["543"]},
-    {"name": "aqueous humor", "kind": "substance", "naming_chunks": ["c06"], "pages": ["543"]},
-    {"name": "posterior cavity", "kind": "region", "naming_chunks": ["c06"], "pages": ["543"]},
-    {"name": "vitreous humor", "kind": "substance", "naming_chunks": ["c06"], "pages": ["543"]},
-    {"name": "photoreceptor", "kind": "cell_type", "forms_in_text": ["photoreceptor", "photoreceptors"], "naming_chunks": ["c07", "c08", "c09"], "pages": ["544", "545"]},
-    {"name": "rod", "kind": "cell_type", "forms_in_text": ["rod", "rods"], "naming_chunks": ["c07", "c09"], "pages": ["544", "545"]},
-    {"name": "cone", "kind": "cell_type", "forms_in_text": ["cone", "cones"], "naming_chunks": ["c07", "c09"], "pages": ["544", "545"]},
-    {"name": "outer segment", "kind": "structure", "forms_in_text": ["outer segment", "outer segments"], "naming_chunks": ["c09"], "pages": ["545"]},
-    {"name": "membrane-bound disc", "kind": "structure", "forms_in_text": ["membrane-bound discs"], "naming_chunks": ["c09"], "pages": ["545"]},
-    {"name": "rhodopsin", "kind": "molecule", "naming_chunks": ["c09"], "pages": ["545"]},
-    {"name": "fovea", "kind": "region", "naming_chunks": ["c08"], "pages": ["544"]},
-    {"name": "optic disc", "kind": "structure", "naming_chunks": ["c10"], "pages": ["546"]},
-    {"name": "optic nerve", "kind": "structure", "naming_chunks": ["c10"], "pages": ["546"]},
-    {"name": "retinal ganglion cell", "kind": "cell_type", "synonyms_in_text": ["RGC", "RGCs"], "naming_chunks": ["c10"], "pages": ["546"], "note": "THE HARD CASE. The chapter only ever writes the abbreviation — 'retinal ganglion cell' appears nowhere in the text. An extractor emitting the full name without the RGC alias scores zero provenance on the only chunk that names it. This entry is why abbreviation expansion is in the alias design at all."}
+    {"name": "eye", "kind": "structure", "modellable": true, "surface_forms": ["eye", "eyeball"], "naming_chunks": ["c01", "c02", "c03", "c04", "c05", "c06", "c10"], "pages": ["541", "542", "543", "546"]},
+    {"name": "fibrous tunic", "kind": "structure", "modellable": true, "surface_forms": ["fibrous tunic"], "naming_chunks": ["c01"], "pages": ["541"]},
+    {"name": "sclera", "kind": "structure", "modellable": true, "surface_forms": ["sclera"], "naming_chunks": ["c01"], "pages": ["541"]},
+    {"name": "cornea", "kind": "structure", "modellable": true, "surface_forms": ["cornea"], "naming_chunks": ["c01", "c02", "c06"], "pages": ["541", "543"]},
+    {"name": "lens", "kind": "structure", "modellable": true, "surface_forms": ["lens"], "naming_chunks": ["c02", "c06"], "pages": ["541", "543"]},
+    {"name": "retina", "kind": "structure", "modellable": true, "surface_forms": ["retina", "neural tunic"], "naming_chunks": ["c02", "c05", "c06", "c08", "c10"], "pages": ["541", "543", "544", "546"], "note": "R2: 'neural tunic' is the chapter's own second name for the retina (c05), so one entity."},
+    {"name": "vascular tunic", "kind": "structure", "modellable": true, "surface_forms": ["vascular tunic"], "naming_chunks": ["c03"], "pages": ["542"]},
+    {"name": "choroid", "kind": "structure", "modellable": true, "surface_forms": ["choroid"], "naming_chunks": ["c03"], "pages": ["542"]},
+    {"name": "ciliary body", "kind": "structure", "modellable": true, "surface_forms": ["ciliary body"], "naming_chunks": ["c03", "c04", "c06"], "pages": ["542", "543"], "note": "Head 'body' is a category noun; included by R1(b) — three occurrences."},
+    {"name": "iris", "kind": "structure", "modellable": true, "surface_forms": ["iris"], "naming_chunks": ["c03", "c04", "c06"], "pages": ["542", "543"]},
+    {"name": "pupil", "kind": "structure", "modellable": true, "surface_forms": ["pupil"], "naming_chunks": ["c04"], "pages": ["542"]},
+    {"name": "anterior cavity", "kind": "region", "modellable": true, "surface_forms": ["anterior cavity"], "naming_chunks": ["c06"], "pages": ["543"]},
+    {"name": "aqueous humor", "kind": "substance", "modellable": true, "surface_forms": ["aqueous humor"], "naming_chunks": ["c06"], "pages": ["543"], "note": "Ruling 1: substances in. Introduced by a naming construction ('called the aqueous humor')."},
+    {"name": "posterior cavity", "kind": "region", "modellable": true, "surface_forms": ["posterior cavity"], "naming_chunks": ["c06"], "pages": ["543"]},
+    {"name": "vitreous humor", "kind": "substance", "modellable": true, "surface_forms": ["vitreous humor"], "naming_chunks": ["c06"], "pages": ["543"], "note": "Ruling 1: a student will click the vitreous humour. Introduced by a naming construction."},
+    {"name": "fovea", "kind": "region", "modellable": true, "surface_forms": ["fovea"], "naming_chunks": ["c08"], "pages": ["544"]},
+    {"name": "optic disc", "kind": "structure", "modellable": true, "surface_forms": ["optic disc"], "naming_chunks": ["c10"], "pages": ["546"]},
+    {"name": "optic nerve", "kind": "structure", "modellable": true, "surface_forms": ["optic nerve"], "naming_chunks": ["c10"], "pages": ["546"]},
+
+    {"name": "photoreceptor", "kind": "cell_type", "modellable": false, "surface_forms": ["photoreceptor", "photoreceptors"], "naming_chunks": ["c07", "c08", "c09"], "pages": ["544", "545"], "note": "Ruling 4: named but not modelled at whole-eye scale."},
+    {"name": "rod", "kind": "cell_type", "modellable": false, "surface_forms": ["rod", "rods"], "naming_chunks": ["c07", "c09"], "pages": ["544", "545"], "note": "'rod-shaped' matches whole-word on 'rod' because the hyphen is a word boundary. That is correct here — the sentence is about rods — and it is exactly the kind of matcher behaviour R3's collision check has to reason about."},
+    {"name": "cone", "kind": "cell_type", "modellable": false, "surface_forms": ["cone", "cones"], "naming_chunks": ["c07", "c09"], "pages": ["544", "545"]},
+    {"name": "outer segment", "kind": "structure", "modellable": false, "surface_forms": ["outer segment", "outer segments"], "naming_chunks": ["c09"], "pages": ["545"]},
+    {"name": "membrane-bound disc", "kind": "structure", "modellable": false, "surface_forms": ["membrane-bound discs"], "naming_chunks": ["c09"], "pages": ["545"], "note": "No bare 'disc' claimed, so no collision with optic disc."},
+    {"name": "rhodopsin", "kind": "molecule", "modellable": false, "surface_forms": ["rhodopsin"], "naming_chunks": ["c09"], "pages": ["545"]},
+    {"name": "photosensitive pigment", "kind": "molecule", "modellable": false, "surface_forms": ["photosensitive pigment", "photosensitive pigments"], "naming_chunks": ["c09"], "pages": ["545"], "note": "INCLUDED BY RULE, not by taste. Head 'pigment' is a category noun, but it occurs twice, so R1(b) fails and it stays. Rhodopsin is its named instance; distinct surface forms, so no R3 collision. If you would exclude it, R1 needs a different occurrence threshold — say so and I re-apply."},
+    {"name": "retinal ganglion cell", "kind": "cell_type", "modellable": false, "surface_forms": ["RGCs"], "naming_chunks": ["c10"], "pages": ["546"], "note": "THE HARD CASE. The full name appears nowhere; the chapter writes only 'RGCs'. Included by R1 evaluated over surface forms (head 'RGCs' is not a category noun). An extractor emitting the full name without the abbreviation alias scores zero provenance on the only chunk naming it."},
+    {"name": "axon", "kind": "structure", "modellable": false, "surface_forms": ["axons"], "naming_chunks": ["c10"], "pages": ["546"], "note": "INCLUDED BY RULE. 'The axons of RGCs' are the subject of c10's sentence and the head is not a category noun. At whole-eye scale the optic nerve is modelled and its axons are not. If you would exclude this, the rule needs an occurrence threshold above 1 for non-category heads — say so."},
+    {"name": "infolding", "kind": "structure", "modellable": false, "surface_forms": ["infoldings"], "naming_chunks": ["c09"], "pages": ["545"], "note": "INCLUDED BY RULE — 'infoldings of the cell membrane' in cone outer segments. The weakest inclusion on the list, kept precisely because the rule says so and the rule, not the label, is what a verifier corrects."}
+  ],
+
+  "excluded_candidates": [
+    {"candidate": "supporting cell", "surface_forms": ["supporting cells"], "in": "c08", "rule": "R1", "head": "cells", "occurrences": 1, "named": false},
+    {"candidate": "blood vessel", "surface_forms": ["blood vessels"], "in": "c08", "rule": "R1", "head": "vessels", "occurrences": 1, "named": false},
+    {"candidate": "nervous tissue", "surface_forms": ["nervous tissue"], "in": "c05", "rule": "R1", "head": "tissue", "occurrences": 1, "named": false},
+    {"candidate": "connective tissue", "surface_forms": ["connective tissue"], "in": "c03", "rule": "R1", "head": "tissue", "occurrences": 1, "named": false},
+    {"candidate": "smooth muscle", "surface_forms": ["smooth muscle"], "in": "c04", "rule": "R1", "head": "muscle", "occurrences": 1, "named": false, "note": "'The iris is a smooth muscle' is a classification, not a naming construction."},
+    {"candidate": "cell membrane", "surface_forms": ["cell membrane"], "in": "c09", "rule": "R1", "head": "membrane", "occurrences": 1, "named": false},
+    {"candidate": "hollow sphere", "surface_forms": ["hollow sphere"], "in": "c01", "rule": "R1", "head": "sphere", "occurrences": 1, "named": false},
+    {"candidate": "blood supply", "surface_forms": ["blood supply"], "in": "c03", "rule": "R0 (also R1)", "note": "a function, not a constituent"},
+    {"candidate": "membrane potential", "surface_forms": ["membrane potential"], "in": "c07", "rule": "R0 (also R1)", "note": "a property"},
+    {"candidate": "light energy", "surface_forms": ["light energy"], "in": "c07", "rule": "R0 (also R1)", "note": "external stimulus"},
+    {"candidate": "photoreception", "surface_forms": ["photoreception"], "in": "c05", "rule": "R0", "note": "a process"},
+    {"candidate": "visual acuity", "surface_forms": ["visual acuity"], "in": "c08", "rule": "R0", "note": "a property"}
   ]
 }

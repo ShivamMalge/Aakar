@@ -1988,3 +1988,97 @@ question about my laptop while being read as an answer about the project.
 The correction to how this gets reported: **"833 tests pass" is a claim about wherever they
 were run.** Gate reports from here on say where, and a red CI is a failed gate regardless of
 what a local run says.
+
+---
+
+## D-063 — Alias generation: deterministic inflections, model synonyms, and a global collision check
+
+**Status:** Approved, not yet built · **Phase:** 3A · **Architect ruling 2026-09-01**
+
+Aliases feed two things: the retrieval scope (D5, D-022) and provenance's whole-word
+matcher (D-030). D-046 established that missing an inflection makes provenance under-report
+**systematically**. The question 3A had to answer was where aliases come from.
+
+### The evidence that shaped it
+
+Measured on the golden chapter before proposing anything: 148 distinct tokens. Every
+inflected form of every entity is a plural — `rods`, `cones`, `photoreceptors`, `segments`,
+`discs`, `RGCs`. No derivational adjective is used as an alias. And two forms cannot be
+produced by any rule: `eyeball` for *eye*, and `RGCs` for *retinal ganglion cell*, **whose
+full name appears nowhere in the text**.
+
+A stem-prefix harvest was tried and rejected: it proposes `nervous` for *optic nerve* and
+`photosensitive` for *photoreceptor*. A false alias whole-word-matches a chunk that never
+names the part and promotes provenance to `strong` — the fabricated-confidence failure D-030
+exists to prevent. **Generate-then-check, never harvest.**
+
+### The design
+
+1. **Deterministic inflector, no model, $0.** English plurals; the Latin/Greek anatomical
+   set (`-a→-ae`, `-us→-i`, `-um→-a`, `-on→-a`, `-is→-es`, `-ex/-ix→-ices`), so *ganglion→
+   ganglia* and *iris→irides* come from rules rather than a lookup; spelling variants
+   (`-or→-our`); abbreviation plurals (*RGC→RGCs*); hyphen/space variants of multiword
+   names. Rules only. Nothing is pulled from the text by similarity.
+2. **Model synonyms and abbreviation expansions**, emitted in the same extraction call as
+   the entities, so marginal cost ≈ 0. This is the part rules cannot do and the chapter
+   proves is needed. Every alias carries `source: rule | model`.
+3. **A precision guard on model synonyms**: reject a single-token synonym that is a token
+   inside its own multiword name (`body` for *ciliary body*) or the head of a different
+   entity.
+4. **A global collision check across the whole alias set, regardless of source** —
+   architect's addition. If two entities claim the same surface form, by rule, by model, or
+   one of each, that is a **defect, not a warning**: extraction fails and reports the
+   collision rather than picking a winner. Rule generation collides too — a chapter with
+   both *cone* and *conus* is the shape. Silent resolution here surfaces later as
+   provenance behaviour nobody can explain.
+5. **The gate metric is mechanical.** For every whole-word occurrence family in the chapter
+   text, is it matched by `name + aliases`? Uncovered forms are listed per entity, as
+   counts. On this chapter the inflector alone covers every inflectional form; the two it
+   cannot produce are exactly source 2's job — the cleanest evidence the split is drawn in
+   the right place.
+
+### What the model is not asked to do
+
+Inflections. A deterministic pass is cheaper, testable without a key, and cannot
+hallucinate a form. The model contributes only what text rules provably cannot.
+
+---
+
+## D-064 — Structure labels are produced by rules, not taste; `modellable` is a label field
+
+**Status:** Approved · **Phase:** 3A · **Architect rulings 2026-09-01**
+
+Four boundary questions were put to the architect with the PROPOSED label set. The rulings,
+and the one principle behind all of them:
+
+**A boundary decided by taste is not reproducible.** A future chapter must be labelled the
+same way by a different person or by a script. So each ruling is written into
+`structures.json` as a rule, applied mechanically to every candidate — *including* the ones
+taste would have rejected, so the rule gets exercised (R2) — and the file carries an
+`excluded_candidates` table naming the rule that excluded each one. If a verifier disagrees
+with an outcome, **the rule is amended and re-applied; the label is never hand-flipped.**
+
+1. **Substances in**, tagged by `kind`. A student will click the vitreous humour.
+2. **Generic mentions excluded by a mechanical rule (R1)**: excluded iff every surface form
+   has a category-noun head *and* total occurrences ≤ 1 *and* no naming construction.
+   Evaluated over **surface forms, not canonical names** — applied to the canonical name
+   it wrongly excludes *retinal ganglion cell* on the head "cell"; applied to `RGCs`, the
+   only form the chapter uses, it includes it. The rule is about how the chapter names the
+   thing.
+3. **One entity, many surface forms.** *retina* and *neural tunic* are one structure.
+4. **`modellable` added to the label schema now**, defined **relative to the topic's
+   scale**. Coverage has two failure modes — the chapter names it and the spec omitted it
+   (a defect the curator must act on) versus the chapter names it and it is outside the
+   model's scope (correct, not the curator's problem). Collapsing them makes the coverage
+   panel unreadable. 3B's "omitted" denominator is `modellable: true` entities only.
+
+The rule produced three inclusions taste would have skipped — *photosensitive pigment*,
+*axon*, *infolding* — each flagged as INCLUDED BY RULE on its entry, with the specific rule
+change that would remove it. That is the discipline working, not a defect in it.
+
+**Scope limits** are in the file in the same shape as the provenance set's: a ceiling, not
+a typical case; and no OCR noise in the names, which hides a *recall* failure the verifier
+cannot see here — an extractor that confirms claims by whole-word match will drop a correct
+entity whose only naming chunk is garbled. The 3A runner loads and prints both on every
+report, per the standing constraint, alongside the model and chapter commit every number is
+certified against.
