@@ -1,0 +1,23 @@
+{
+  "source": {
+    "work": "OpenStax, Astronomy 2e",
+    "section": "8.1 The Global Perspective",
+    "url": "https://openstax.org/books/astronomy-2e/pages/8-1-the-global-perspective",
+    "licence_verbatim": "Textbook content produced by OpenStax is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike License.",
+    "licence_url": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "LICENCE_NOTE": "CC BY-NC-SA 4.0, quoted from the page footer verbatim on 2026-09-02 — NOT CC BY. Short verbatim excerpts with attribution, used non-commercially to evaluate an open-source tool. Flagged for the architect: D-005 says the open corpus, and NC-SA is open with conditions; whether those conditions suit this repository is a ruling, not something this fixture decides.",
+    "retrieved": "2026-09-02",
+    "why_this_one": "3B needs three topics and only the eye had a chapter. The golden spec earth_layers exists; this is the open-licensed text that names its layers. Two fetched passages were elided mid-sentence ('...') and are NOT included: only complete, contiguous sentences are quoted.",
+    "PAGE_LABELS_ARE_PROPOSED": "Retrieved as HTML; page_label values are assigned by passage order, not read from a PDF. Same caveat as the provenance golden set."
+  },
+  "chunks": [
+    {"id": "c01", "page_label": "263", "source": "digital", "section": "Earth's Interior", "text": "The structure of material in Earth's interior has been probed in considerable detail by measuring the transmission of seismic waves through Earth."},
+    {"id": "c02", "page_label": "263", "source": "digital", "section": "Earth's Interior", "text": "By monitoring the seismic waves in different locations, scientists can learn about the layers through which the waves have traveled."},
+    {"id": "c03", "page_label": "264", "source": "digital", "section": "The Crust", "text": "Oceanic crust covers 55% of Earth's surface and lies mostly submerged under the oceans. It is typically about 6 kilometers thick."},
+    {"id": "c04", "page_label": "264", "source": "digital", "section": "The Crust", "text": "The continental crust is 20 to 70 kilometers thick and is composed predominantly of a different volcanic class of silicates."},
+    {"id": "c05", "page_label": "264", "source": "digital", "section": "The Mantle", "text": "The largest part of the solid Earth, called the mantle, stretches from the base of the crust downward to a depth of 2900 kilometers."},
+    {"id": "c06", "page_label": "264", "source": "digital", "section": "The Mantle", "text": "The density in the mantle increases downward from about 3.5 g/cm³ to more than 5 g/cm³ as a result of the compression produced by the weight of overlying material."},
+    {"id": "c07", "page_label": "265", "source": "digital", "section": "The Core", "text": "Beginning at a depth of 2900 kilometers, we encounter the dense metallic core of Earth. With a diameter of 7000 kilometers, our core is substantially larger than the entire planet Mercury."},
+    {"id": "c08", "page_label": "265", "source": "digital", "section": "The Core", "text": "The outer core is liquid, but the innermost part of the core (about 2400 kilometers in diameter) is probably solid."}
+  ]
+}

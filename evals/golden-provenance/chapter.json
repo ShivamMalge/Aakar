@@ -3,7 +3,10 @@
     "work": "OpenStax, Anatomy and Physiology 2e",
     "section": "14.1 Sensory Perception",
     "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/14-1-sensory-perception",
-    "licence": "CC BY 4.0",
+    "licence": "CC BY-NC-SA 4.0",
+    "licence_verbatim": "Textbook content produced by OpenStax is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike License.",
+    "licence_url": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "LICENCE_CORRECTION": "This file said CC BY 4.0 from 2D.1 until 2026-09-02. That was asserted, not read. The page footer, quoted verbatim above on 2026-09-02, says Attribution-NonCommercial-ShareAlike. Same licence as the other two OpenStax chapters in evals/golden-generation/. Flagged for the architect (D-069): D-005 names OpenStax as the open corpus, so the CHOICE stands; the licence NAME was wrong for four gates.",
     "retrieved": "2026-08-30",
     "why_this_one": "D-005: everything committed under evidence/ must come from the open corpus. This is openly licensed and quotable in full.",
     "PAGE_LABELS_ARE_PROPOSED": "The passages were retrieved as HTML, which has no PDF pagination. The page_label values below are ASSIGNED BY SECTION ORDER, not read from a PDF. They exercise the label/index split correctly, but they are NOT verifiable against a printed page. The label-vs-index mechanism itself was already proven in 2C against a real PDF with a real /PageLabels tree; what this fixture is for is faithfulness, not pagination. A genuine end-to-end page check needs the OpenStax PDF."

@@ -2258,3 +2258,30 @@ the label by accident, and stays recorded for a second chapter to measure.
 real property of the method; the refined guard was a null result here, and a second chapter
 may make it non-null. Also in `method_caveats`, printed every run.
 
+---
+
+## D-069 — Every chapter in the evaluation corpus is CC BY-NC-SA, and one file said CC BY
+
+**Status:** Corrected; ruling requested · **Phase:** 3B (found while adding two chapters)
+
+3B needs three topics and only the eye had a chapter. Fetching sections of OpenStax *Biology
+2e* (4.3, eukaryotic cells) and *Astronomy 2e* (8.1, Earth's interior) returned a licence
+footer reading **Attribution-NonCommercial-ShareAlike** — not CC BY. The same verbatim check
+run against the eye chapter, *Anatomy and Physiology 2e*, gave the same answer.
+
+**`evals/golden-provenance/chapter.json` said `"licence": "CC BY 4.0"` from 2D.1 until
+2026-09-02.** That was asserted, not read. It has been corrected to the footer text quoted
+verbatim, with the correction recorded in the file, and both new chapters carry the verbatim
+licence and URL from the day they were fetched.
+
+**What stands:** D-005 names OpenStax as the open corpus, so the *choice* of source is the
+architect's and is unchanged. **What is a ruling:** NC-SA is open with conditions —
+non-commercial use and share-alike on adaptations. This repository has no LICENSE file.
+Whether short verbatim excerpts with attribution, committed as evaluation fixtures, sit
+comfortably under those conditions is not a decision a fixture makes. Flagged; the fixtures
+are in use pending the ruling, and are trivially removable if it goes the other way.
+
+The general shape, noted because it has now happened with a model pin (D-045) and a licence:
+**a fact recorded from memory rather than from the source is indistinguishable from a
+verified one until someone reads the source.** The fix both times was the same — quote the
+provider, verbatim, and keep the quote next to the claim.

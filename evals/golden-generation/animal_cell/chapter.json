@@ -1,0 +1,25 @@
+{
+  "source": {
+    "work": "OpenStax, Biology 2e",
+    "section": "4.3 Eukaryotic Cells",
+    "url": "https://openstax.org/books/biology-2e/pages/4-3-eukaryotic-cells",
+    "licence_verbatim": "Textbook content produced by OpenStax is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike License.",
+    "licence_url": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "LICENCE_NOTE": "CC BY-NC-SA 4.0, quoted from the page footer verbatim on 2026-09-02 — NOT CC BY. Short verbatim excerpts with attribution, used non-commercially to evaluate an open-source tool. Flagged for the architect: D-005 says the open corpus, and NC-SA is open with conditions; whether those conditions suit this repository is a ruling, not something this fixture decides.",
+    "retrieved": "2026-09-02",
+    "why_this_one": "3B needs three topics and only the eye had a chapter. The golden spec animal_cell exists; this is the open-licensed text that names its parts.",
+    "PAGE_LABELS_ARE_PROPOSED": "Retrieved as HTML; page_label values are assigned by passage order, not read from a PDF. Same caveat as the provenance golden set: they exercise the label mechanism, they are not verifiable against a printed page."
+  },
+  "chunks": [
+    {"id": "c01", "page_label": "121", "source": "digital", "section": "The Plasma Membrane", "text": "The plasma membrane controls the passage of organic molecules, ions, water, and oxygen into and out of the cell."},
+    {"id": "c02", "page_label": "121", "source": "digital", "section": "The Cytoplasm", "text": "The cytoplasm is the cell's entire region between the plasma membrane and the nuclear envelope."},
+    {"id": "c03", "page_label": "122", "source": "digital", "section": "The Nucleus", "text": "The nucleus (plural = nuclei) houses the cell's DNA and directs the synthesis of ribosomes and proteins."},
+    {"id": "c04", "page_label": "122", "source": "digital", "section": "The Nuclear Envelope", "text": "The nuclear envelope is a double-membrane structure that constitutes the nucleus' outermost portion."},
+    {"id": "c05", "page_label": "122", "source": "digital", "section": "The Nucleolus", "text": "A darkly staining area within the nucleus called the nucleolus (plural = nucleoli) aggregates the ribosomal RNA with associated proteins."},
+    {"id": "c06", "page_label": "122", "source": "digital", "section": "Chromatin and Chromosomes", "text": "We call these unwound protein-chromosome complexes chromatin."},
+    {"id": "c07", "page_label": "123", "source": "digital", "section": "Ribosomes", "text": "Ribosomes are the cellular structures responsible for protein synthesis."},
+    {"id": "c08", "page_label": "123", "source": "digital", "section": "Mitochondria", "text": "Scientists often call mitochondria (singular = mitochondrion) 'powerhouses' or 'energy factories' of both plant and animal cells."},
+    {"id": "c09", "page_label": "124", "source": "digital", "section": "The Endoplasmic Reticulum", "text": "The rough ER has embedded ribosomes that give it a bumpy appearance. It synthesizes membrane and secretory proteins."},
+    {"id": "c10", "page_label": "125", "source": "digital", "section": "Lysosomes", "text": "The lysosomes are the cell's 'garbage disposal.'"}
+  ]
+}
