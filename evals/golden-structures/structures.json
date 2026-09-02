@@ -1,0 +1,46 @@
+{
+  "PROPOSED": "Every entity below, every naming_chunks list, and every kind tag is PROPOSED BY THE SYSTEM and does not count until a human verifies it against the chapter (same rule as the provenance golden set, D-048). This is the hand-label set the 3A gate measures precision and recall against; a label set produced by the thing it evaluates measures self-consistency until someone signs it.",
+  "how_to_verify": "Read chapter.json. For each entry: is this genuinely named in the chapter (not merely implied)? Are the naming chunks right and complete? Is anything named in the chapter missing from this list? Decide the four boundary questions below, correct, then set verified: true with your name and date.",
+  "verified": false,
+  "verified_by": null,
+  "verified_on": null,
+
+  "provenance_of_these_labels": "Candidate entities were listed by reading the chapter; naming_chunks and forms_in_text were then derived MECHANICALLY, by the same whole-word matcher provenance resolution uses (aakar/rag/provenance_resolve.py). So the chunk attributions are reproducible by grep; the judgment calls are only WHICH entities are on the list and their kind tags.",
+
+  "boundary_questions_for_the_verifier": {
+    "q1_substances": "aqueous humor, vitreous humor, rhodopsin are substances/molecules, not anatomical structures. Proposed: INCLUDE, tagged by kind — in a clickable 3D eye the humors are parts, and rhodopsin is what a rod's discs exist to hold. Excluding them would make the coverage baseline blind to things the chapter plainly names.",
+    "q2_generic_mentions": "c08 mentions 'supporting cells and blood vessels' — named generically, not as specific structures. Proposed: EXCLUDE, on the rule that an entity must be a specific nameable thing a spec part could correspond to. This rule needs your sign-off because it is doing real work.",
+    "q3_synonymous_names": "'neural tunic' and 'retina' are two names for one structure (c05 says so explicitly). Proposed: ONE entity (retina) carrying 'neural tunic' as a synonym, not two entities — the curation gate counts structures, and counting one structure twice inflates the denominator.",
+    "q4_subcellular_depth": "outer segment and membrane-bound disc are subcellular. Proposed: INCLUDE — the chapter names them and a spec of the photoreceptor could model them — but they are the entities most likely to be legitimately absent from a whole-eye spec, which the curation gate should show as 'named but not modelled' rather than as a defect."
+  },
+
+  "kind_vocabulary": ["structure", "region", "cell_type", "substance", "molecule"],
+
+  "entities": [
+    {"name": "eye", "kind": "structure", "synonyms_in_text": ["eyeball"], "naming_chunks": ["c01", "c02", "c03", "c04", "c05", "c06", "c10"], "pages": ["541", "542", "543", "546"]},
+    {"name": "fibrous tunic", "kind": "structure", "naming_chunks": ["c01"], "pages": ["541"]},
+    {"name": "sclera", "kind": "structure", "naming_chunks": ["c01"], "pages": ["541"]},
+    {"name": "cornea", "kind": "structure", "naming_chunks": ["c01", "c02", "c06"], "pages": ["541", "543"]},
+    {"name": "lens", "kind": "structure", "naming_chunks": ["c02", "c06"], "pages": ["541", "543"]},
+    {"name": "retina", "kind": "structure", "synonyms_in_text": ["neural tunic"], "naming_chunks": ["c02", "c05", "c06", "c08", "c10"], "pages": ["541", "543", "544", "546"]},
+    {"name": "vascular tunic", "kind": "structure", "naming_chunks": ["c03"], "pages": ["542"]},
+    {"name": "choroid", "kind": "structure", "naming_chunks": ["c03"], "pages": ["542"]},
+    {"name": "ciliary body", "kind": "structure", "naming_chunks": ["c03", "c04", "c06"], "pages": ["542", "543"]},
+    {"name": "iris", "kind": "structure", "naming_chunks": ["c03", "c04", "c06"], "pages": ["542", "543"]},
+    {"name": "pupil", "kind": "structure", "naming_chunks": ["c04"], "pages": ["542"]},
+    {"name": "anterior cavity", "kind": "region", "naming_chunks": ["c06"], "pages": ["543"]},
+    {"name": "aqueous humor", "kind": "substance", "naming_chunks": ["c06"], "pages": ["543"]},
+    {"name": "posterior cavity", "kind": "region", "naming_chunks": ["c06"], "pages": ["543"]},
+    {"name": "vitreous humor", "kind": "substance", "naming_chunks": ["c06"], "pages": ["543"]},
+    {"name": "photoreceptor", "kind": "cell_type", "forms_in_text": ["photoreceptor", "photoreceptors"], "naming_chunks": ["c07", "c08", "c09"], "pages": ["544", "545"]},
+    {"name": "rod", "kind": "cell_type", "forms_in_text": ["rod", "rods"], "naming_chunks": ["c07", "c09"], "pages": ["544", "545"]},
+    {"name": "cone", "kind": "cell_type", "forms_in_text": ["cone", "cones"], "naming_chunks": ["c07", "c09"], "pages": ["544", "545"]},
+    {"name": "outer segment", "kind": "structure", "forms_in_text": ["outer segment", "outer segments"], "naming_chunks": ["c09"], "pages": ["545"]},
+    {"name": "membrane-bound disc", "kind": "structure", "forms_in_text": ["membrane-bound discs"], "naming_chunks": ["c09"], "pages": ["545"]},
+    {"name": "rhodopsin", "kind": "molecule", "naming_chunks": ["c09"], "pages": ["545"]},
+    {"name": "fovea", "kind": "region", "naming_chunks": ["c08"], "pages": ["544"]},
+    {"name": "optic disc", "kind": "structure", "naming_chunks": ["c10"], "pages": ["546"]},
+    {"name": "optic nerve", "kind": "structure", "naming_chunks": ["c10"], "pages": ["546"]},
+    {"name": "retinal ganglion cell", "kind": "cell_type", "synonyms_in_text": ["RGC", "RGCs"], "naming_chunks": ["c10"], "pages": ["546"], "note": "THE HARD CASE. The chapter only ever writes the abbreviation — 'retinal ganglion cell' appears nowhere in the text. An extractor emitting the full name without the RGC alias scores zero provenance on the only chunk that names it. This entry is why abbreviation expansion is in the alias design at all."}
+  ]
+}
